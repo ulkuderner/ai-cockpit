@@ -80,18 +80,31 @@ export interface TelemetryPayload {
 export interface CommunityTask {
   number: number;
   title: string;
-  url: string;
+  url: string | null;
   body: string;
   assignees: string[];
   estimate_ms: number | null;
   branch: string;
   state: "open" | "mine" | "taken" | "review";
-  pr: { number: number; url: string; author: string | null } | null;
+  claimed_at: string | null;
+  updated_at: string | null;
+  pr: {
+    number: number;
+    url: string | null;
+    author: string | null;
+    created_at: string | null;
+    draft: boolean;
+    review: "APPROVED" | "CHANGES_REQUESTED" | "REVIEW_REQUIRED" | null;
+  } | null;
 }
 
 export interface CommunityBoard {
+  provider: CommunityProvider;
+  review_name: string;
   me: string;
   tasks: CommunityTask[];
+  done: Array<{ number: number; title: string; url: string | null; at: string; by: string[] }>;
+  progress: { done: number; total: number; ratio: number | null };
   totals: {
     open: number;
     mine: number;
@@ -102,7 +115,16 @@ export interface CommunityBoard {
   };
 }
 
-type CommunityConfig = { repo: string; localPath: string; label: string };
+export type CommunityProvider = "github" | "gitlab" | "local";
+
+export interface CommunityConfig {
+  provider: CommunityProvider;
+  localPath: string;
+  repo?: string;
+  label?: string;
+  host?: string;
+  planFile?: string;
+}
 
 const json = (body: unknown) => ({ body: JSON.stringify(body) });
 

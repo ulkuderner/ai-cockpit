@@ -1,6 +1,6 @@
 /**
  * @file Community.tsx
- * @description AI Cockpit community board: the shared task queue on GitHub Issues. Shows open / mine / taken / in-review tasks with estimates, lets the user claim the next task (assign + local task branch + prefilled Run page), release it, and open a PR after previewing the exact commands.
+ * @description AI Cockpit community board: a shared task queue on GitHub, GitLab or a local git repo. Shows project progress, who claimed what and when, review state of PRs/MRs and recently finished tasks; lets the user claim the next task (assign + task branch + prefilled Run page), release it, and send it for review after previewing the exact commands. An in-page guide adapts to the chosen platform.
  * @author Caglar Ulkuderner
  */
 
@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import {
+  CheckCircle2,
   CircleHelp,
   ExternalLink,
   GitPullRequest,
@@ -16,7 +17,14 @@ import {
   RotateCcw,
   Users,
 } from "lucide-react";
-import { cockpit, formatDuration, type CommunityBoard, type CommunityTask } from "../lib/cockpit";
+import {
+  cockpit,
+  formatDuration,
+  type CommunityBoard,
+  type CommunityConfig,
+  type CommunityProvider,
+  type CommunityTask,
+} from "../lib/cockpit";
 
 const STATE_STYLE: Record<CommunityTask["state"], string> = {
   open: "bg-accent-muted text-indigo-200 ring-indigo-400/20",
@@ -25,29 +33,152 @@ const STATE_STYLE: Record<CommunityTask["state"], string> = {
   review: "bg-amber-500/15 text-amber-300 ring-amber-400/30",
 };
 
-type Provider = "claude" | "codex" | "cursor";
+const PLATFORMS: CommunityProvider[] = ["github", "gitlab", "local"];
+
+type Agent = "claude" | "codex" | "cursor";
+
+function useRelative() {
+  const { i18n } = useTranslation();
+  return (iso: string | null) => {
+    if (!iso) return "";
+    const diff = (Date.parse(iso) - Date.now()) / 1000;
+    const rtf = new Intl.RelativeTimeFormat(i18n.language, { numeric: "auto" });
+    const abs = Math.abs(diff);
+    if (abs < 3600) return rtf.format(Math.round(diff / 60), "minute");
+    if (abs < 86400) return rtf.format(Math.round(diff / 3600), "hour");
+    return rtf.format(Math.round(diff / 86400), "day");
+  };
+}
+
+function PlatformTabs({
+  value,
+  onChange,
+  label,
+}: {
+  value: CommunityProvider;
+  onChange: (p: CommunityProvider) => void;
+  label: string;
+}) {
+  const { t } = useTranslation("cockpit");
+  return (
+    <div className="inline-flex rounded-lg bg-surface-2 p-1" role="tablist" aria-label={label}>
+      {PLATFORMS.map((p) => (
+        <button
+          key={p}
+          type="button"
+          role="tab"
+          aria-selected={value === p}
+          onClick={() => onChange(p)}
+          className={`px-3 py-1.5 rounded-md text-xs ${value === p ? "bg-surface-4 text-gray-100" : "text-gray-400 hover:text-gray-200"}`}
+        >
+          {t(`community.platform.${p}`)}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** In-app guide with steps for the selected platform. Open by default until a repo is set. */
+function HowTo({
+  open,
+  platform,
+  onPlatform,
+}: {
+  open: boolean;
+  platform: CommunityProvider;
+  onPlatform: (p: CommunityProvider) => void;
+}) {
+  const { t } = useTranslation("cockpit");
+  const steps = t(`community.help.${platform}`, { returnObjects: true }) as Array<{
+    title: string;
+    text: string;
+    cmd?: string;
+  }>;
+  return (
+    <details open={open} className="card overflow-hidden group">
+      <summary className="flex items-center gap-2 px-4 py-3 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+        <CircleHelp className="w-4 h-4 text-accent" aria-hidden />
+        <span className="text-sm font-semibold text-gray-200">{t("community.help.title")}</span>
+        <span className="text-xs text-gray-500">{t("community.help.subtitle")}</span>
+      </summary>
+      <div className="border-t border-border px-4 pt-4">
+        <PlatformTabs value={platform} onChange={onPlatform} label={t("community.platformLabel")} />
+      </div>
+      <ol className="px-4 py-4 space-y-4">
+        {steps.map((step, i) => (
+          <li key={i} className="flex gap-3">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent-muted text-xs font-semibold text-indigo-200">
+              {i + 1}
+            </span>
+            <div className="min-w-0 space-y-1">
+              <div className="text-sm font-medium text-gray-100">{step.title}</div>
+              <p className="text-xs text-gray-400 leading-relaxed">{step.text}</p>
+              {step.cmd && (
+                <pre className="rounded-md border border-border bg-surface-2 px-3 py-1.5 text-[11px] font-mono text-gray-300 whitespace-pre-wrap break-all">
+                  {step.cmd}
+                </pre>
+              )}
+            </div>
+          </li>
+        ))}
+      </ol>
+    </details>
+  );
+}
 
 function Setup({
-  onSaved,
   initial,
+  platform,
+  onPlatform,
+  onSaved,
 }: {
+  initial: CommunityConfig | null;
+  platform: CommunityProvider;
+  onPlatform: (p: CommunityProvider) => void;
   onSaved: () => void;
-  initial: { repo: string; localPath: string; label: string } | null;
 }) {
   const { t } = useTranslation("cockpit");
   const [repo, setRepo] = useState(initial?.repo ?? "");
   const [localPath, setLocalPath] = useState(initial?.localPath ?? "");
   const [label, setLabel] = useState(initial?.label ?? "cockpit-task");
+  const [host, setHost] = useState(initial?.host ?? "");
+  const [planFile, setPlanFile] = useState(initial?.planFile ?? "docs/plan.md");
   const [err, setErr] = useState<string | null>(null);
   const input =
     "w-full bg-surface-2 border border-border rounded-lg px-3 py-2 text-sm text-gray-100 font-mono focus:outline-none focus:ring-2 focus:ring-accent";
+  const field = (
+    labelText: string,
+    value: string,
+    set: (v: string) => void,
+    placeholder?: string
+  ) => (
+    <label className="block space-y-1.5">
+      <span className="text-xs text-gray-400">{labelText}</span>
+      <input
+        className={input}
+        value={value}
+        onChange={(e) => set(e.target.value)}
+        placeholder={placeholder}
+      />
+    </label>
+  );
   return (
     <form
       className="card p-5 space-y-4"
       onSubmit={async (e) => {
         e.preventDefault();
         try {
-          await cockpit.communitySave({ repo, localPath, label });
+          await cockpit.communitySave(
+            platform === "local"
+              ? { provider: platform, localPath, planFile }
+              : {
+                  provider: platform,
+                  repo,
+                  localPath,
+                  label,
+                  ...(platform === "gitlab" && host ? { host } : {}),
+                }
+          );
           setErr(null);
           onSaved();
         } catch (x) {
@@ -55,33 +186,26 @@ function Setup({
         }
       }}
     >
-      <div>
-        <h2 className="text-sm font-semibold text-gray-200">{t("community.setupTitle")}</h2>
-        <p className="text-xs text-gray-500 mt-1">{t("community.setupHint")}</p>
+      <div className="flex flex-wrap items-start gap-3">
+        <div className="flex-1 min-w-[240px]">
+          <h2 className="text-sm font-semibold text-gray-200">{t("community.setupTitle")}</h2>
+          <p className="text-xs text-gray-500 mt-1">{t(`community.setupHint.${platform}`)}</p>
+        </div>
+        <PlatformTabs value={platform} onChange={onPlatform} label={t("community.platformLabel")} />
       </div>
       <div className="grid gap-4 md:grid-cols-3">
-        <label className="block space-y-1.5">
-          <span className="text-xs text-gray-400">{t("community.repo")}</span>
-          <input
-            className={input}
-            value={repo}
-            onChange={(e) => setRepo(e.target.value)}
-            placeholder="owner/name"
-          />
-        </label>
-        <label className="block space-y-1.5">
-          <span className="text-xs text-gray-400">{t("community.localPath")}</span>
-          <input
-            className={input}
-            value={localPath}
-            onChange={(e) => setLocalPath(e.target.value)}
-            placeholder="/Users/…/repo"
-          />
-        </label>
-        <label className="block space-y-1.5">
-          <span className="text-xs text-gray-400">{t("community.label")}</span>
-          <input className={input} value={label} onChange={(e) => setLabel(e.target.value)} />
-        </label>
+        {platform !== "local" &&
+          field(
+            t(`community.repo.${platform}`),
+            repo,
+            setRepo,
+            platform === "gitlab" ? "group/project" : "owner/name"
+          )}
+        {field(t("community.localPath"), localPath, setLocalPath, "/Users/…/repo")}
+        {platform === "local"
+          ? field(t("community.planFile"), planFile, setPlanFile, "docs/plan.md")
+          : field(t("community.label"), label, setLabel)}
+        {platform === "gitlab" && field(t("community.host"), host, setHost, "gitlab.com")}
       </div>
       {err && (
         <p className="text-xs text-red-400" role="alert">
@@ -98,14 +222,16 @@ function Setup({
   );
 }
 
-function PrDialog({
+function ReviewDialog({
   task,
+  reviewName,
   onClose,
   onDone,
 }: {
   task: CommunityTask;
+  reviewName: string;
   onClose: () => void;
-  onDone: (url: string) => void;
+  onDone: (url: string | null) => void;
 }) {
   const { t } = useTranslation("cockpit");
   const [preview, setPreview] = useState<Awaited<
@@ -116,17 +242,17 @@ function PrDialog({
   useEffect(() => {
     cockpit.communityPrPreview(task.number).then(setPreview, (x: Error) => setErr(x.message));
   }, [task.number]);
-  const quote = (a: string) => (/^[\w./:@-]+$/.test(a) ? a : `'${a.replace(/'/g, "'\\''")}'`);
+  const quote = (a: string) => (/^[\w./:@=-]+$/.test(a) ? a : `'${a.replace(/'/g, "'\\''")}'`);
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="pr-title"
+      aria-labelledby="review-title"
     >
       <div className="card w-full max-w-2xl p-5 space-y-4">
-        <h2 id="pr-title" className="text-base font-semibold text-gray-100">
-          {t("community.prTitle", { n: task.number })}
+        <h2 id="review-title" className="text-base font-semibold text-gray-100">
+          {t("community.reviewTitle", { name: reviewName, n: task.number })}
         </h2>
         {preview && (
           <>
@@ -174,7 +300,7 @@ function PrDialog({
             className="inline-flex items-center gap-1.5 rounded-lg bg-accent hover:bg-accent-hover disabled:opacity-40 px-4 py-2 text-sm font-medium text-white"
           >
             <GitPullRequest className="w-4 h-4" aria-hidden />
-            {busy ? t("community.sending") : t("community.sendPr")}
+            {busy ? t("community.sending") : t("community.sendReview", { name: reviewName })}
           </button>
         </div>
       </div>
@@ -182,60 +308,24 @@ function PrDialog({
   );
 }
 
-/** In-app guide: how a project owner and contributors use the shared queue. Open by default until a repo is set. */
-function HowTo({ open }: { open: boolean }) {
-  const { t } = useTranslation("cockpit");
-  const steps = t("community.help.steps", { returnObjects: true }) as Array<{
-    title: string;
-    text: string;
-    cmd?: string;
-  }>;
-  return (
-    <details open={open} className="card overflow-hidden group">
-      <summary className="flex items-center gap-2 px-4 py-3 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-        <CircleHelp className="w-4 h-4 text-accent" aria-hidden />
-        <span className="text-sm font-semibold text-gray-200">{t("community.help.title")}</span>
-        <span className="text-xs text-gray-500">{t("community.help.subtitle")}</span>
-      </summary>
-      <ol className="border-t border-border px-4 py-4 space-y-4">
-        {steps.map((step, i) => (
-          <li key={i} className="flex gap-3">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent-muted text-xs font-semibold text-indigo-200">
-              {i + 1}
-            </span>
-            <div className="min-w-0 space-y-1">
-              <div className="text-sm font-medium text-gray-100">{step.title}</div>
-              <p className="text-xs text-gray-400 leading-relaxed">{step.text}</p>
-              {step.cmd && (
-                <pre className="rounded-md border border-border bg-surface-2 px-3 py-1.5 text-[11px] font-mono text-gray-300 whitespace-pre-wrap break-all">
-                  {step.cmd}
-                </pre>
-              )}
-            </div>
-          </li>
-        ))}
-      </ol>
-    </details>
-  );
-}
-
 export default function Community() {
   const { t } = useTranslation("cockpit");
   const navigate = useNavigate();
-  const [cfg, setCfg] = useState<
-    { repo: string; localPath: string; label: string } | null | undefined
-  >(undefined);
+  const rel = useRelative();
+  const [cfg, setCfg] = useState<CommunityConfig | null | undefined>(undefined);
+  const [platform, setPlatform] = useState<CommunityProvider>("github");
   const [board, setBoard] = useState<CommunityBoard | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState<number | null>(null);
-  const [prFor, setPrFor] = useState<CommunityTask | null>(null);
+  const [reviewFor, setReviewFor] = useState<CommunityTask | null>(null);
   const [editing, setEditing] = useState(false);
-  const [provider, setProvider] = useState<Provider>("claude");
+  const [agent, setAgent] = useState<Agent>("claude");
 
   const load = useCallback(async () => {
     const c = await cockpit.communityConfig();
     setCfg(c);
     if (!c) return;
+    setPlatform(c.provider);
     try {
       setBoard(await cockpit.communityBoard());
       setErr(null);
@@ -265,17 +355,26 @@ export default function Community() {
   const claimAndRun = (task: CommunityTask) =>
     act(task.number, async () => {
       const r = await cockpit.communityClaim(task.number);
-      const qs = new URLSearchParams({ prompt: r.prompt, cwd: r.cwd, provider });
+      const qs = new URLSearchParams({ prompt: r.prompt, cwd: r.cwd, provider: agent });
       navigate(`/run?${qs.toString()}`);
     });
 
   const dur = (ms: number | null) => formatDuration(ms, t("h"), t("m"));
+  const reviewName =
+    board?.review_name === "merge" ? t("community.merge") : (board?.review_name ?? "PR");
   const groups: Array<[CommunityTask["state"], string]> = [
     ["mine", t("community.mine")],
-    ["open", t("community.open")],
-    ["review", t("community.review")],
+    ["review", t("community.review", { name: reviewName })],
     ["taken", t("community.taken")],
+    ["open", t("community.open")],
   ];
+  const pct = board?.progress.ratio == null ? null : Math.round(board.progress.ratio * 100);
+  const reviewState = (task: CommunityTask) =>
+    task.pr?.draft
+      ? t("community.reviewState.draft")
+      : t(`community.reviewState.${task.pr?.review ?? "WAITING"}`);
+  const iconBtn =
+    "p-1.5 rounded-md text-gray-400 hover:text-gray-100 hover:bg-surface-5 disabled:opacity-40";
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -291,14 +390,21 @@ export default function Community() {
         </div>
         {cfg && (
           <div className="ml-auto flex items-center gap-3 text-xs text-gray-400">
-            <a
-              href={`https://github.com/${cfg.repo}`}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1 font-mono hover:text-gray-200"
-            >
-              {cfg.repo} <ExternalLink className="w-3 h-3" aria-hidden />
-            </a>
+            <span className="rounded bg-surface-4 px-1.5 py-0.5">
+              {t(`community.platform.${cfg.provider}`)}
+            </span>
+            {cfg.repo ? (
+              <a
+                href={`https://${cfg.provider === "gitlab" ? cfg.host || "gitlab.com" : "github.com"}/${cfg.repo}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 font-mono hover:text-gray-200"
+              >
+                {cfg.repo} <ExternalLink className="w-3 h-3" aria-hidden />
+              </a>
+            ) : (
+              <span className="font-mono truncate max-w-[280px]">{cfg.localPath}</span>
+            )}
             <button
               onClick={() => setEditing((v) => !v)}
               className="underline-offset-2 hover:underline"
@@ -309,11 +415,15 @@ export default function Community() {
         )}
       </header>
 
-      {cfg !== undefined && <HowTo open={cfg === null} />}
+      {cfg !== undefined && (
+        <HowTo open={cfg === null} platform={platform} onPlatform={setPlatform} />
+      )}
 
       {(cfg === null || editing) && (
         <Setup
           initial={cfg ?? null}
+          platform={platform}
+          onPlatform={setPlatform}
           onSaved={() => {
             setEditing(false);
             load();
@@ -330,7 +440,42 @@ export default function Community() {
       {board && (
         <>
           <div className="card p-5">
-            <dl className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="flex items-baseline justify-between gap-3 mb-2">
+              <span className="text-xs uppercase tracking-wider text-gray-500">
+                {t("community.progress")}
+              </span>
+              <span className="text-xs text-gray-400 tabular-nums">
+                {t("community.progressOf", {
+                  done: board.progress.done,
+                  total: board.progress.total,
+                })}
+              </span>
+            </div>
+            <div
+              className="h-2 rounded-full bg-surface-5 overflow-hidden mb-5"
+              role="progressbar"
+              aria-valuenow={pct ?? 0}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={t("community.progress")}
+            >
+              <div
+                className="h-full bg-emerald-400 rounded-full transition-[width] duration-700"
+                style={{ width: `${pct ?? 0}%` }}
+              />
+            </div>
+            <dl className="grid grid-cols-2 lg:grid-cols-5 gap-5">
+              <div>
+                <dt className="text-xs uppercase tracking-wider text-gray-500">
+                  {t("community.done")}
+                </dt>
+                <dd className="mt-1 text-2xl font-semibold text-emerald-300 tabular-nums">
+                  {pct == null
+                    ? "—"
+                    : new Intl.NumberFormat(undefined, { style: "percent" }).format(pct / 100)}
+                </dd>
+                <dd className="text-xs text-gray-500">{board.progress.done}</dd>
+              </div>
               <div>
                 <dt className="text-xs uppercase tracking-wider text-gray-500">
                   {t("community.open")}
@@ -363,7 +508,7 @@ export default function Community() {
               </div>
               <div>
                 <dt className="text-xs uppercase tracking-wider text-gray-500">
-                  {t("community.review")}
+                  {t("community.review", { name: reviewName })}
                 </dt>
                 <dd className="mt-1 text-2xl font-semibold text-amber-300 tabular-nums">
                   {board.totals.review}
@@ -372,12 +517,12 @@ export default function Community() {
             </dl>
             <div className="mt-5 flex flex-wrap items-center gap-2 text-xs text-gray-400">
               <span>{t("community.agent")}</span>
-              {(["claude", "codex", "cursor"] as Provider[]).map((p) => (
+              {(["claude", "codex", "cursor"] as Agent[]).map((p) => (
                 <button
                   key={p}
-                  onClick={() => setProvider(p)}
-                  aria-pressed={provider === p}
-                  className={`rounded-full px-2.5 py-1 ${provider === p ? "bg-accent/20 text-accent" : "hover:text-gray-200"}`}
+                  onClick={() => setAgent(p)}
+                  aria-pressed={agent === p}
+                  className={`rounded-full px-2.5 py-1 ${agent === p ? "bg-accent/20 text-accent" : "hover:text-gray-200"}`}
                 >
                   {p === "claude" ? "Claude Code" : p === "codex" ? "Codex" : "Cursor"}
                 </button>
@@ -385,113 +530,178 @@ export default function Community() {
             </div>
           </div>
 
-          {groups.map(([state, title]) => {
-            const items = board.tasks.filter((x) => x.state === state);
-            if (items.length === 0) return null;
-            return (
-              <section key={state} className="card overflow-hidden" aria-label={title}>
-                <div className="px-4 pt-4 pb-3 flex items-baseline gap-3">
-                  <h2 className="text-sm font-semibold text-gray-200">{title}</h2>
-                  <span className="text-xs text-gray-500 tabular-nums">{items.length}</span>
-                </div>
-                <ul className="divide-y divide-border border-t border-border">
-                  {items.map((task) => (
-                    <li key={task.number} className="flex items-center gap-3 px-4 py-3">
-                      <a
-                        href={task.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="w-12 shrink-0 font-mono text-xs text-gray-500 hover:text-gray-200"
-                      >
-                        #{task.number}
-                      </a>
-                      <div className="min-w-0 flex-1">
-                        <div className="text-sm text-gray-100 truncate">{task.title}</div>
-                        <div className="text-xs text-gray-500 truncate">
-                          {task.assignees.length > 0 && `@${task.assignees.join(", @")}`}
-                          {task.pr && (
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+            <div className="space-y-6 min-w-0">
+              {groups.map(([state, title]) => {
+                const items = board.tasks.filter((x) => x.state === state);
+                if (items.length === 0) return null;
+                return (
+                  <section key={state} className="card overflow-hidden" aria-label={title}>
+                    <div className="px-4 pt-4 pb-3 flex items-baseline gap-3">
+                      <h2 className="text-sm font-semibold text-gray-200">{title}</h2>
+                      <span className="text-xs text-gray-500 tabular-nums">{items.length}</span>
+                    </div>
+                    <ul className="divide-y divide-border border-t border-border">
+                      {items.map((task) => (
+                        <li key={task.number} className="flex items-center gap-3 px-4 py-3">
+                          {task.url ? (
                             <a
-                              href={task.pr.url}
+                              href={task.url}
                               target="_blank"
                               rel="noreferrer"
-                              className="ml-2 text-amber-300/80 hover:underline"
+                              className="w-12 shrink-0 font-mono text-xs text-gray-500 hover:text-gray-200"
                             >
-                              PR #{task.pr.number}
+                              #{task.number}
                             </a>
+                          ) : (
+                            <span className="w-12 shrink-0 font-mono text-xs text-gray-500">
+                              #{task.number}
+                            </span>
                           )}
-                        </div>
-                      </div>
-                      <span className="hidden sm:block w-20 text-right text-xs text-gray-500 tabular-nums">
-                        {task.estimate_ms != null ? `~${dur(task.estimate_ms)}` : ""}
-                      </span>
-                      <span
-                        className={`rounded-full px-2.5 py-0.5 text-xs ring-1 ${STATE_STYLE[task.state]}`}
-                      >
-                        {t(`community.state.${task.state}`)}
-                      </span>
-                      <div className="flex gap-1">
-                        {task.state === "open" && (
-                          <button
-                            disabled={busy !== null}
-                            onClick={() => claimAndRun(task)}
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-accent hover:bg-accent-hover disabled:opacity-40 px-3 py-1.5 text-xs font-medium text-white"
+                          <div className="min-w-0 flex-1">
+                            <div className="text-sm text-gray-100 truncate">{task.title}</div>
+                            <div className="text-xs text-gray-500 truncate">
+                              {task.assignees.length > 0 &&
+                                t("community.claimedBy", {
+                                  who: `@${task.assignees.join(", @")}`,
+                                  when: task.claimed_at
+                                    ? rel(task.claimed_at)
+                                    : rel(task.updated_at),
+                                })}
+                              {task.pr && (
+                                <>
+                                  {" · "}
+                                  {task.pr.url ? (
+                                    <a
+                                      href={task.pr.url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="text-amber-300/80 hover:underline"
+                                    >
+                                      {reviewName} #{task.pr.number}
+                                    </a>
+                                  ) : (
+                                    `${reviewName} #${task.pr.number}`
+                                  )}
+                                  {` · ${reviewState(task)}`}
+                                  {task.pr.created_at && ` · ${rel(task.pr.created_at)}`}
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          <span className="hidden sm:block w-20 text-right text-xs text-gray-500 tabular-nums">
+                            {task.estimate_ms != null ? `~${dur(task.estimate_ms)}` : ""}
+                          </span>
+                          <span
+                            className={`rounded-full px-2.5 py-0.5 text-xs ring-1 ${STATE_STYLE[task.state]}`}
                           >
-                            <Hand className="w-3.5 h-3.5" aria-hidden />
-                            {busy === task.number ? t("community.claiming") : t("community.claim")}
-                          </button>
+                            {t(`community.state.${task.state}`)}
+                          </span>
+                          <div className="flex gap-1">
+                            {task.state === "open" && (
+                              <button
+                                disabled={busy !== null}
+                                onClick={() => claimAndRun(task)}
+                                className="inline-flex items-center gap-1.5 rounded-lg bg-accent hover:bg-accent-hover disabled:opacity-40 px-3 py-1.5 text-xs font-medium text-white"
+                              >
+                                <Hand className="w-3.5 h-3.5" aria-hidden />
+                                {busy === task.number
+                                  ? t("community.claiming")
+                                  : t("community.claim")}
+                              </button>
+                            )}
+                            {task.state === "mine" && (
+                              <>
+                                <button
+                                  disabled={busy !== null}
+                                  onClick={() => claimAndRun(task)}
+                                  title={t("community.continue")}
+                                  aria-label={t("community.continue")}
+                                  className={iconBtn}
+                                >
+                                  <Play className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => setReviewFor(task)}
+                                  title={t("community.sendReview", { name: reviewName })}
+                                  aria-label={t("community.sendReview", { name: reviewName })}
+                                  className={iconBtn}
+                                >
+                                  <GitPullRequest className="w-4 h-4" />
+                                </button>
+                                <button
+                                  disabled={busy !== null}
+                                  onClick={() =>
+                                    act(task.number, () => cockpit.communityRelease(task.number))
+                                  }
+                                  title={t("community.release")}
+                                  aria-label={t("community.release")}
+                                  className={iconBtn}
+                                >
+                                  <RotateCcw className="w-4 h-4" />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                );
+              })}
+              {board.tasks.length === 0 && (
+                <div className="card p-6 text-sm text-gray-500">{t("community.empty")}</div>
+              )}
+            </div>
+
+            <aside className="card self-start overflow-hidden" aria-labelledby="done-title">
+              <div className="flex items-center gap-2 px-4 pt-4 pb-3">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" aria-hidden />
+                <h2 id="done-title" className="text-sm font-semibold text-gray-200">
+                  {t("community.recentDone")}
+                </h2>
+              </div>
+              {board.done.length === 0 ? (
+                <p className="px-4 pb-4 text-xs text-gray-500">{t("community.noneDone")}</p>
+              ) : (
+                <ul className="divide-y divide-border border-t border-border">
+                  {board.done.map((d) => (
+                    <li key={d.number} className="px-4 py-2.5">
+                      <div className="text-sm text-gray-200 truncate">
+                        {d.url ? (
+                          <a
+                            href={d.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="hover:underline"
+                          >
+                            #{d.number} {d.title}
+                          </a>
+                        ) : (
+                          `#${d.number} ${d.title}`
                         )}
-                        {task.state === "mine" && (
-                          <>
-                            <button
-                              disabled={busy !== null}
-                              onClick={() => claimAndRun(task)}
-                              title={t("community.continue")}
-                              aria-label={t("community.continue")}
-                              className="p-1.5 rounded-md text-gray-400 hover:text-gray-100 hover:bg-surface-5"
-                            >
-                              <Play className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => setPrFor(task)}
-                              title={t("community.sendPr")}
-                              aria-label={t("community.sendPr")}
-                              className="p-1.5 rounded-md text-gray-400 hover:text-gray-100 hover:bg-surface-5"
-                            >
-                              <GitPullRequest className="w-4 h-4" />
-                            </button>
-                            <button
-                              disabled={busy !== null}
-                              onClick={() =>
-                                act(task.number, () => cockpit.communityRelease(task.number))
-                              }
-                              title={t("community.release")}
-                              aria-label={t("community.release")}
-                              className="p-1.5 rounded-md text-gray-400 hover:text-gray-100 hover:bg-surface-5"
-                            >
-                              <RotateCcw className="w-4 h-4" />
-                            </button>
-                          </>
-                        )}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {d.by.length ? `@${d.by.join(", @")} · ` : ""}
+                        {rel(d.at)}
                       </div>
                     </li>
                   ))}
                 </ul>
-              </section>
-            );
-          })}
-          {board.tasks.length === 0 && (
-            <div className="card p-6 text-sm text-gray-500">{t("community.empty")}</div>
-          )}
+              )}
+            </aside>
+          </div>
         </>
       )}
 
-      {prFor && (
-        <PrDialog
-          task={prFor}
-          onClose={() => setPrFor(null)}
+      {reviewFor && board && (
+        <ReviewDialog
+          task={reviewFor}
+          reviewName={reviewName}
+          onClose={() => setReviewFor(null)}
           onDone={(url) => {
-            setPrFor(null);
-            window.open(url, "_blank", "noopener,noreferrer");
+            setReviewFor(null);
+            if (url) window.open(url, "_blank", "noopener,noreferrer");
             load();
           }}
         />

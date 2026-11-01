@@ -31,15 +31,26 @@ function issueNumber(req) {
 
 router.get("/config", (_req, res) => res.json(community.readConfig() || null));
 
-// Body: { repo: "owner/name", localPath: "/abs/clone", label?: "cockpit-task" }
+// Body: { provider: "github"|"gitlab"|"local", localPath, repo?, label?, host? (GitLab), planFile? (local, relative .md) }
 router.put(
   "/config",
   wrap(async (req) => {
-    const cfg = {
-      repo: String(req.body?.repo || "").trim(),
-      localPath: String(req.body?.localPath || "").trim(),
-      label: String(req.body?.label || "cockpit-task").trim(),
-    };
+    const b = req.body || {};
+    const provider = String(b.provider || "github");
+    const cfg =
+      provider === "local"
+        ? {
+            provider,
+            localPath: String(b.localPath || "").trim(),
+            planFile: String(b.planFile || "").trim(),
+          }
+        : {
+            provider,
+            repo: String(b.repo || "").trim(),
+            localPath: String(b.localPath || "").trim(),
+            label: String(b.label || "cockpit-task").trim(),
+            ...(provider === "gitlab" && b.host ? { host: String(b.host).trim() } : {}),
+          };
     community.validateConfig(cfg);
     community.writeConfig(cfg);
     return cfg;

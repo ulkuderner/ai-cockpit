@@ -62,17 +62,24 @@
   "community": {
     "title": "Topluluk",
     "subtitle": "Ortak iş kuyruğu: sıradaki işi al, kendi ajanınla kodla, PR gönder",
-    "setupTitle": "Topluluk deposunu bağla",
-    "setupHint": "Görevler bu GitHub deposunun etiketli issue'larıdır. Yerel klasör, deponun kendi klonun olmalı. Tüm işlemler senin gh oturumunla yapılır.",
-    "repo": "Depo (owner/name)",
-    "localPath": "Yerel klon (tam yol)",
+    "setupTitle": "Depoyu bağla",
+    "setupHint": {
+      "github": "Görevler bu GitHub deposunun etiketli issue'larıdır. Tüm işlemler senin gh oturumunla yapılır.",
+      "gitlab": "Görevler bu GitLab projesinin etiketli issue'larıdır. Tüm işlemler senin glab oturumunla yapılır.",
+      "local": "Görevler depodaki plan dosyasından gelir. Üstlenmeler bu bilgisayarda tutulur; inceleme yerine yerel birleştirme yapılır."
+    },
+    "repo": {
+      "github": "Depo (owner/name)",
+      "gitlab": "Proje (group/project)"
+    },
+    "localPath": "Yerel depo (tam yol)",
     "label": "Görev etiketi",
     "save": "Kaydet",
     "change": "Değiştir",
     "open": "Boşta",
     "mine": "Bende",
     "taken": "Başkasında",
-    "review": "PR açık",
+    "review": "{{name}} açık",
     "openTotal": "toplam ~{{d}}",
     "unestimated_one": "{{count}} tahminsiz",
     "unestimated_other": "{{count}} tahminsiz",
@@ -81,10 +88,8 @@
     "claiming": "Alınıyor...",
     "continue": "Ajanla devam et",
     "release": "Bırak",
-    "sendPr": "PR gönder",
     "sending": "Gönderiliyor...",
     "cancel": "Vazgeç",
-    "prTitle": "#{{n}} için PR",
     "prCommits_one": "{{count}} commit gönderilecek",
     "prCommits_other": "{{count}} commit gönderilecek",
     "prCommands": "Çalışacak komutlar",
@@ -99,43 +104,119 @@
     "help": {
       "title": "Nasıl kullanılır",
       "subtitle": "Proje sahibi ve katılımcılar için adımlar",
-      "steps": [
+      "github": [
         {
           "title": "Depoyu hazırla (proje sahibi)",
-          "text": "Projeyi GitHub'da bir depoda tut. Yapılacak her işi bir issue olarak aç, \"cockpit-task\" etiketini ekle. İstersen \"est:2h\" gibi bir etiketle tahmini süre ver; toplam süre buradan hesaplanır. Katılımcıları depoya davet et ya da depoyu herkese aç.",
+          "text": "Projeyi bir GitHub deposunda tut. Her işi bir issue olarak aç, \"cockpit-task\" etiketini ekle. İstersen \"est:2h\" gibi bir etiketle tahmini süre ver. Katılımcıları davet et ya da depoyu herkese aç.",
           "cmd": "gh issue create -R owner/proje --title \"Açık tema\" --label cockpit-task --label est:4h"
         },
         {
           "title": "GitHub oturumunu aç (herkes)",
-          "text": "Kokpit her şeyi senin GitHub oturumunla yapar. Bir kez giriş yapman yeterli.",
+          "text": "Kokpit her şeyi senin GitHub oturumunla yapar.",
           "cmd": "gh auth login"
         },
         {
           "title": "Kendi klonunu al",
-          "text": "Depoyu kendi bilgisayarına klonla. Kokpit dalları bu klasörde açar.",
+          "text": "Kokpit dalları bu klasörde açar.",
           "cmd": "gh repo clone owner/proje ~/projeler/proje"
         },
         {
           "title": "Depoyu bu sayfaya bağla",
-          "text": "Depo adını (owner/proje), klonunun tam yolunu ve görev etiketini gir, kaydet. Boşta, Bende, Başkasında ve PR açık listeleri dolar."
+          "text": "GitHub'ı seç; depo adını, klonunun tam yolunu ve görev etiketini gir, kaydet."
         },
         {
           "title": "Ajanını seç, işi al",
-          "text": "Kartın altından Claude Code, Codex ya da Cursor'u seç ve boştaki bir görevde \"Al ve başlat\"a bas. Issue sana atanır, klonunda task/<no> dalı açılır ve Ajan Çalıştır sayfası görev metniyle açılır. Başkası senden önce aldıysa uyarı alırsın."
+          "text": "Özetin altından Claude Code, Codex ya da Cursor'u seç ve boştaki bir görevde \"Al ve başlat\"a bas. Görev sana atanır, deponda task/<no> dalı açılır ve Ajan Çalıştır sayfası görev metniyle açılır. Başkası senden önce aldıysa uyarı alırsın."
         },
         {
           "title": "Ajanı başlat ve izle",
-          "text": "Ajan Çalıştır'da komutu kontrol edip Çalıştır'a bas. İlerlemeyi Panel, Oturumlar ve canlı akıştan izle. Ajan push etmez ve PR açmaz; o adım senin onayınla yapılır."
+          "text": "Ajan Çalıştır'da komutu kontrol edip Çalıştır'a bas. İlerlemeyi Panel, Oturumlar ve canlı akıştan izle. Ajan push etmez; o adım senin onayınla yapılır."
         },
         {
-          "title": "PR gönder",
-          "text": "Ajan bitince sonucu kendin gözden geçir. Bende listesinde PR simgesine bas: gidecek commit'ler ve çalışacak komutlar gösterilir, onaylarsan dal push edilir ve issue'yu kapatan PR açılır."
+          "title": "PR gönder ve takip et",
+          "text": "Bende listesinde PR simgesine bas: gidecek commit'ler ve komutlar gösterilir, onaylarsan issue'yu kapatan PR açılır. Görevin satırında kimin ne zaman aldığı, PR'ın inceleme durumu (inceleme bekliyor, onaylandı, değişiklik istendi) görünür. PR birleşince görev Son bitenler'e geçer ve ilerleme çubuğu artar."
+        }
+      ],
+      "gitlab": [
+        {
+          "title": "Projeyi hazırla (proje sahibi)",
+          "text": "Projeyi bir GitLab projesinde tut. Her işi bir issue olarak aç, \"cockpit-task\" etiketini ekle; \"est:2h\" gibi bir etiketle tahmini süre verebilirsin. Katılımcıları projeye üye yap.",
+          "cmd": "glab issue create -R group/proje -t \"Açık tema\" -l cockpit-task,est:4h"
         },
         {
-          "title": "İnceleme ve birleştirme",
-          "text": "İnceleme ve birleştirme GitHub'da yapılır. PR birleşince issue kendiliğinden kapanır ve listeden düşer. Vazgeçersen \"Bırak\" ile görevi başkasına açarsın."
+          "title": "glab kur ve oturum aç (herkes)",
+          "text": "Kokpit GitLab'a senin glab oturumunla bağlanır. Kendi sunucunuz varsa giriş sırasında onu seç.",
+          "cmd": "brew install glab\nglab auth login"
+        },
+        {
+          "title": "Kendi klonunu al",
+          "text": "Kokpit dalları bu klasörde açar.",
+          "cmd": "glab repo clone group/proje ~/projeler/proje"
+        },
+        {
+          "title": "Projeyi bu sayfaya bağla",
+          "text": "GitLab'ı seç; proje yolunu (group/proje), klonunun tam yolunu, etiketi ve gerekiyorsa sunucu adını gir, kaydet."
+        },
+        {
+          "title": "Ajanını seç, işi al",
+          "text": "Özetin altından Claude Code, Codex ya da Cursor'u seç ve boştaki bir görevde \"Al ve başlat\"a bas. Görev sana atanır, deponda task/<no> dalı açılır ve Ajan Çalıştır sayfası görev metniyle açılır. Başkası senden önce aldıysa uyarı alırsın."
+        },
+        {
+          "title": "Ajanı başlat ve izle",
+          "text": "Ajan Çalıştır'da komutu kontrol edip Çalıştır'a bas. İlerlemeyi Panel, Oturumlar ve canlı akıştan izle. Ajan push etmez; o adım senin onayınla yapılır."
+        },
+        {
+          "title": "MR gönder ve takip et",
+          "text": "Bende listesinde MR simgesine bas: commit'ler ve komutlar gösterilir, onaylarsan issue'yu kapatan merge request açılır. Satırlarda kimin aldığı ve son hareket zamanı görünür. MR birleşince görev Son bitenler'e geçer."
+        }
+      ],
+      "local": [
+        {
+          "title": "Plan dosyasını hazırla",
+          "text": "Deponun içine bir plan Markdown dosyası koy. \"## Aşama\" başlıkları aşama, \"### Task 3: Başlık (est:2h)\" başlıkları görev olur.",
+          "cmd": "## Aşama 1\n### Task 1: Giriş ekranı (est:2h)\n### Task 2: Ayarlar"
+        },
+        {
+          "title": "Depoyu bu sayfaya bağla",
+          "text": "Yerel git'i seç; deponun tam yolunu ve plan dosyasının depo içindeki yolunu gir, kaydet. Uzak sunucu gerekmez."
+        },
+        {
+          "title": "Ajanını seç, işi al",
+          "text": "Özetin altından Claude Code, Codex ya da Cursor'u seç ve boştaki bir görevde \"Al ve başlat\"a bas. Görev sana atanır, deponda task/<no> dalı açılır ve Ajan Çalıştır sayfası görev metniyle açılır. Başkası senden önce aldıysa uyarı alırsın."
+        },
+        {
+          "title": "Ajanı başlat ve izle",
+          "text": "Ajan Çalıştır'da komutu kontrol edip Çalıştır'a bas. İlerlemeyi Panel, Oturumlar ve canlı akıştan izle. Ajan push etmez; o adım senin onayınla yapılır."
+        },
+        {
+          "title": "Birleştir ve takip et",
+          "text": "Bende listesinde birleştirme simgesine bas: commit'ler ve çalışacak git komutları gösterilir, onaylarsan görev dalı ana dala birleştirilir ve görev Son bitenler'e geçer. Üstlenmeler yalnız bu bilgisayarda tutulur; ekip çalışması için GitHub ya da GitLab'ı seç."
         }
       ]
-    }
+    },
+    "platform": {
+      "github": "GitHub",
+      "gitlab": "GitLab",
+      "local": "Yerel git"
+    },
+    "platformLabel": "Platform",
+    "host": "GitLab sunucusu (boşsa gitlab.com)",
+    "planFile": "Plan dosyası (depo içinde)",
+    "progress": "Proje ilerlemesi",
+    "progressOf": "{{total}} görevden {{done}} tanesi bitti",
+    "done": "Biten",
+    "merge": "birleştirme",
+    "reviewTitle": "#{{n}} için {{name}}",
+    "sendReview": "{{name}} gönder",
+    "claimedBy": "{{who}} {{when}} aldı",
+    "reviewState": {
+      "WAITING": "inceleme bekliyor",
+      "REVIEW_REQUIRED": "inceleme bekliyor",
+      "APPROVED": "onaylandı",
+      "CHANGES_REQUESTED": "değişiklik istendi",
+      "draft": "taslak"
+    },
+    "recentDone": "Son bitenler",
+    "noneDone": "Henüz biten görev yok."
   }
 }

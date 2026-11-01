@@ -1,5 +1,5 @@
 /**
- * @file AI Cockpit community work: a shared task queue on GitHub Issues (label `cockpit-task` by default). Contributors claim the next task with their own `gh` login, code it locally with their own AI agent on a `task/<n>-…` branch, and open a PR that closes the issue. Nothing but GitHub API calls made with the user's own credentials leaves the machine.
+ * @file AI Cockpit community work: a shared task queue that contributors claim, code locally with their own AI agent on a `task/<n>-…` branch, and hand back for review. Three backends: GitHub (Issues + PRs via `gh`), GitLab (Issues + MRs via `glab api`) and a plain local git repo (tasks from a plan Markdown file in the repo, claims kept on this machine, review = local merge). Nothing but the platform's own API calls, made with the user's own credentials, leaves the machine.
  * @author Caglar Ulkuderner
  */
 
@@ -7,9 +7,12 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { execFile } = require("child_process");
+const { parsePlan } = require("./plan");
 
-const REPO_RE = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
+const REPO_RE = /^[A-Za-z0-9_.-]+(\/[A-Za-z0-9_.-]+)+$/;
 const LABEL_RE = /^[\w .:/-]{1,50}$/;
+const HOST_RE = /^[A-Za-z0-9.-]+(:\d+)?$/;
+const PROVIDERS = new Set(["github", "gitlab", "local"]);
 
 function stateFile() {
   return path.join(
@@ -20,7 +23,8 @@ function stateFile() {
 
 function readConfig() {
   try {
-    return JSON.parse(fs.readFileSync(stateFile(), "utf8"));
+    const cfg = JSON.parse(fs.readFileSync(stateFile(), "utf8"));
+    return { provider: "github", ...cfg };
   } catch {
     return null;
   }
@@ -31,6 +35,8 @@ function writeConfig(cfg) {
   fs.writeFileSync(stateFile(), JSON.stringify(cfg, null, 2));
 }
 
+const fail = (status, message) => Object.assign(new Error(message), { status });
+
 /** Argument-array exec (no shell). Rejects with stderr text on failure. */
 function run(bin, args, opts = {}) {
   return new Promise((resolve, reject) => {
@@ -40,7 +46,11 @@ function run(bin, args, opts = {}) {
       { timeout: 60_000, maxBuffer: 16 * 1024 * 1024, ...opts },
       (err, stdout, stderr) => {
         if (err) {
-          const e = new Error((stderr || err.message).trim());
+          const e = new Error(
+            err.code === "ENOENT"
+              ? `${bin} bulunamadı; kurulu ve PATH'te olmalı`
+              : (stderr || err.message).trim()
+          );
           e.code = "ECMD";
           return reject(e);
         }
@@ -50,29 +60,40 @@ function run(bin, args, opts = {}) {
   });
 }
 
-const gh = (args, opts) => run(process.env.GH_BIN || "gh", args, opts);
 const git = (cwd, args) => run("git", ["-C", cwd, ...args]);
 
-function validateConfig({ repo, localPath, label }) {
-  if (!REPO_RE.test(repo || ""))
-    throw Object.assign(new Error("Depo owner/name biçiminde olmalı"), { status: 400 });
-  if (!path.isAbsolute(localPath || "") || !fs.existsSync(path.join(localPath, ".git"))) {
-    throw Object.assign(new Error("Yerel klasör bir git klonu olmalı (tam yol)"), { status: 400 });
+function validateConfig(cfg) {
+  if (!PROVIDERS.has(cfg.provider)) throw fail(400, "Sağlayıcı github, gitlab ya da local olmalı");
+  if (!path.isAbsolute(cfg.localPath || "") || !fs.existsSync(path.join(cfg.localPath, ".git"))) {
+    throw fail(400, "Yerel klasör bir git deposu olmalı (tam yol)");
   }
-  if (!LABEL_RE.test(label || ""))
-    throw Object.assign(new Error("Geçersiz etiket"), { status: 400 });
+  if (cfg.provider === "local") {
+    const plan = path.resolve(cfg.localPath, cfg.planFile || "");
+    if (
+      !plan.startsWith(cfg.localPath + path.sep) ||
+      !plan.endsWith(".md") ||
+      !fs.existsSync(plan)
+    ) {
+      throw fail(400, "Plan dosyası depo içinde bir .md dosyası olmalı");
+    }
+    return;
+  }
+  if (!REPO_RE.test(cfg.repo || ""))
+    throw fail(400, "Depo owner/name (GitLab'da group/subgroup/name) biçiminde olmalı");
+  if (!LABEL_RE.test(cfg.label || "")) throw fail(400, "Geçersiz etiket");
+  if (cfg.host && !HOST_RE.test(cfg.host)) throw fail(400, "Geçersiz GitLab sunucusu");
 }
 
-/** Estimate in ms from an `est:3h` / `est:45m` / `est:1.5h` label; null when absent. */
+/** Estimate in ms from an `est:3h` / `est:45m` / `est:1.5h` label or title token; null when absent. */
 function estimateFromLabels(labels) {
   for (const l of labels || []) {
-    const m = /^est:\s*(\d+(?:\.\d+)?)\s*([hm])$/i.exec(l.name || l);
+    const m = /(?:^|\s|\()est:\s*(\d+(?:\.\d+)?)\s*([hm])\b/i.exec(` ${l.name || l}`);
     if (m) return Number(m[1]) * (m[2].toLowerCase() === "h" ? 3_600_000 : 60_000);
   }
   return null;
 }
 
-/** Issue numbers a PR closes, from GitHub's link data or a "Closes #12" style body. */
+/** Issue numbers a PR/MR closes, from link data or a "Closes #12" style body. */
 function closedIssues(pr) {
   const out = new Set((pr.closingIssuesReferences || []).map((r) => r.number));
   const re = /\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s+#(\d+)/gi;
@@ -83,7 +104,7 @@ function closedIssues(pr) {
 
 function slug(title) {
   return (
-    title
+    String(title)
       .toLowerCase()
       .normalize("NFKD")
       .replace(/[̀-ͯ]/g, "")
@@ -96,8 +117,12 @@ function slug(title) {
 
 const branchFor = (issue) => `task/${issue.number}-${slug(issue.title)}`;
 
-/** Pure: merge issues + PRs into the board the UI shows. Exported for tests. */
-function buildBoard(issues, prs, me) {
+/**
+ * Pure: merge normalized issues + review requests into the board the UI shows. Exported for tests.
+ * issues: [{ number, title, url, body, assignees: [{login}], labels: [{name}] }]
+ * prs:    [{ number, url, body, author: {login}, closingIssuesReferences? }]
+ */
+function buildBoard(issues, prs, me, done = { total: 0, recent: [] }) {
   const prByIssue = new Map();
   for (const pr of prs) for (const n of closedIssues(pr)) prByIssue.set(n, pr);
   const tasks = issues
@@ -114,20 +139,34 @@ function buildBoard(issues, prs, me) {
       return {
         number: i.number,
         title: i.title,
-        url: i.url,
+        url: i.url || null,
         body: i.body || "",
         assignees,
         estimate_ms: estimateFromLabels(i.labels),
         branch: branchFor(i),
         state,
-        pr: pr ? { number: pr.number, url: pr.url, author: pr.author?.login || null } : null,
+        claimed_at: i.claimed_at || null,
+        updated_at: i.updated_at || null,
+        pr: pr
+          ? {
+              number: pr.number,
+              url: pr.url || null,
+              author: pr.author?.login || null,
+              created_at: pr.created_at || null,
+              draft: !!pr.draft,
+              review: pr.review || null,
+            }
+          : null,
       };
     })
     .sort((a, b) => a.number - b.number);
   const openTasks = tasks.filter((t) => t.state === "open");
+  const all = tasks.length + done.total;
   return {
     me,
     tasks,
+    done: done.recent,
+    progress: { done: done.total, total: all, ratio: all ? done.total / all : null },
     totals: {
       open: openTasks.length,
       mine: tasks.filter((t) => t.state === "mine").length,
@@ -139,95 +178,479 @@ function buildBoard(issues, prs, me) {
   };
 }
 
-let meCache = null;
-async function whoami() {
-  if (!meCache) meCache = (await gh(["api", "user", "--jq", ".login"])).trim();
-  return meCache;
+// ── GitHub (gh) ─────────────────────────────────────────────────────────────
+
+const gh = (args) => run(process.env.GH_BIN || "gh", args);
+
+const github = {
+  reviewName: "PR",
+  async me() {
+    return (await gh(["api", "user", "--jq", ".login"])).trim();
+  },
+  async snapshot(cfg) {
+    const [owner, name] = cfg.repo.split("/");
+    const query = `query($owner:String!,$name:String!,$label:String!){repository(owner:$owner,name:$name){
+      open:issues(first:100,states:OPEN,labels:[$label],orderBy:{field:CREATED_AT,direction:ASC}){nodes{
+        number title url body updatedAt assignees(first:5){nodes{login}} labels(first:20){nodes{name}}
+        timelineItems(itemTypes:[ASSIGNED_EVENT],last:1){nodes{...on AssignedEvent{createdAt}}}}}
+      done:issues(first:20,states:CLOSED,labels:[$label],orderBy:{field:UPDATED_AT,direction:DESC}){totalCount nodes{
+        number title url closedAt assignees(first:5){nodes{login}}}}
+      pullRequests(first:100,states:OPEN){nodes{number url body createdAt isDraft reviewDecision author{login}
+        closingIssuesReferences(first:10){nodes{number}}}}}}`;
+    const r = JSON.parse(
+      await gh([
+        "api",
+        "graphql",
+        "-f",
+        `query=${query}`,
+        "-f",
+        `owner=${owner}`,
+        "-f",
+        `name=${name}`,
+        "-f",
+        `label=${cfg.label}`,
+      ])
+    ).data.repository;
+    return {
+      issues: r.open.nodes.map((i) => ({
+        number: i.number,
+        title: i.title,
+        url: i.url,
+        body: i.body,
+        updated_at: i.updatedAt,
+        assignees: i.assignees.nodes,
+        labels: i.labels.nodes,
+        claimed_at: i.assignees.nodes.length ? i.timelineItems.nodes[0]?.createdAt || null : null,
+      })),
+      reviews: r.pullRequests.nodes.map((p) => ({
+        number: p.number,
+        url: p.url,
+        body: p.body,
+        author: p.author,
+        created_at: p.createdAt,
+        draft: p.isDraft,
+        review: p.reviewDecision, // APPROVED | CHANGES_REQUESTED | REVIEW_REQUIRED | null
+        closingIssuesReferences: p.closingIssuesReferences.nodes,
+      })),
+      done: {
+        total: r.done.totalCount,
+        recent: r.done.nodes.map((i) => ({
+          number: i.number,
+          title: i.title,
+          url: i.url,
+          at: i.closedAt,
+          by: i.assignees.nodes.map((a) => a.login),
+        })),
+      },
+    };
+  },
+  async issues(cfg) {
+    return JSON.parse(
+      await gh([
+        "issue",
+        "list",
+        "-R",
+        cfg.repo,
+        "--label",
+        cfg.label,
+        "--state",
+        "open",
+        "--limit",
+        "200",
+        "--json",
+        "number,title,url,body,assignees,labels",
+      ])
+    );
+  },
+  async reviews(cfg) {
+    return JSON.parse(
+      await gh([
+        "pr",
+        "list",
+        "-R",
+        cfg.repo,
+        "--state",
+        "open",
+        "--limit",
+        "200",
+        "--json",
+        "number,url,body,author,closingIssuesReferences",
+      ])
+    );
+  },
+  async issue(cfg, n) {
+    const i = JSON.parse(
+      await gh([
+        "issue",
+        "view",
+        String(n),
+        "-R",
+        cfg.repo,
+        "--json",
+        "number,title,body,assignees,url,state",
+      ])
+    );
+    return { ...i, open: i.state === "OPEN" };
+  },
+  assign: (cfg, n) => gh(["issue", "edit", String(n), "-R", cfg.repo, "--add-assignee", "@me"]),
+  unassign: (cfg, n) =>
+    gh(["issue", "edit", String(n), "-R", cfg.repo, "--remove-assignee", "@me"]),
+  async defaultBranch(cfg) {
+    return JSON.parse(await gh(["repo", "view", cfg.repo, "--json", "defaultBranchRef"]))
+      .defaultBranchRef.name;
+  },
+  reviewCommand(cfg, { branch, base, title, body }) {
+    return [
+      "gh",
+      "pr",
+      "create",
+      "-R",
+      cfg.repo,
+      "--head",
+      branch,
+      "--base",
+      base,
+      "--title",
+      title,
+      "--body",
+      body,
+    ];
+  },
+  async openReview(cfg, req) {
+    const [, ...args] = this.reviewCommand(cfg, req);
+    return (await gh(args)).trim();
+  },
+};
+
+// ── GitLab (glab api, REST v4) ──────────────────────────────────────────────
+
+function glab(cfg, endpoint, args = []) {
+  const host = cfg.host ? ["--hostname", cfg.host] : [];
+  // :proj is a custom placeholder; glab encodes it as one path segment (group%2Fproject).
+  return run(process.env.GLAB_BIN || "glab", [
+    "api",
+    endpoint,
+    "--placeholder",
+    `proj=${cfg.repo}`,
+    ...host,
+    ...args,
+  ]).then((out) => JSON.parse(out || "null"));
+}
+
+let gitlabMe = null;
+const gitlab = {
+  reviewName: "MR",
+  async me(cfg) {
+    gitlabMe = gitlabMe || (await glab(cfg, "user"));
+    return gitlabMe.username;
+  },
+  async issues(cfg) {
+    const label = encodeURIComponent(cfg.label);
+    const list = await glab(cfg, `projects/:proj/issues?state=opened&labels=${label}&per_page=100`);
+    return list.map((i) => ({
+      number: i.iid,
+      title: i.title,
+      url: i.web_url,
+      body: i.description || "",
+      assignees: (i.assignees || []).map((a) => ({ login: a.username, id: a.id })),
+      labels: (i.labels || []).map((name) => ({ name })),
+      // GitLab has no cheap assignment timestamp; last activity is the closest signal.
+      updated_at: i.updated_at,
+    }));
+  },
+  async snapshot(cfg) {
+    const label = encodeURIComponent(cfg.label);
+    const [issues, reviews, closed, stats] = await Promise.all([
+      this.issues(cfg),
+      this.reviews(cfg),
+      glab(
+        cfg,
+        `projects/:proj/issues?state=closed&labels=${label}&order_by=updated_at&per_page=20`
+      ),
+      glab(cfg, `projects/:proj/issues_statistics?labels=${label}`),
+    ]);
+    return {
+      issues,
+      reviews,
+      done: {
+        total: stats?.statistics?.counts?.closed ?? closed.length,
+        recent: closed.map((i) => ({
+          number: i.iid,
+          title: i.title,
+          url: i.web_url,
+          at: i.closed_at,
+          by: (i.assignees || []).map((a) => a.username),
+        })),
+      },
+    };
+  },
+  async reviews(cfg) {
+    const list = await glab(cfg, "projects/:proj/merge_requests?state=opened&per_page=100");
+    return list.map((m) => ({
+      number: m.iid,
+      url: m.web_url,
+      body: m.description || "",
+      author: { login: m.author?.username },
+      created_at: m.created_at,
+      draft: !!m.draft,
+      review: m.detailed_merge_status === "mergeable" ? "APPROVED" : null,
+    }));
+  },
+  async issue(cfg, n) {
+    const i = await glab(cfg, `projects/:proj/issues/${n}`);
+    return {
+      number: i.iid,
+      title: i.title,
+      body: i.description || "",
+      url: i.web_url,
+      open: i.state === "opened",
+      assignees: (i.assignees || []).map((a) => ({ login: a.username, id: a.id })),
+    };
+  },
+  async assign(cfg, n) {
+    await this.me(cfg);
+    const issue = await this.issue(cfg, n);
+    const ids = [...new Set([...issue.assignees.map((a) => a.id), gitlabMe.id])];
+    await glab(cfg, `projects/:proj/issues/${n}`, [
+      "-X",
+      "PUT",
+      "-F",
+      `assignee_ids=${JSON.stringify(ids)}`,
+    ]);
+  },
+  async unassign(cfg, n) {
+    await this.me(cfg);
+    const issue = await this.issue(cfg, n);
+    const ids = issue.assignees.map((a) => a.id).filter((id) => id !== gitlabMe.id);
+    await glab(cfg, `projects/:proj/issues/${n}`, [
+      "-X",
+      "PUT",
+      "-F",
+      `assignee_ids=${JSON.stringify(ids)}`,
+    ]);
+  },
+  async defaultBranch(cfg) {
+    return (await glab(cfg, "projects/:proj")).default_branch;
+  },
+  reviewCommand(cfg, { branch, base, title, body }) {
+    return [
+      "glab",
+      "api",
+      `projects/${cfg.repo}/merge_requests`,
+      "-X",
+      "POST",
+      "-f",
+      `source_branch=${branch}`,
+      "-f",
+      `target_branch=${base}`,
+      "-f",
+      `title=${title}`,
+      "-f",
+      `description=${body}`,
+    ];
+  },
+  async openReview(cfg, { branch, base, title, body }) {
+    const mr = await glab(cfg, "projects/:proj/merge_requests", [
+      "-X",
+      "POST",
+      "-f",
+      `source_branch=${branch}`,
+      "-f",
+      `target_branch=${base}`,
+      "-f",
+      `title=${title}`,
+      "-f",
+      `description=${body}`,
+    ]);
+    return mr.web_url;
+  },
+};
+
+// ── Local git (plan file in the repo, claims on this machine) ───────────────
+// shortcut: claims live in community.json on this machine only; a team sharing one repo
+// over a network should use GitHub/GitLab so claims are visible to everyone.
+
+async function localMe(cfg) {
+  const name = (await git(cfg.localPath, ["config", "user.name"]).catch(() => "")).trim();
+  return name || os.userInfo().username;
+}
+
+function localTasks(cfg) {
+  const md = fs.readFileSync(path.resolve(cfg.localPath, cfg.planFile), "utf8");
+  // Plan ids may be "17a"; the board needs numbers, so keep the plan order as the number.
+  return parsePlan(md)
+    .flatMap((p) => p.tasks)
+    .map((t, i) => ({
+      ...t,
+      number: i + 1,
+      est: t.title,
+      title: t.title.replace(/\s*\(?est:\s*\d+(?:\.\d+)?\s*[hm]\)?/i, "").trim(),
+    }));
+}
+
+const local = {
+  reviewName: "merge",
+  me: (cfg) => localMe(cfg),
+  async issues(cfg) {
+    const claims = readConfig()?.claims || {};
+    return localTasks(cfg)
+      .filter((t) => claims[t.number]?.status !== "done")
+      .map((t) => ({
+        number: t.number,
+        title: `${t.id}: ${t.title}`,
+        url: null,
+        body: "",
+        assignees: claims[t.number]?.by ? [{ login: claims[t.number].by }] : [],
+        labels: [{ name: t.est }],
+      }));
+  },
+  async reviews() {
+    return [];
+  },
+  async snapshot(cfg) {
+    const claims = readConfig()?.claims || {};
+    const tasks = localTasks(cfg);
+    const finished = tasks.filter((t) => claims[t.number]?.status === "done");
+    return {
+      issues: (await this.issues(cfg)).map((i) => ({
+        ...i,
+        claimed_at: claims[i.number]?.at || null,
+      })),
+      reviews: [],
+      done: {
+        total: finished.length,
+        recent: finished
+          .map((t) => ({
+            number: t.number,
+            title: `${t.id}: ${t.title}`,
+            url: null,
+            at: claims[t.number].at,
+            by: [claims[t.number].by].filter(Boolean),
+          }))
+          .sort((a, b) => String(b.at).localeCompare(String(a.at)))
+          .slice(0, 20),
+      },
+    };
+  },
+  async issue(cfg, n) {
+    const t = localTasks(cfg).find((x) => x.number === n);
+    if (!t) throw fail(404, "Görev planda yok");
+    const claim = readConfig()?.claims?.[n];
+    return {
+      number: n,
+      title: `${t.id}: ${t.title}`,
+      body: "",
+      url: null,
+      open: claim?.status !== "done",
+      assignees: claim?.by ? [{ login: claim.by }] : [],
+    };
+  },
+  async assign(cfg, n) {
+    const c = readConfig();
+    c.claims = {
+      ...(c.claims || {}),
+      [n]: { by: await localMe(cfg), at: new Date().toISOString() },
+    };
+    writeConfig(c);
+  },
+  async unassign(cfg, n) {
+    const c = readConfig();
+    if (c.claims) delete c.claims[n];
+    writeConfig(c);
+  },
+  async defaultBranch(cfg) {
+    const head = await git(cfg.localPath, [
+      "symbolic-ref",
+      "--short",
+      "refs/remotes/origin/HEAD",
+    ]).catch(() => "");
+    if (head.trim()) return head.trim().replace(/^origin\//, "");
+    for (const b of ["main", "master"]) {
+      if (
+        await git(cfg.localPath, ["rev-parse", "--verify", "--quiet", `refs/heads/${b}`]).then(
+          () => true,
+          () => false
+        )
+      )
+        return b;
+    }
+    return (await git(cfg.localPath, ["branch", "--show-current"])).trim();
+  },
+  reviewCommand(cfg, { branch, base, title }) {
+    return [
+      "git",
+      "-C",
+      cfg.localPath,
+      "merge",
+      "--no-ff",
+      branch,
+      "-m",
+      title,
+      "(",
+      base,
+      "dalında",
+      ")",
+    ];
+  },
+  async openReview(cfg, { branch, base, title }, number) {
+    await git(cfg.localPath, ["checkout", base]);
+    await git(cfg.localPath, ["merge", "--no-ff", branch, "-m", title]);
+    const c = readConfig();
+    c.claims = {
+      ...(c.claims || {}),
+      [number]: { ...(c.claims?.[number] || {}), status: "done", at: new Date().toISOString() },
+    };
+    writeConfig(c);
+    return null;
+  },
+};
+
+const ADAPTERS = { github, gitlab, local };
+const adapter = (cfg) => ADAPTERS[cfg.provider] || github;
+const hasRemote = (cfg) => cfg.provider !== "local";
+
+// ── Operations ──────────────────────────────────────────────────────────────
+
+const meCache = new Map();
+async function whoami(cfg) {
+  const key = `${cfg.provider}|${cfg.host || ""}|${cfg.localPath}`;
+  if (!meCache.has(key)) meCache.set(key, await adapter(cfg).me(cfg));
+  return meCache.get(key);
 }
 
 async function board(cfg) {
-  const [issuesJson, prsJson, me] = await Promise.all([
-    gh([
-      "issue",
-      "list",
-      "-R",
-      cfg.repo,
-      "--label",
-      cfg.label,
-      "--state",
-      "open",
-      "--limit",
-      "200",
-      "--json",
-      "number,title,url,body,assignees,labels",
-    ]),
-    gh([
-      "pr",
-      "list",
-      "-R",
-      cfg.repo,
-      "--state",
-      "open",
-      "--limit",
-      "200",
-      "--json",
-      "number,url,body,author,closingIssuesReferences",
-    ]),
-    whoami(),
-  ]);
-  return buildBoard(JSON.parse(issuesJson), JSON.parse(prsJson), me);
-}
-
-async function getIssue(cfg, number) {
-  return JSON.parse(
-    await gh([
-      "issue",
-      "view",
-      String(number),
-      "-R",
-      cfg.repo,
-      "--json",
-      "number,title,body,assignees,url,state",
-    ])
-  );
-}
-
-async function defaultBranch(cfg) {
-  return JSON.parse(await gh(["repo", "view", cfg.repo, "--json", "defaultBranchRef"]))
-    .defaultBranchRef.name;
+  const a = adapter(cfg);
+  const [snap, me] = await Promise.all([a.snapshot(cfg), whoami(cfg)]);
+  return {
+    provider: cfg.provider,
+    review_name: a.reviewName,
+    ...buildBoard(snap.issues, snap.reviews, me, snap.done),
+  };
 }
 
 /** Claim: refuse if someone else holds it, assign to me, then check out the task branch from the default branch. */
 async function claim(cfg, number) {
-  const me = await whoami();
-  const issue = await getIssue(cfg, number);
-  const holders = issue.assignees.map((a) => a.login);
-  if (issue.state !== "OPEN") throw Object.assign(new Error("Görev kapalı"), { status: 409 });
-  if (holders.length && !holders.includes(me)) {
-    throw Object.assign(new Error(`Görev zaten alınmış: ${holders.join(", ")}`), { status: 409 });
-  }
-  if (!holders.includes(me))
-    await gh(["issue", "edit", String(number), "-R", cfg.repo, "--add-assignee", "@me"]);
+  const a = adapter(cfg);
+  const me = await whoami(cfg);
+  const issue = await a.issue(cfg, number);
+  const holders = issue.assignees.map((x) => x.login);
+  if (!issue.open) throw fail(409, "Görev kapalı");
+  if (holders.length && !holders.includes(me))
+    throw fail(409, `Görev zaten alınmış: ${holders.join(", ")}`);
+  if (!holders.includes(me)) await a.assign(cfg, number);
   // Re-read: two people can click at the same moment; the earliest assignee keeps it.
-  const after = (await getIssue(cfg, number)).assignees.map((a) => a.login);
+  const after = (await a.issue(cfg, number)).assignees.map((x) => x.login);
   if (after[0] !== me) {
-    await gh(["issue", "edit", String(number), "-R", cfg.repo, "--remove-assignee", "@me"]).catch(
-      () => {}
-    );
-    throw Object.assign(new Error(`Aynı anda başkası aldı: ${after[0]}`), { status: 409 });
+    await a.unassign(cfg, number).catch(() => {});
+    throw fail(409, `Aynı anda başkası aldı: ${after[0]}`);
   }
   const branch = branchFor(issue);
   const current = (await git(cfg.localPath, ["branch", "--show-current"])).trim();
   if (current !== branch && (await git(cfg.localPath, ["status", "--porcelain"])).trim()) {
-    throw Object.assign(
-      new Error("Yerel klonda kaydedilmemiş değişiklik var; önce commit'le ya da kenara al"),
-      {
-        status: 409,
-      }
-    );
+    throw fail(409, "Yerel depoda kaydedilmemiş değişiklik var; önce commit'le ya da kenara al");
   }
-  const base = await defaultBranch(cfg);
-  await git(cfg.localPath, ["fetch", "origin", base]);
+  const base = await a.defaultBranch(cfg);
+  if (hasRemote(cfg)) await git(cfg.localPath, ["fetch", "origin", base]);
   const exists = await git(cfg.localPath, [
     "rev-parse",
     "--verify",
@@ -238,64 +661,52 @@ async function claim(cfg, number) {
     () => false
   );
   if (exists) await git(cfg.localPath, ["checkout", branch]);
-  else await git(cfg.localPath, ["checkout", "-b", branch, `origin/${base}`]);
+  else
+    await git(cfg.localPath, ["checkout", "-b", branch, hasRemote(cfg) ? `origin/${base}` : base]);
+  const where = cfg.repo ? `${cfg.repo} #${issue.number}` : `Görev ${issue.number}`;
   const prompt =
-    `${cfg.repo} #${issue.number}: ${issue.title}\n\n${issue.body || ""}\n\n` +
+    `${where}: ${issue.title}\n\n${issue.body || ""}\n\n` +
     `Bu görevi "${branch}" dalında uygula, testlerini yaz ve çalıştır, anlamlı commit'ler at. ` +
-    `Push etme ve PR açma; bunu kokpitten ben yapacağım.`;
+    `Push etme ve ${a.reviewName} açma; bunu kokpitten ben yapacağım.`;
   return { number: issue.number, branch, cwd: cfg.localPath, prompt };
 }
 
-async function release(cfg, number) {
-  await gh(["issue", "edit", String(number), "-R", cfg.repo, "--remove-assignee", "@me"]);
+const release = async (cfg, number) => {
+  await adapter(cfg).unassign(cfg, number);
   return { ok: true };
-}
+};
 
-function prCommands(cfg, issue) {
-  const branch = branchFor(issue);
-  const title = `#${issue.number}: ${issue.title}`;
-  const body = `Closes #${issue.number}\n\nAI Cockpit ile hazırlandı.`;
+async function reviewRequest(cfg, number) {
+  const issue = await adapter(cfg).issue(cfg, number);
+  const base = await adapter(cfg).defaultBranch(cfg);
   return {
-    branch,
-    title,
-    body,
-    commands: [
-      ["git", "-C", cfg.localPath, "push", "-u", "origin", branch],
-      ["gh", "pr", "create", "-R", cfg.repo, "--head", branch, "--title", title, "--body", body],
-    ],
+    branch: branchFor(issue),
+    base,
+    title: hasRemote(cfg) ? `#${issue.number}: ${issue.title}` : `Görev ${issue.title}`,
+    body: `Closes #${issue.number}\n\nAI Cockpit ile hazırlandı.`,
   };
 }
 
 async function prPreview(cfg, number) {
-  const issue = await getIssue(cfg, number);
-  const cmd = prCommands(cfg, issue);
-  const base = await defaultBranch(cfg);
-  const ahead = (
-    await git(cfg.localPath, ["log", "--oneline", `origin/${base}..${cmd.branch}`])
-  ).trim();
-  return { ...cmd, commits: ahead ? ahead.split("\n") : [] };
+  const a = adapter(cfg);
+  const req = await reviewRequest(cfg, number);
+  const from = hasRemote(cfg) ? `origin/${req.base}` : req.base;
+  const ahead = (await git(cfg.localPath, ["log", "--oneline", `${from}..${req.branch}`])).trim();
+  const commands = hasRemote(cfg)
+    ? [["git", "-C", cfg.localPath, "push", "-u", "origin", req.branch], a.reviewCommand(cfg, req)]
+    : [
+        ["git", "-C", cfg.localPath, "checkout", req.base],
+        ["git", "-C", cfg.localPath, "merge", "--no-ff", req.branch, "-m", req.title],
+      ];
+  return { ...req, review_name: a.reviewName, commands, commits: ahead ? ahead.split("\n") : [] };
 }
 
-/** Push the task branch and open the PR. Only called after the user confirmed the previewed commands. */
+/** Push the task branch and open the PR/MR (or merge locally). Only called after the user confirmed the preview. */
 async function openPr(cfg, number) {
-  const issue = await getIssue(cfg, number);
-  const cmd = prCommands(cfg, issue);
-  await git(cfg.localPath, ["push", "-u", "origin", cmd.branch]);
-  const url = (
-    await gh([
-      "pr",
-      "create",
-      "-R",
-      cfg.repo,
-      "--head",
-      cmd.branch,
-      "--title",
-      cmd.title,
-      "--body",
-      cmd.body,
-    ])
-  ).trim();
-  return { url };
+  const a = adapter(cfg);
+  const req = await reviewRequest(cfg, number);
+  if (hasRemote(cfg)) await git(cfg.localPath, ["push", "-u", "origin", req.branch]);
+  return { url: await a.openReview(cfg, req, number) };
 }
 
 module.exports = {
@@ -311,4 +722,5 @@ module.exports = {
   estimateFromLabels,
   closedIssues,
   slug,
+  _adapters: ADAPTERS,
 };

@@ -62,17 +62,24 @@
   "community": {
     "title": "Community",
     "subtitle": "Shared task queue: claim the next task, code it with your own agent, send a PR",
-    "setupTitle": "Connect the community repo",
-    "setupHint": "Tasks are labelled issues in this GitHub repo. The local folder must be your clone of it. Everything runs with your own gh login.",
-    "repo": "Repo (owner/name)",
-    "localPath": "Local clone (absolute path)",
+    "setupTitle": "Connect the repo",
+    "setupHint": {
+      "github": "Tasks are labelled issues in this GitHub repo. Everything runs with your gh login.",
+      "gitlab": "Tasks are labelled issues in this GitLab project. Everything runs with your glab login.",
+      "local": "Tasks come from the plan file in the repo. Claims are kept on this machine; review is a local merge."
+    },
+    "repo": {
+      "github": "Repo (owner/name)",
+      "gitlab": "Project (group/project)"
+    },
+    "localPath": "Local repo (absolute path)",
     "label": "Task label",
     "save": "Save",
     "change": "Change",
     "open": "Open",
     "mine": "Mine",
     "taken": "Taken",
-    "review": "PR open",
+    "review": "{{name}} open",
     "openTotal": "~{{d}} total",
     "unestimated_one": "{{count}} without estimate",
     "unestimated_other": "{{count}} without estimate",
@@ -81,10 +88,8 @@
     "claiming": "Claiming...",
     "continue": "Continue with agent",
     "release": "Release",
-    "sendPr": "Send PR",
     "sending": "Sending...",
     "cancel": "Cancel",
-    "prTitle": "PR for #{{n}}",
     "prCommits_one": "{{count}} commit will be pushed",
     "prCommits_other": "{{count}} commits will be pushed",
     "prCommands": "Commands to run",
@@ -99,43 +104,119 @@
     "help": {
       "title": "How to use",
       "subtitle": "Steps for the project owner and contributors",
-      "steps": [
+      "github": [
         {
           "title": "Prepare the repo (owner)",
-          "text": "Keep the project in a GitHub repo. Open every piece of work as an issue labelled \"cockpit-task\". Optionally add an estimate label like \"est:2h\"; totals are computed from it. Invite contributors or make the repo public.",
+          "text": "Keep the project in a GitHub repo. Open each piece of work as an issue labelled \"cockpit-task\", optionally with an estimate label like \"est:2h\". Invite contributors or make the repo public.",
           "cmd": "gh issue create -R owner/project --title \"Light theme\" --label cockpit-task --label est:4h"
         },
         {
           "title": "Sign in to GitHub (everyone)",
-          "text": "The cockpit acts with your own GitHub login. Sign in once.",
+          "text": "The cockpit acts with your own GitHub login.",
           "cmd": "gh auth login"
         },
         {
           "title": "Clone the repo",
-          "text": "Clone the repo to your machine. The cockpit opens task branches in this folder.",
+          "text": "Task branches are created in this folder.",
           "cmd": "gh repo clone owner/project ~/projects/project"
         },
         {
           "title": "Connect it here",
-          "text": "Enter the repo (owner/project), the absolute path of your clone and the task label, then save. The Open, Mine, Taken and PR open lists fill in."
+          "text": "Choose GitHub; enter the repo, the absolute path of your clone and the task label, then save."
         },
         {
           "title": "Pick your agent, claim a task",
-          "text": "Choose Claude Code, Codex or Cursor under the summary and press \"Claim and start\" on an open task. The issue is assigned to you, a task/<n> branch is created in your clone and the Run page opens with the task text. If someone claimed it first you get a warning."
+          "text": "Choose Claude Code, Codex or Cursor under the summary and press \"Claim and start\" on an open task. It is assigned to you, a task/<n> branch is created and the Run page opens with the task text. If someone claimed it first you get a warning."
         },
         {
           "title": "Start the agent and watch",
-          "text": "Check the command on the Run page and press Run. Follow progress on Dashboard, Sessions and the live stream. The agent does not push or open a PR; that step needs your confirmation."
+          "text": "Check the command on the Run page and press Run. Follow progress on Dashboard, Sessions and the live stream. The agent does not push; that step needs your confirmation."
         },
         {
-          "title": "Send the PR",
-          "text": "Review the result yourself. Press the PR icon in Mine: the commits and exact commands are shown, and on confirm the branch is pushed and a PR that closes the issue is opened."
+          "title": "Send the PR and track it",
+          "text": "Press the PR icon in Mine: commits and commands are shown, and on confirm a PR that closes the issue is opened. Each row shows who claimed it and when, and the PR review state. When the PR is merged the task moves to Recently done and the progress bar grows."
+        }
+      ],
+      "gitlab": [
+        {
+          "title": "Prepare the project (owner)",
+          "text": "Keep the project on GitLab. Open each piece of work as an issue labelled \"cockpit-task\", optionally with \"est:2h\". Add contributors as members.",
+          "cmd": "glab issue create -R group/project -t \"Light theme\" -l cockpit-task,est:4h"
         },
         {
-          "title": "Review and merge",
-          "text": "Review and merging happen on GitHub. When the PR is merged the issue closes and drops off the list. Changed your mind? \"Release\" frees the task for someone else."
+          "title": "Install glab and sign in (everyone)",
+          "text": "The cockpit talks to GitLab with your glab login. Pick your own host during login if you self-host.",
+          "cmd": "brew install glab\nglab auth login"
+        },
+        {
+          "title": "Clone the project",
+          "text": "Task branches are created in this folder.",
+          "cmd": "glab repo clone group/project ~/projects/project"
+        },
+        {
+          "title": "Connect it here",
+          "text": "Choose GitLab; enter group/project, your clone path, the label and the host if needed, then save."
+        },
+        {
+          "title": "Pick your agent, claim a task",
+          "text": "Choose Claude Code, Codex or Cursor under the summary and press \"Claim and start\" on an open task. It is assigned to you, a task/<n> branch is created and the Run page opens with the task text. If someone claimed it first you get a warning."
+        },
+        {
+          "title": "Start the agent and watch",
+          "text": "Check the command on the Run page and press Run. Follow progress on Dashboard, Sessions and the live stream. The agent does not push; that step needs your confirmation."
+        },
+        {
+          "title": "Send the MR and track it",
+          "text": "Press the MR icon in Mine: commits and commands are shown, and on confirm a merge request that closes the issue is opened. Rows show who claimed it and the last activity. When the MR is merged the task moves to Recently done."
+        }
+      ],
+      "local": [
+        {
+          "title": "Prepare the plan file",
+          "text": "Put a plan Markdown file in the repo. \"## Phase\" headings are phases, \"### Task 3: Title (est:2h)\" headings are tasks.",
+          "cmd": "## Phase 1\n### Task 1: Login screen (est:2h)\n### Task 2: Settings"
+        },
+        {
+          "title": "Connect it here",
+          "text": "Choose Local git; enter the repo path and the plan file path inside the repo, then save. No remote needed."
+        },
+        {
+          "title": "Pick your agent, claim a task",
+          "text": "Choose Claude Code, Codex or Cursor under the summary and press \"Claim and start\" on an open task. It is assigned to you, a task/<n> branch is created and the Run page opens with the task text. If someone claimed it first you get a warning."
+        },
+        {
+          "title": "Start the agent and watch",
+          "text": "Check the command on the Run page and press Run. Follow progress on Dashboard, Sessions and the live stream. The agent does not push; that step needs your confirmation."
+        },
+        {
+          "title": "Merge and track",
+          "text": "Press the merge icon in Mine: commits and the git commands are shown, and on confirm the task branch is merged into the main branch and the task moves to Recently done. Claims live on this machine only; use GitHub or GitLab for team work."
         }
       ]
-    }
+    },
+    "platform": {
+      "github": "GitHub",
+      "gitlab": "GitLab",
+      "local": "Local git"
+    },
+    "platformLabel": "Platform",
+    "host": "GitLab host (empty = gitlab.com)",
+    "planFile": "Plan file (inside the repo)",
+    "progress": "Project progress",
+    "progressOf": "{{done}} of {{total}} tasks done",
+    "done": "Done",
+    "merge": "merge",
+    "reviewTitle": "{{name}} for #{{n}}",
+    "sendReview": "Send {{name}}",
+    "claimedBy": "claimed by {{who}} {{when}}",
+    "reviewState": {
+      "WAITING": "awaiting review",
+      "REVIEW_REQUIRED": "awaiting review",
+      "APPROVED": "approved",
+      "CHANGES_REQUESTED": "changes requested",
+      "draft": "draft"
+    },
+    "recentDone": "Recently done",
+    "noneDone": "No finished tasks yet."
   }
 }

@@ -69,7 +69,7 @@ Bảng điều khiển chuyên nghiệp để theo dõi Claude Code, Cursor và 
 ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-pipelines-2088FF?style=flat-square&logo=githubactions&logoColor=white)
 ![Make](https://img.shields.io/badge/Make-4.3-000000?style=flat-square&logo=make&logoColor=white)
 ![Auto Release](https://img.shields.io/badge/CI-auto--release_to_GitHub-22c55e?style=flat-square&logo=githubactions&logoColor=white)
-![MIT License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)
+![GPLv3 License](https://img.shields.io/badge/License-GPLv3-blue?style=flat-square)
 
 **Hỗ trợ ngôn ngữ**: Tiếng Anh (`en`) · 中文 (`zh`) · Tiếng Việt (`vi`) · Tiếng Hàn (`ko`) · Tiếng Tây Ban Nha (`es`)
 
@@ -2255,4 +2255,4 @@ Mọi người đóng góp phải ký [Contributor License Agreement](https://gi
 
 ## Giấy phép
 
-MIT. Xem [GIẤY PHÉP](LICENSE) để biết chi tiết.
+GPL-3.0-or-later. Xem [GIẤY PHÉP](LICENSE) để biết chi tiết.

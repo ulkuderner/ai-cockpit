@@ -70,7 +70,7 @@ Un panel profesional para rastrear sesiones, herramientas, historial de conversa
 ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-pipelines-2088FF?style=flat-square&logo=githubactions&logoColor=white)
 ![Make](https://img.shields.io/badge/Make-4.3-000000?style=flat-square&logo=make&logoColor=white)
 ![Auto Release](https://img.shields.io/badge/CI-auto--release_to_GitHub-22c55e?style=flat-square&logo=githubactions&logoColor=white)
-![MIT License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)
+![GPLv3 License](https://img.shields.io/badge/License-GPLv3-blue?style=flat-square)
 
 > [!TIP]
 > Consulta también [README-EN.md](./README-EN.md) (English), [README-CN.md](./README-CN.md) (中文), [README-VN.md](./README-VN.md) (Tiếng Việt) y [README-KO.md](./README-KO.md) (한국어). Este es el README en español.
@@ -2282,4 +2282,4 @@ Todos los colaboradores deben firmar el [Acuerdo de Licencia del Colaborador](ht
 
 ## Licencia
 
-MIT. Consulte [LICENCIA](LICENSE) para obtener detalles.
+GPL-3.0-or-later. Consulte [LICENCIA](LICENSE) para obtener detalles.

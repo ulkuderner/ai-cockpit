@@ -4,7 +4,7 @@
   "private": true,
   "description": "Native macOS and Windows desktop shell for Claude Code Agent Monitor.",
   "author": "Son Nguyen <hoangson091104@gmail.com>",
-  "license": "MIT",
+  "license": "GPL-3.0-or-later",
   "homepage": "https://github.com/hoangsonww/Claude-Code-Agent-Monitor",
   "repository": {
     "type": "git",

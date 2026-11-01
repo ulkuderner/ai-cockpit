@@ -69,7 +69,7 @@ Claude Code, Cursor, Codex 에이전트 세션, 도구 사용, 대화 기록, �
 ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-pipelines-2088FF?style=flat-square&logo=githubactions&logoColor=white)
 ![Make](https://img.shields.io/badge/Make-4.3-000000?style=flat-square&logo=make&logoColor=white)
 ![Auto Release](https://img.shields.io/badge/CI-auto--release_to_GitHub-22c55e?style=flat-square&logo=githubactions&logoColor=white)
-![MIT License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)
+![GPLv3 License](https://img.shields.io/badge/License-GPLv3-blue?style=flat-square)
 
 > [!TIP]
 > 참고: 영어 원문은 [README-EN.md](./README-EN.md), 중국어 버전은 [README-CN.md](./README-CN.md) (中文版本), 베트남어 버전은 [README-VN.md](./README-VN.md) (Phiên bản tiếng Việt), 스페인어 버전은 [README-ES.md](./README-ES.md) (Español)를 확인하세요. 이 문서는 한국어 버전입니다.
@@ -2286,4 +2286,4 @@ agent-dashboard/
 
 ## 라이선스
 
-MIT. 자세한 내용은 [LICENSE](LICENSE)를 참조하십시오.
+GPL-3.0-or-later. 자세한 내용은 [LICENSE](LICENSE)를 참조하십시오.

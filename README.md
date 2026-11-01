@@ -21,8 +21,13 @@ Node 22.22+ gerekir.
 ```bash
 git clone <bu depo> ~/ai-cockpit
 ln -s ~/ai-cockpit/bin/ai-cockpit ~/.local/bin/ai-cockpit   # bir kez
-ai-cockpit                                                  # her yerden açar: http://localhost:4820
+ai-cockpit start      # başlatır ve tarayıcıda açar: http://localhost:4820
+ai-cockpit stop       # durdurur
+ai-cockpit restart    # yeniden başlatır (kod güncellemesinden sonra)
+ai-cockpit status     # çalışıyor mu
 ```
+
+Sunucu arka planda çalışır, terminali kapatsan da açık kalır. Log ve pid: `~/.ai-cockpit/server.log`, `~/.ai-cockpit/server.pid`. Port değiştirmek için `AI_COCKPIT_PORT=4900 ai-cockpit start`.
 
 İlk açılışta Claude Code hook'ları `~/.claude/settings.json`'a eklenir (yalnız `localhost`'a, en geç 2.5 sn içinde biten olay gönderimi). Geliştirme modu: `DASHBOARD_UPDATE_CHECK=0 npm run dev` (http://localhost:5173).
 
@@ -132,7 +137,7 @@ Monitor Claude Code, Cursor, and Codex sessions in real time. Follow conversatio
 ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-pipelines-2088FF?style=flat-square&logo=githubactions&logoColor=white)
 ![Make](https://img.shields.io/badge/Make-4.3-000000?style=flat-square&logo=make&logoColor=white)
 ![Auto Release](https://img.shields.io/badge/CI-auto--release_to_GitHub-22c55e?style=flat-square&logo=githubactions&logoColor=white)
-![MIT License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)
+![GPLv3 License](https://img.shields.io/badge/License-GPLv3-blue?style=flat-square)
 
 <p align="center">
   <a href="images/analytics.png"><img src="images/readme/analytics.png" alt="CCAM dashboard with live agent and session activity" width="100%"></a>
@@ -248,4 +253,4 @@ See the [security policy](./.github/SECURITY.md) and [full configuration referen
 
 ## License
 
-MIT. See [LICENSE](./LICENSE).
+GPL-3.0-or-later. See [LICENSE](./LICENSE). Upstream MIT notice: [LICENSE-MIT](./LICENSE-MIT).

@@ -69,7 +69,7 @@
 ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-pipelines-2088FF?style=flat-square&logo=githubactions&logoColor=white)
 ![Make](https://img.shields.io/badge/Make-4.3-000000?style=flat-square&logo=make&logoColor=white)
 ![Auto Release](https://img.shields.io/badge/CI-auto--release_to_GitHub-22c55e?style=flat-square&logo=githubactions&logoColor=white)
-![MIT License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)
+![GPLv3 License](https://img.shields.io/badge/License-GPLv3-blue?style=flat-square)
 
 **语言支持 / Language Support**: English (`en`) · 中文 (`zh`) · 越南语 (`vi`) · 韩语 (`ko`) · Español (`es`)
 
@@ -2252,4 +2252,4 @@ agent-dashboard/
 
 ## 许可证
 
-MIT。详见 [LICENSE](LICENSE)。
+GPL-3.0-or-later。详见 [LICENSE](LICENSE)。

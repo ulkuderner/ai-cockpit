@@ -70,7 +70,7 @@ A professional dashboard to track and visualize Claude Code, Cursor, and Codex a
 ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-pipelines-2088FF?style=flat-square&logo=githubactions&logoColor=white)
 ![Make](https://img.shields.io/badge/Make-4.3-000000?style=flat-square&logo=make&logoColor=white)
 ![Auto Release](https://img.shields.io/badge/CI-auto--release_to_GitHub-22c55e?style=flat-square&logo=githubactions&logoColor=white)
-![MIT License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)
+![GPLv3 License](https://img.shields.io/badge/License-GPLv3-blue?style=flat-square)
 
 > [!TIP]
 > See also: [README-CN.md](./README-CN.md) (中文版本), [README-VN.md](./README-VN.md) (Phiên bản tiếng Việt), [README-KO.md](./README-KO.md) (한국어 버전), and [README-ES.md](./README-ES.md) (versión en español) for localized documentation with region-specific tips and best practices.
@@ -2301,4 +2301,4 @@ All contributors must sign the [Contributor License Agreement](https://github.co
 
 ## License
 
-MIT. See [LICENSE](LICENSE) for details.
+GPL-3.0-or-later. See [LICENSE](LICENSE) for details.

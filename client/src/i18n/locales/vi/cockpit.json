@@ -315,5 +315,7 @@
   "todayActivity_other": "{{count}} sessions today",
   "requestsToday_one": "{{count}} request",
   "requestsToday_other": "{{count}} requests",
-  "noSubscriptions": "No AI subscription set up on this machine."
+  "noSubscriptions": "No AI subscription set up on this machine.",
+  "estimatePlan": "estimate, the plan's est values",
+  "daysShort": "{{d}} d"
 }

@@ -502,7 +502,7 @@ function ReviewDialog({
 }
 
 export default function Community() {
-  const { t } = useTranslation("cockpit");
+  const { t, i18n } = useTranslation("cockpit");
   const navigate = useNavigate();
   const rel = useRelative();
   const [cfg, setCfg] = useState<CommunityConfig | null | undefined>(undefined);
@@ -665,7 +665,7 @@ export default function Community() {
                 <dd className="mt-1 text-2xl font-semibold text-emerald-300 tabular-nums">
                   {pct == null
                     ? "—"
-                    : new Intl.NumberFormat(undefined, { style: "percent" }).format(pct / 100)}
+                    : new Intl.NumberFormat(i18n.language, { style: "percent" }).format(pct / 100)}
                 </dd>
                 <dd className="text-xs text-gray-500">{board.progress.done}</dd>
               </div>

@@ -94,7 +94,11 @@ function Summary({ plan }: { plan: PlanData }) {
       value: calendar
         ? t("daysValue", { count: Math.round((tot.remaining_ms ?? 0) / 86_400_000) })
         : dur(tot.remaining_ms),
-      sub: calendar ? t("estimateCalendar") : t("estimate"),
+      sub: calendar
+        ? t("estimateCalendar")
+        : tot.estimate_basis === "plan"
+          ? t("estimatePlan")
+          : t("estimate"),
     },
     {
       label: t("estimatedFinish"),
@@ -155,9 +159,11 @@ function Summary({ plan }: { plan: PlanData }) {
 function TaskRow({
   task,
   onStatus,
+  calendar = false,
 }: {
   task: PlanTask;
   onStatus: (s: "todo" | "done" | "blocked") => void;
+  calendar?: boolean;
 }) {
   const { t, i18n } = useTranslation("cockpit");
   const dur = (ms: number | null) => formatDuration(ms, t("h"), t("m"));
@@ -201,7 +207,17 @@ function TaskRow({
         )}
         {task.spent_ms > 0 && <div>{t("spent", { d: dur(task.spent_ms) })}</div>}
         {task.status !== "done" && task.remaining_ms != null && (
-          <div>{t("left", { d: dur(task.remaining_ms) })}</div>
+          <div>
+            {t("left", {
+              d: calendar
+                ? t("daysShort", {
+                    d: (task.remaining_ms / 86_400_000).toLocaleString(i18n.language, {
+                      maximumFractionDigits: 1,
+                    }),
+                  })
+                : dur(task.remaining_ms),
+            })}
+          </div>
         )}
       </div>
       <StatusPill status={task.status} />
@@ -242,7 +258,8 @@ function TaskRow({
 }
 
 function Queue({ plan, onMove }: { plan: PlanData; onMove: (order: string[]) => void }) {
-  const { t } = useTranslation("cockpit");
+  const { t, i18n } = useTranslation("cockpit");
+  const calendar = plan.totals?.estimate_basis === "calendar";
   const byId = useMemo(
     () => new Map(plan.phases.flatMap((p) => p.tasks).map((x) => [x.id, x])),
     [plan]
@@ -287,7 +304,9 @@ function Queue({ plan, onMove }: { plan: PlanData; onMove: (order: string[]) => 
                   ? t("status.blocked")
                   : task.remaining_ms == null
                     ? "—"
-                    : `+${formatDuration(acc, t("h"), t("m"))}`}
+                    : calendar
+                      ? `+${t("daysShort", { d: (acc / 86_400_000).toLocaleString(i18n.language, { maximumFractionDigits: 1 }) })}`
+                      : `+${formatDuration(acc, t("h"), t("m"))}`}
               </span>
               <span className="flex">
                 <button
@@ -479,6 +498,7 @@ export default function Plan() {
                         <TaskRow
                           key={task.id}
                           task={task}
+                          calendar={plan.totals?.estimate_basis === "calendar"}
                           onStatus={(s) => setStatus(task.id, s)}
                         />
                       ))}

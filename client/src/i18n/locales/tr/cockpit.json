@@ -315,5 +315,7 @@
   "todayActivity_other": "bugün {{count}} oturum",
   "requestsToday_one": "{{count}} istek",
   "requestsToday_other": "{{count}} istek",
-  "noSubscriptions": "Bu bilgisayarda kurulu AI aboneliği bulunamadı."
+  "noSubscriptions": "Bu bilgisayarda kurulu AI aboneliği bulunamadı.",
+  "estimatePlan": "tahmin, plandaki est değerleri",
+  "daysShort": "{{d}} gün"
 }

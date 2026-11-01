@@ -34,7 +34,7 @@ export interface Plan {
     blocked: number;
     remaining_ms: number | null;
     done_spent_ms?: number;
-    estimate_basis?: "agent" | "calendar" | null;
+    estimate_basis?: "agent" | "plan" | "calendar" | null;
     pace_ms?: number | null;
     started_basis?: "sessions" | "git" | null;
     started_at?: string | null;

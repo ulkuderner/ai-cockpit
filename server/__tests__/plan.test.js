@@ -160,4 +160,24 @@ test("buildPlan uses calendar pace and git start when nothing was measured", () 
   assert.equal(out.totals.started_basis, "git");
   assert.equal(out.totals.started_at, "2026-10-30T00:00:00.000Z");
   assert.equal(out.totals.remaining_ms, 2 * 2 * 86_400_000);
+  assert.equal(out.phases[0].tasks[1].remaining_ms, 2 * 86_400_000);
+});
+
+test("(est:Nh) in headings: stripped from title, used when nothing was measured", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "plan-est-"));
+  const file = path.join(dir, "p.md");
+  fs.writeFileSync(file, "## A\n### Task 1: Giriş (est:2h)\n### Task 2: Ayarlar (est:30m)\n");
+  const out = plan.buildPlan(
+    { id: "p", name: "P", file },
+    { tasks: {}, order: {} },
+    [],
+    Date.now(),
+    () => null
+  );
+  const [t1, t2] = out.phases[0].tasks;
+  assert.equal(t1.title, "Giriş");
+  assert.equal(t1.estimate_ms, 2 * 3_600_000);
+  assert.equal(out.totals.estimate_basis, "plan");
+  assert.equal(out.totals.remaining_ms, 2 * 3_600_000 + 30 * 60_000);
+  assert.equal(t2.remaining_ms, 30 * 60_000);
 });

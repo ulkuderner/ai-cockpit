@@ -54,7 +54,15 @@ function parsePlan(markdown) {
         phase = { title: "", tasks: [] };
         phases.push(phase);
       }
-      phase.tasks.push({ id: h3[1].toLowerCase(), title: h3[2].trim() });
+      // "(est:3h)" / "(est:45m)" in the heading is the task's own estimate; keep it out of the title.
+      const est = /\(?\s*est:\s*(\d+(?:\.\d+)?)\s*([hm])\s*\)?/i.exec(h3[2]);
+      phase.tasks.push({
+        id: h3[1].toLowerCase(),
+        title: h3[2].replace(est ? est[0] : "", "").trim(),
+        estimate_ms: est
+          ? Number(est[1]) * (est[2].toLowerCase() === "h" ? 3_600_000 : 60_000)
+          : null,
+      });
     }
   }
   return phases.filter((p) => p.tasks.length > 0);
@@ -164,7 +172,10 @@ function buildPlan(planCfg, state, work, now = Date.now(), firstCommit = planFir
   );
   for (const task of all) {
     if (task.status === "done") task.remaining_ms = 0;
-    else task.remaining_ms = typical == null ? null : Math.max(typical - task.spent_ms, 0);
+    else if (typical != null) task.remaining_ms = Math.max(typical - task.spent_ms, 0);
+    else
+      task.remaining_ms =
+        task.estimate_ms == null ? null : Math.max(task.estimate_ms - task.spent_ms, 0);
   }
 
   const order = state.order[planCfg.id] || [];
@@ -179,8 +190,7 @@ function buildPlan(planCfg, state, work, now = Date.now(), firstCommit = planFir
 
   const pending = all.filter((t) => t.status !== "done" && t.status !== "blocked");
   const known = pending.every((t) => t.remaining_ms != null);
-  const measured =
-    known && typical != null ? pending.reduce((s, t) => s + t.remaining_ms, 0) : null;
+  const measured = known && pending.length ? pending.reduce((s, t) => s + t.remaining_ms, 0) : null;
   const doneCount = all.filter((t) => t.status === "done").length;
   const measuredStart =
     all
@@ -190,6 +200,8 @@ function buildPlan(planCfg, state, work, now = Date.now(), firstCommit = planFir
   const started_at = measuredStart || firstCommit(planCfg.file);
   const pace = measured == null ? calendarPace(started_at, doneCount, pending.length, now) : null;
   const remaining_ms = measured ?? pace?.remaining_ms ?? null;
+  // Calendar pace applies per task too, so the queue can show a running "+N days" for each item.
+  if (measured == null && pace?.pace_ms) for (const t of pending) t.remaining_ms = pace.pace_ms;
 
   return {
     ...planCfg,
@@ -203,7 +215,14 @@ function buildPlan(planCfg, state, work, now = Date.now(), firstCommit = planFir
       blocked: all.filter((t) => t.status === "blocked").length,
       remaining_ms,
       // "agent": measured agent time per task; "calendar": wall-clock pace since the plan started.
-      estimate_basis: measured != null ? "agent" : remaining_ms != null ? "calendar" : null,
+      estimate_basis:
+        measured != null
+          ? typical != null
+            ? "agent"
+            : "plan"
+          : remaining_ms != null
+            ? "calendar"
+            : null,
       pace_ms: pace?.pace_ms ?? null,
       started_basis: measuredStart ? "sessions" : started_at ? "git" : null,
       done_spent_ms: all.filter((t) => t.status === "done").reduce((s, t) => s + t.spent_ms, 0),

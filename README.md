@@ -4,6 +4,8 @@ Yapay zekâ ile kod geliştirirken çalışan ajanları tek ekranda izleme ve y�
 
 **Developed by Caglar Ulkuderner** · Lisans: [GPL-3.0-or-later](./LICENSE)
 
+Adım adım ekran görüntülü kılavuz: **[docs/NASIL_KULLANILIR.md](docs/NASIL_KULLANILIR.md)**
+
 [Claude-Code-Agent-Monitor](https://github.com/hoangsonww/Claude-Code-Agent-Monitor) (MIT, Son Nguyen) üzerine kurulu bir çatallamadır; o projenin tüm özellikleri (canlı oturumlar, alt ajan ağacı, Kanban, analiz, token/maliyet, Run) aynen durur. Aşağıdakiler AI Cockpit eklemeleridir.
 
 <p align="center">

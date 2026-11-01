@@ -144,7 +144,9 @@
     "claudeDescription": "Hiển thị dữ liệu Claude Code và Cursor.",
     "codexDescription": "Chỉ hiển thị dữ liệu Codex.",
     "bothDescription": "Kết hợp dữ liệu Claude Code, Cursor và Codex.",
-    "beta": "Beta"
+    "beta": "Beta",
+    "gemini": "Gemini",
+    "geminiDescription": "Show only Gemini CLI data."
   },
   "hooks": {
     "title": "Cấu hình hook",

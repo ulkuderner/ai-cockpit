@@ -1,10 +1,10 @@
 {
-  "name": "agent-dashboard",
+  "name": "ai-cockpit",
   "version": "2.4.5",
   "bin": {
     "ccam": "bin/ccam.js"
   },
-  "description": "Real-time dashboard for tracking Claude Code, Cursor, and Codex agent activity",
+  "description": "AI Cockpit: local cockpit for AI coding agents (Claude Code, Cursor, Codex, Gemini)",
   "private": true,
   "type": "commonjs",
   "main": "server/index.js",
@@ -17,17 +17,16 @@
     "README.md",
     "LICENSE"
   ],
-  "author": "Son Nguyen",
-  "funding": "https://github.com/sponsors/hoangsonww",
+  "author": "Caglar Ulkuderner",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hoangsonww/Claude-Code-Agent-Monitor.git"
+    "url": "git+https://github.com/ulkuderner/ai-cockpit.git"
   },
   "bugs": {
-    "url": "https://github.com/hoangsonww/Claude-Code-Agent-Monitor/issues"
+    "url": "https://github.com/ulkuderner/ai-cockpit/issues"
   },
-  "license": "MIT",
-  "homepage": "https://github.com/hoangsonww/Claude-Code-Agent-Monitor#readme",
+  "license": "GPL-3.0-or-later",
+  "homepage": "https://github.com/ulkuderner/ai-cockpit#readme",
   "keywords": [
     "claude",
     "claude-code",
@@ -146,5 +145,8 @@
   },
   "engines": {
     "node": ">=22.22.0"
+  },
+  "allowScripts": {
+    "better-sqlite3@12.11.1": true
   }
 }

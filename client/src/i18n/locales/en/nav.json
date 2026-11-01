@@ -1,7 +1,8 @@
 {
-  "brand": "Agent Dashboard",
-  "brandSub": "Claude Code Monitor",
+  "brand": "AI Cockpit",
+  "brandSub": "Claude · Cursor · Codex · Gemini",
   "dashboard": "Dashboard",
+  "plan": "Plan",
   "agentBoard": "Kanban Board",
   "sessions": "Sessions",
   "activityFeed": "Activity Feed",
@@ -59,14 +60,16 @@
     "zh": "Chinese",
     "vi": "Vietnamese",
     "ko": "Korean",
-    "es": "Spanish"
+    "es": "Spanish",
+    "tr": "Turkish"
   },
   "languageShort": {
     "en": "EN",
     "zh": "中文",
     "vi": "VI",
     "ko": "한국어",
-    "es": "ES"
+    "es": "ES",
+    "tr": "TR"
   },
   "palette": {
     "title": "Command palette",
@@ -102,7 +105,8 @@
     "provider": {
       "both": "Claude and Codex data",
       "claude": "Claude data only",
-      "codex": "Codex data only"
+      "codex": "Codex data only",
+      "gemini": "Gemini data only"
     },
     "on": "On",
     "off": "Off",

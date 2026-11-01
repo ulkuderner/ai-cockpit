@@ -1,7 +1,8 @@
 {
-  "brand": "Bảng điều khiển Agent",
-  "brandSub": "Giám sát Claude Code",
+  "brand": "AI Cockpit",
+  "brandSub": "Claude · Cursor · Codex · Gemini",
   "dashboard": "Tổng quan",
+  "plan": "Plan",
   "agentBoard": "Bảng Kanban",
   "sessions": "Phiên",
   "activityFeed": "Luồng hoạt động",
@@ -59,14 +60,16 @@
     "zh": "Tiếng Trung",
     "vi": "Tiếng Việt",
     "ko": "Tiếng Hàn",
-    "es": "Tiếng Tây Ban Nha"
+    "es": "Tiếng Tây Ban Nha",
+    "tr": "Tiếng Thổ Nhĩ Kỳ"
   },
   "languageShort": {
     "en": "EN",
     "zh": "中文",
     "vi": "VI",
     "ko": "한국어",
-    "es": "ES"
+    "es": "ES",
+    "tr": "TR"
   },
   "palette": {
     "title": "Bảng lệnh",
@@ -102,7 +105,8 @@
     "provider": {
       "both": "dữ liệu Claude và Codex",
       "claude": "chỉ dữ liệu Claude",
-      "codex": "chỉ dữ liệu Codex"
+      "codex": "chỉ dữ liệu Codex",
+      "gemini": "Gemini data only"
     },
     "on": "Bật",
     "off": "Tắt",

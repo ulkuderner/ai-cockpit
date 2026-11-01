@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# AI Cockpit launcher: builds the client once, starts the local server on 127.0.0.1 and opens the browser.
+# Usage: ai-cockpit            (port 4820)
+#        AI_COCKPIT_PORT=4900 ai-cockpit
+set -euo pipefail
+ROOT="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)"
+PORT="${AI_COCKPIT_PORT:-4820}"
+cd "$ROOT"
+
+[ -d node_modules ] || npm install --no-audit --no-fund
+[ -d client/node_modules ] || (cd client && npm install --no-audit --no-fund)
+# Rebuild the client when any source file is newer than the last build.
+if [ ! -f client/dist/index.html ] || [ -n "$(find client/src client/index.html -newer client/dist/index.html -print -quit)" ]; then
+  npm run build
+fi
+
+URL="http://localhost:$PORT"
+if curl -fs "$URL/api/health" >/dev/null 2>&1; then
+  echo "AI Cockpit zaten çalışıyor: $URL"
+else
+  # No GitHub update polling: nothing leaves this machine.
+  DASHBOARD_UPDATE_CHECK=0 DASHBOARD_PORT="$PORT" nohup node server/index.js >"${TMPDIR:-/tmp}/ai-cockpit.log" 2>&1 &
+  for _ in $(seq 1 40); do curl -fs "$URL/api/health" >/dev/null 2>&1 && break; sleep 0.25; done
+  echo "AI Cockpit açıldı: $URL (log: ${TMPDIR:-/tmp}/ai-cockpit.log)"
+fi
+command -v open >/dev/null && open "$URL" || true

@@ -116,6 +116,8 @@ const codexSession = {
 } as unknown as Session;
 
 vi.mock("../../lib/api", () => ({
+  // LimitsCard (AI Cockpit) fetches through request; keep it pending.
+  request: vi.fn(() => new Promise(() => {})),
   api: {
     stats: {
       get: vi.fn(() =>

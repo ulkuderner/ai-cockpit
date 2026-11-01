@@ -72,6 +72,8 @@ export function DocumentTitle() {
     title = `${t("sessions")} · ${sessionId.slice(0, 8)}`;
   } else if (path.startsWith("/sessions")) {
     title = t("sessions");
+  } else if (path.startsWith("/plan")) {
+    title = t("plan");
   } else if (path.startsWith("/kanban")) {
     title = t("agentBoard");
   } else if (path.startsWith("/activity")) {

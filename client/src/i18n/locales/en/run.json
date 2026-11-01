@@ -20,6 +20,14 @@
       "description": "Run a persistent Codex app-server thread from your signed-in local CLI.",
       "interactiveLabel": "Interactive Codex thread",
       "interactiveHint": "Starts a persistent local thread with live replies, tool activity, cancellation, and follow-up turns."
+    },
+    "cursor": {
+      "label": "Cursor",
+      "subtitle": "Run a headless Cursor agent and watch its tool calls and result stream in.",
+      "description": "Run a one-shot cursor-agent task and review the exact command first.",
+      "headlessLabel": "Headless Cursor run",
+      "headlessHint": "Runs `cursor-agent -p` once and streams its output. Follow-up messages are not available.",
+      "noFollowUps": "Cursor runs are headless: follow-up messages are not available."
     }
   },
   "mode": {
@@ -61,7 +69,9 @@
     "modelCuratedCatalog": "Claude Code does not publish an account model list; choose its stable aliases or enter another model ID.",
     "modelCustomClaudeHint": "For a previous or account-specific Claude model, enter its exact --model value.",
     "effort": "Thinking effort",
-    "effortHint": "Drives how much the model reasons before answering. Higher = more thinking tokens, slower, deeper. Empty inherits the model's default."
+    "effortHint": "Drives how much the model reasons before answering. Higher = more thinking tokens, slower, deeper. Empty inherits the model's default.",
+    "cursorModelPlaceholder": "Empty = CLI default",
+    "cursorModelHint": "Passed as --model. Leave empty for the CLI default."
   },
   "actions": {
     "start": "Run",
@@ -84,7 +94,8 @@
   },
   "binary": {
     "missing": "The `claude` CLI isn't on your PATH. Install Claude Code or set PATH so the dashboard can spawn it.",
-    "found": "Using {{path}}"
+    "found": "Using {{path}}",
+    "missingCursor": "The `cursor-agent` CLI isn't on your PATH. Install Cursor CLI or set CURSOR_AGENT_BIN so the dashboard can spawn it."
   },
   "concurrency": {
     "active_one": "{{count}} run already in flight",
@@ -188,5 +199,12 @@
     "session": "Session",
     "envelopes": "Events",
     "duration": "Elapsed"
+  },
+  "cursor": {
+    "previewLabel": "Command to run",
+    "previewEmpty": "Type a prompt to preview the command.",
+    "previewHint": "Nothing runs until you press Start.",
+    "trustLabel": "Trust this folder (--trust)",
+    "trustHint": "Headless Cursor refuses untrusted folders. Tick only for folders whose code you trust."
   }
 }

@@ -84,6 +84,7 @@ import { Workflows } from "./pages/Workflows";
 import { Settings } from "./pages/Settings";
 import { CcConfig } from "./pages/CcConfig";
 import { Run } from "./pages/Run";
+import Plan from "./pages/Plan";
 import { NotFound } from "./pages/NotFound";
 import { useWebSocket } from "./hooks/useWebSocket";
 import { useNotifications } from "./hooks/useNotifications";
@@ -130,6 +131,7 @@ export default function App() {
       <Routes>
         <Route element={<Layout wsConnected={connected} />}>
           <Route index element={<Dashboard />} />
+          <Route path="plan" element={<Plan />} />
           <Route path="kanban" element={<KanbanBoard />} />
           <Route path="sessions" element={<Sessions />} />
           <Route path="sessions/:id" element={<SessionDetail />} />

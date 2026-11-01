@@ -189,7 +189,7 @@ function parseDate(iso: string): Date {
 }
 
 /** The five UI languages the dashboard localizes formatting for. */
-type SupportedLanguage = "en" | "zh" | "vi" | "ko" | "es";
+type SupportedLanguage = "en" | "zh" | "vi" | "ko" | "es" | "tr";
 
 /**
  * Resolve the active i18next language down to one of the five {@link SupportedLanguage}
@@ -207,6 +207,7 @@ function getCurrentLanguage(): SupportedLanguage {
     language === "vi" ||
     language === "ko" ||
     language === "es" ||
+    language === "tr" ||
     language === "en"
   ) {
     return language;
@@ -229,6 +230,7 @@ export function getCurrentLocale(): string {
   if (language === "vi") return "vi-VN"; // Vietnamese
   if (language === "ko") return "ko-KR"; // Korean
   if (language === "es") return "es-ES"; // Spanish (Spain)
+  if (language === "tr") return "tr-TR"; // Turkish
   return "en-US"; // default: US English
 }
 

@@ -144,7 +144,9 @@
     "claudeDescription": "Show Claude Code and Cursor data.",
     "codexDescription": "Show only Codex data.",
     "bothDescription": "Combine Claude Code, Cursor, and Codex data.",
-    "beta": "Beta"
+    "beta": "Beta",
+    "gemini": "Gemini",
+    "geminiDescription": "Show only Gemini CLI data."
   },
   "hooks": {
     "title": "Hook Configuration",

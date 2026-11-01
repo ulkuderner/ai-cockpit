@@ -159,6 +159,7 @@ import {
   Palette,
   PanelLeftClose,
   Play,
+  Target,
   PlugZap,
   RefreshCw,
   Server,
@@ -403,6 +404,7 @@ export const PAGE_COMMANDS: {
   navKey: string;
 }[] = [
   { to: "/", icon: LayoutDashboard, navKey: "nav:dashboard" },
+  { to: "/plan", icon: Target, navKey: "nav:plan" },
   { to: "/kanban", icon: Columns3, navKey: "nav:agentBoard" },
   { to: "/sessions", icon: FolderOpen, navKey: "nav:sessions" },
   { to: "/activity", icon: Activity, navKey: "nav:activityFeed" },
@@ -532,10 +534,10 @@ const SESSION_FILTER_COMMANDS: { status: string; labelKey: string }[] = [
  * UI languages the palette offers switch commands for. Must match `supportedLngs` in the i18n
  * setup.
  */
-const LANGUAGES = ["en", "zh", "vi", "ko", "es"] as const;
+const LANGUAGES = ["en", "zh", "vi", "ko", "es", "tr"] as const;
 
 /** Product scopes the palette offers, in display order. */
-const PROVIDER_SCOPES: ProviderScope[] = ["both", "claude", "codex"];
+const PROVIDER_SCOPES: ProviderScope[] = ["both", "claude", "codex", "gemini"];
 
 /**
  * Build every non-session command. Session results are appended by the palette
@@ -643,7 +645,7 @@ export function buildPaletteCommands(ctx: PaletteContext): PaletteCommand[] {
       id: `action:provider:${scope}`,
       label: t("nav:palette.actionProviderScope", { provider: t(`nav:palette.provider.${scope}`) }),
       state: ctx.providerScope === scope ? t("nav:palette.active") : undefined,
-      keywords: ["scope", "filter", "claude", "codex", scope],
+      keywords: ["scope", "filter", "claude", "codex", "gemini", scope],
       group: "actions" as const,
       icon: Layers,
       run: () => ctx.setProviderScope(scope),
@@ -734,19 +736,15 @@ export function buildPaletteCommands(ctx: PaletteContext): PaletteCommand[] {
       group: "actions",
       icon: Github,
       run: () =>
-        window.open(
-          "https://github.com/hoangsonww/Claude-Code-Agent-Monitor",
-          "_blank",
-          "noopener,noreferrer"
-        ),
+        window.open("https://github.com/ulkuderner/ai-cockpit", "_blank", "noopener,noreferrer"),
     },
     {
       id: "action:website",
       label: t("nav:website"),
-      detail: "sonnguyenhoang.com",
+      detail: "Developed by Caglar Ulkuderner",
       group: "actions",
       icon: Globe,
-      run: () => window.open("https://sonnguyenhoang.com", "_blank", "noopener,noreferrer"),
+      run: () => window.open("https://github.com/ulkuderner", "_blank", "noopener,noreferrer"),
     },
     {
       id: "action:api-docs",
@@ -766,7 +764,7 @@ export function buildPaletteCommands(ctx: PaletteContext): PaletteCommand[] {
       icon: Github,
       run: () =>
         window.open(
-          "https://github.com/hoangsonww/Claude-Code-Agent-Monitor/issues/new",
+          "https://github.com/ulkuderner/ai-cockpit/issues/new",
           "_blank",
           "noopener,noreferrer"
         ),
@@ -780,7 +778,7 @@ export function buildPaletteCommands(ctx: PaletteContext): PaletteCommand[] {
       icon: History,
       run: () =>
         window.open(
-          "https://github.com/hoangsonww/Claude-Code-Agent-Monitor/releases",
+          "https://github.com/ulkuderner/ai-cockpit/releases",
           "_blank",
           "noopener,noreferrer"
         ),

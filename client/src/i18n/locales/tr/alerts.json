@@ -1,0 +1,80 @@
+{
+  "title": "Uyarılar",
+  "subtitle": "Oturumlar, ajanlar, olaylar ve token kullanımı için kural tabanlı uyarılar",
+  "refresh": "Yenile",
+  "ackAll": "Tümünü onayla ({{count}})",
+  "ruleTypes": {
+    "event_pattern": "Olay deseni",
+    "inactivity": "Hareketsizlik",
+    "status_duration": "Takılan ajan",
+    "token_threshold": "Token eşiği"
+  },
+  "ruleTypeHints": {
+    "event_pattern": "Alınan bir olay desene uyduğunda tetiklenir. N eşleşen olayı bir zaman penceresi içinde şart koşmak için sayıyı 1'in üzerine ayarlayın (örn. 2 dakikada 5'ten fazla hata).",
+    "inactivity": "Etkin bir oturum yapılandırılan dakika boyunca hiç olay almadığında tetiklenir.",
+    "status_duration": "Bir ajan seçilen durumda yapılandırılan dakika boyunca hareketsiz kaldığında tetiklenir.",
+    "token_threshold": "Bir oturumun toplam token kullanımı (girdi + çıktı + önbellek) eşiği aştığında tetiklenir."
+  },
+  "ruleDesc": {
+    "eventPattern": "{{pattern}} ile eşleşir",
+    "eventPatternCount": "{{window}} dk içinde ≥{{count}} × {{pattern}}",
+    "inactivity": "{{minutes}} dk boyunca oturum etkinliği yok",
+    "statusDuration": "Ajan {{minutes}} dk boyunca {{status}} durumunda takıldı",
+    "tokenThreshold": "Oturum tokenları {{tokens}} değerini aşıyor"
+  },
+  "rules": {
+    "title": "Uyarı kuralları",
+    "add": "Kural ekle",
+    "cancel": "Vazgeç",
+    "create": "Kural oluştur",
+    "saving": "Kaydediliyor…",
+    "empty": "Henüz uyarı kuralı yok. Takılan ajanları, hata dalgalarını, boştaki oturumları veya token artışlarını izlemek için bir kural ekleyin.",
+    "enabled": "Etkin",
+    "disabled": "Devre dışı",
+    "enable": "Kuralı etkinleştir",
+    "disable": "Kuralı devre dışı bırak",
+    "delete": "Kuralı sil",
+    "confirmDelete": "\"{{name}}\" kuralı ve uyarı geçmişi silinsin mi?",
+    "cooldown": "{{seconds}} sn bekleme süresi",
+    "form": {
+      "name": "Kural adı",
+      "namePlaceholder": "örn. Hata dalgası",
+      "type": "Kural türü",
+      "eventType": "Olay türü (tam)",
+      "toolName": "Araç adı (tam)",
+      "summaryContains": "Özet şunu içerir",
+      "count": "Tetikleme sayısı",
+      "windowMinutes": "Pencere (dakika)",
+      "agentStatus": "Ajan durumu",
+      "minutes": "Dakika",
+      "totalTokens": "Toplam token",
+      "cooldown": "Bekleme süresi (saniye)"
+    },
+    "deleteTitle": "Uyarı kuralı silinsin mi?",
+    "help": {
+      "name": "Bu kural için bir etiket. Uyarı akışında görünür ve webhook yüklerine (rule_name) eklenir. örn. 'Tekrarlanan Bash hataları'.",
+      "type": "Bu kuralın neyi izlediği. event_pattern canlı olay akışıyla eşleşir; inactivity = etkin bir oturum sessizleşir; status_duration = bir ajan bir durumda takılır; token_threshold = bir oturumun token kullanımı bir sınırı geçer.",
+      "eventType": "Eşleştirilecek Claude Code kanca olayı. Herhangi bir olay türüyle eşleşmek için boş bırakın. Tam eşleşir (büyük/küçük harfe duyarlı).",
+      "toolName": "Ajanın çağırdığı araç (PreToolUse / PostToolUse olaylarında). Herhangi bir araçla eşleşmek için boş bırakın. Tam eşleşir.",
+      "summaryContains": "Olayın özet metninde büyük/küçük harfe duyarsız alt dize eşleşmesi. Hataları veya belirli ifadeleri yakalamak için yararlıdır. Atlamak için boş bırakın.",
+      "count": "Uyarı tetiklenmeden önce kaç eşleşen olay gerçekleşmeli. 1 = ilk eşleşmede tetikle. Dalgaları (örn. tekrarlanan hatalar) algılamak için 1'in üzerine ayarlayın.",
+      "window": "Sayı için kayan geriye bakış penceresi. örn. sayı 5 + pencere 2, 'herhangi bir 2 dakikalık aralıkta 5 eşleşen olay' demektir.",
+      "status": "Hangi ajan durumunun izleneceği. 'working' görevin ortasında takılan ajanları, 'waiting' girdi/izin bekleyen ajanları yakalar.",
+      "minutesInactivity": "Etkin bir oturum bu kadar dakika olay almadığında tetikle (durmuş veya unutulmuş oturum).",
+      "minutesStatus": "Bir ajan seçilen durumda bu kadar dakika hareketsiz kaldığında tetikle (takılan ajan).",
+      "totalTokens": "Bir oturumun kümülatif tokenları (girdi + çıktı + önbellek okuma + önbellek yazma) bu sayıyı geçtiğinde tetikle. örn. 1000000 = 1M token.",
+      "cooldown": "Aynı kural + oturum + ajan için tekrarlanan uyarılar arasındaki asgari saniye. Gürültülü kopyaları önler. Varsayılan 300 (5 dk); 0 = bekleme süresi yok."
+    }
+  },
+  "feed": {
+    "title": "Uyarı akışı",
+    "unackedCount": "{{count}} onaylanmadı",
+    "unackedOnly": "Yalnızca onaylanmayanlar",
+    "ack": "Onayla",
+    "viewSession": "Oturumu gör",
+    "loadMore": "Daha fazla yükle ({{shown}} / {{total}})",
+    "emptyTitle": "Uyarı yok",
+    "emptyDescription": "Kurallarınızın tetiklediği uyarılar burada gerçek zamanlı görünür.",
+    "emptyUnacked": "Her şey onaylandı. Yeni uyarılar tetiklendikçe burada görünür."
+  }
+}

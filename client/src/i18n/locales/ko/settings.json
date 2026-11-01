@@ -144,7 +144,9 @@
     "claudeDescription": "Claude Code 및 Cursor 데이터를 표시합니다.",
     "codexDescription": "Codex 데이터만 표시합니다.",
     "bothDescription": "Claude Code, Cursor 및 Codex 데이터를 함께 표시합니다.",
-    "beta": "베타"
+    "beta": "베타",
+    "gemini": "Gemini",
+    "geminiDescription": "Show only Gemini CLI data."
   },
   "hooks": {
     "title": "Hook 설정",

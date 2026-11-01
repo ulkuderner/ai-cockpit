@@ -20,6 +20,14 @@
       "description": "Ejecuta un hilo persistente de Codex app-server desde tu CLI local con sesión iniciada.",
       "interactiveLabel": "Hilo interactivo de Codex",
       "interactiveHint": "Inicia un hilo local persistente con respuestas en vivo, actividad de herramientas, cancelación y turnos de seguimiento."
+    },
+    "cursor": {
+      "label": "Cursor",
+      "subtitle": "Run a headless Cursor agent and watch its tool calls and result stream in.",
+      "description": "Run a one-shot cursor-agent task and review the exact command first.",
+      "headlessLabel": "Headless Cursor run",
+      "headlessHint": "Runs `cursor-agent -p` once and streams its output. Follow-up messages are not available.",
+      "noFollowUps": "Cursor runs are headless: follow-up messages are not available."
     }
   },
   "mode": {
@@ -61,7 +69,9 @@
     "modelCuratedCatalog": "Claude Code no publica una lista de modelos de la cuenta; elige sus alias estables o introduce otro ID de modelo.",
     "modelCustomClaudeHint": "Para un modelo de Claude anterior o específico de tu cuenta, introduce su valor exacto de --model.",
     "effort": "Esfuerzo de razonamiento",
-    "effortHint": "Controla cuánto razona el modelo antes de responder. Mayor = más tokens de pensamiento, más lento, más profundo. Vacío hereda el valor predeterminado del modelo."
+    "effortHint": "Controla cuánto razona el modelo antes de responder. Mayor = más tokens de pensamiento, más lento, más profundo. Vacío hereda el valor predeterminado del modelo.",
+    "cursorModelPlaceholder": "Empty = CLI default",
+    "cursorModelHint": "Passed as --model. Leave empty for the CLI default."
   },
   "actions": {
     "start": "Ejecutar",
@@ -84,7 +94,8 @@
   },
   "binary": {
     "missing": "La CLI `claude` no está en tu PATH. Instala Claude Code o configura el PATH para que el panel pueda iniciarlo.",
-    "found": "Usando {{path}}"
+    "found": "Usando {{path}}",
+    "missingCursor": "The `cursor-agent` CLI isn't on your PATH. Install Cursor CLI or set CURSOR_AGENT_BIN so the dashboard can spawn it."
   },
   "concurrency": {
     "active_one": "{{count}} ejecución ya en curso",
@@ -188,5 +199,12 @@
     "session": "Sesión",
     "envelopes": "Eventos",
     "duration": "Transcurrido"
+  },
+  "cursor": {
+    "previewLabel": "Command to run",
+    "previewEmpty": "Type a prompt to preview the command.",
+    "previewHint": "Nothing runs until you press Start.",
+    "trustLabel": "Trust this folder (--trust)",
+    "trustHint": "Headless Cursor refuses untrusted folders. Tick only for folders whose code you trust."
   }
 }

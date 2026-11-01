@@ -24,6 +24,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const claudeRuns = require("../lib/run-spawner");
 const codexRuns = require("../lib/codex-run-spawner");
+const cursorRuns = require("../lib/cursor-run-spawner");
 const { startCodexAppServer } = require("../lib/codex-app-server");
 
 const router = Router();
@@ -106,16 +107,16 @@ const ALLOWED_CODEX_APPROVALS = new Set(["untrusted", "on-request", "never"]);
 const ALLOWED_CODEX_SANDBOXES = new Set(["read-only", "workspace-write", "danger-full-access"]);
 
 function providerOf(value) {
-  return value === "codex" ? "codex" : "claude";
+  return value === "codex" || value === "cursor" ? value : "claude";
 }
 function spawnerFor(provider) {
-  return provider === "codex" ? codexRuns : claudeRuns;
+  return provider === "codex" ? codexRuns : provider === "cursor" ? cursorRuns : claudeRuns;
 }
 function allLiveRuns() {
-  return [...claudeRuns.listRuns(), ...codexRuns.listRuns()];
+  return [...claudeRuns.listRuns(), ...codexRuns.listRuns(), ...cursorRuns.listRuns()];
 }
 function totalLiveCount() {
-  return claudeRuns.liveCount() + codexRuns.liveCount();
+  return claudeRuns.liveCount() + codexRuns.liveCount() + cursorRuns.liveCount();
 }
 
 router.get("/", (_req, res) => {
@@ -264,7 +265,12 @@ router.get("/files", (req, res) => {
 
 router.get("/binary", (req, res) => {
   const provider = providerOf(req.query.provider);
-  const binary = provider === "codex" ? "codex" : "claude";
+  const binary =
+    provider === "cursor"
+      ? process.env.CURSOR_AGENT_BIN || "cursor-agent"
+      : provider === "codex"
+        ? "codex"
+        : "claude";
   // Surface whether the selected CLI is on PATH so the UI can show a helpful error
   // before the user clicks Run. We don't actually invoke it — just let the
   // user know the spawn will work.
@@ -368,12 +374,37 @@ router.get("/models", async (req, res) => {
   });
 });
 
+/** Exact command line a Cursor run would execute (UI preview; spawns nothing). */
+router.post("/preview", (req, res) => {
+  const body = req.body || {};
+  if (providerOf(body.provider) !== "cursor") {
+    return res
+      .status(400)
+      .json({ error: { code: "EUNSUPPORTED", message: "preview is available for cursor only" } });
+  }
+  try {
+    const cwd = sanitiseCwd(body.cwd);
+    const model = typeof body.model === "string" && body.model ? body.model : null;
+    return res.json(
+      cursorRuns.previewCommand({ prompt: body.prompt, model, cwd, trust: body.trust === true })
+    );
+  } catch (err) {
+    return res.status(400).json({ error: { code: err.code || "EBAD", message: err.message } });
+  }
+});
+
 router.post("/", (req, res) => {
   const body = req.body || {};
   const provider = providerOf(body.provider);
   const prompt = typeof body.prompt === "string" ? body.prompt : "";
   const mode =
-    provider === "codex" ? "conversation" : body.mode === "headless" ? "headless" : "conversation";
+    provider === "cursor"
+      ? "headless"
+      : provider === "codex"
+        ? "conversation"
+        : body.mode === "headless"
+          ? "headless"
+          : "conversation";
   const model = typeof body.model === "string" && body.model ? body.model : null;
   const resumeSessionId =
     typeof body.resumeSessionId === "string" && body.resumeSessionId ? body.resumeSessionId : null;
@@ -422,6 +453,7 @@ router.post("/", (req, res) => {
       resumeSessionId,
       effort,
       sandbox,
+      trust: body.trust === true,
     });
     return res.status(201).json(spawnerFor(provider).getRun(handle.id));
   } catch (err) {
@@ -460,7 +492,8 @@ router.get("/:id", (req, res) => {
   const includeEnvelopes = req.query.envelopes === "1";
   const handle =
     claudeRuns.getRun(req.params.id, { includeEnvelopes }) ||
-    codexRuns.getRun(req.params.id, { includeEnvelopes });
+    codexRuns.getRun(req.params.id, { includeEnvelopes }) ||
+    cursorRuns.getRun(req.params.id, { includeEnvelopes });
   if (!handle) {
     return res.status(404).json({ error: { code: "ENOTFOUND", message: "run not found" } });
   }
@@ -468,7 +501,10 @@ router.get("/:id", (req, res) => {
 });
 
 router.delete("/:id", (req, res) => {
-  const ok = claudeRuns.killRun(req.params.id) || codexRuns.killRun(req.params.id);
+  const ok =
+    claudeRuns.killRun(req.params.id) ||
+    codexRuns.killRun(req.params.id) ||
+    cursorRuns.killRun(req.params.id);
   if (!ok) {
     return res.status(404).json({ error: { code: "ENOTFOUND", message: "run not found" } });
   }

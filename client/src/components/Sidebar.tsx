@@ -67,6 +67,7 @@ import {
   Workflow,
   Boxes,
   Play,
+  Target,
   Settings,
   Wifi,
   WifiOff,
@@ -103,6 +104,7 @@ function isUpdatePayload(x: unknown): x is UpdateStatusPayload {
 /** Primary navigation entries in sidebar order: route, icon, and translation key. */
 const NAV_KEYS = [
   { to: "/", icon: LayoutDashboard, key: "nav:dashboard" },
+  { to: "/plan", icon: Target, key: "nav:plan" },
   { to: "/kanban", icon: Columns3, key: "nav:agentBoard" },
   { to: "/sessions", icon: FolderOpen, key: "nav:sessions" },
   { to: "/activity", icon: Activity, key: "nav:activityFeed" },
@@ -123,7 +125,7 @@ const STATS_STORAGE_KEY = "sidebar-connection-stats";
 /** How many recent events the connection status modal keeps and persists. */
 const RECENT_EVENTS_CAP = 8;
 /** UI languages offered by the language switcher. Must match `supportedLngs` in the i18n setup. */
-const SUPPORTED_LANGUAGES = ["en", "zh", "vi", "ko", "es"] as const;
+const SUPPORTED_LANGUAGES = ["en", "zh", "vi", "ko", "es", "tr"] as const;
 /** One supported UI language code. */
 type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
@@ -225,7 +227,14 @@ function loadStats(): PersistedStats {
  */
 function normalizeLanguage(language: string): SupportedLanguage {
   const base = language.toLowerCase().split("-")[0];
-  if (base === "zh" || base === "vi" || base === "en" || base === "ko" || base === "es") {
+  if (
+    base === "zh" ||
+    base === "vi" ||
+    base === "en" ||
+    base === "ko" ||
+    base === "es" ||
+    base === "tr"
+  ) {
     return base;
   }
   return "en";
@@ -416,7 +425,7 @@ function CollapsedLanguagePicker({
  */
 export function Sidebar({ wsConnected, collapsed, onToggle }: SidebarProps) {
   const { t, i18n } = useTranslation();
-  const websiteLabel = "sonnguyenhoang.com";
+  const websiteLabel = "Developed by Caglar Ulkuderner";
   // Track whether nav items are clipped by overflow so we can render
   // chevron affordances pointing toward the hidden items. Recomputed on
   // scroll, resize, and any structural change (e.g. collapse toggle).
@@ -865,7 +874,7 @@ export function Sidebar({ wsConnected, collapsed, onToggle }: SidebarProps) {
         {!collapsed && (
           <div className="space-y-1.5">
             <a
-              href="https://github.com/hoangsonww"
+              href="https://github.com/ulkuderner/ai-cockpit"
               target="_blank"
               rel="noopener noreferrer"
               className="group flex items-center gap-2.5 rounded-lg border border-transparent px-2.5 py-2 text-xs text-gray-300 hover:text-gray-200 hover:bg-surface-3 hover:border-border transition-colors"
@@ -877,7 +886,7 @@ export function Sidebar({ wsConnected, collapsed, onToggle }: SidebarProps) {
               <span className="font-medium">{t("nav:github")}</span>
             </a>
             <a
-              href="https://sonnguyenhoang.com"
+              href="https://github.com/ulkuderner"
               target="_blank"
               rel="noopener noreferrer"
               className="group flex items-center gap-2.5 rounded-lg border border-transparent px-2.5 py-2 text-xs text-gray-300 hover:text-gray-200 hover:bg-surface-3 hover:border-border transition-colors"
@@ -893,7 +902,7 @@ export function Sidebar({ wsConnected, collapsed, onToggle }: SidebarProps) {
         {collapsed && (
           <div className="flex flex-col items-center gap-2 pt-0.5">
             <a
-              href="https://github.com/hoangsonww"
+              href="https://github.com/ulkuderner/ai-cockpit"
               target="_blank"
               rel="noopener noreferrer"
               className="w-8 h-8 rounded-md border border-transparent flex items-center justify-center text-gray-400 hover:text-gray-300 hover:bg-surface-3 hover:border-border transition-colors"
@@ -903,7 +912,7 @@ export function Sidebar({ wsConnected, collapsed, onToggle }: SidebarProps) {
               <Github className="w-3.5 h-3.5" />
             </a>
             <a
-              href="https://sonnguyenhoang.com"
+              href="https://github.com/ulkuderner"
               target="_blank"
               rel="noopener noreferrer"
               className="w-8 h-8 rounded-md border border-transparent flex items-center justify-center text-gray-400 hover:text-gray-300 hover:bg-surface-3 hover:border-border transition-colors"

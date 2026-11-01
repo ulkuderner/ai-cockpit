@@ -1,0 +1,26 @@
+{
+  "title": "Panel",
+  "subtitle": "Ajan etkinliğine gerçek zamanlı genel bakış",
+  "totalSessions": "Toplam Oturum",
+  "activeAgents": "Etkin Ajanlar",
+  "activeSubagents": "Etkin Alt Ajanlar",
+  "eventsToday": "Bugünkü Olaylar",
+  "totalEvents": "Toplam Olay",
+  "totalCost": "Toplam Maliyet",
+  "viewBoard": "Panoyu Gör",
+  "viewAll": "Tümünü Gör",
+  "activeAgentsSection": "Etkin Ajanlar",
+  "recentActivity": "Son Etkinlik",
+  "noAgents": "Etkin ajan yok",
+  "noAgentsDesc": "İzlenen bir oturum çalıştığında ajanlar burada görünür.",
+  "noActivity": "Henüz etkinlik yok",
+  "noActivityDesc": "İzlenen oturumlardan gelen olaylar burada gerçek zamanlı olarak akar.",
+  "failedConnect": "Sunucuya bağlanılamadı",
+  "failedLoad": "Veriler yüklenemedi",
+  "activeTrend": " etkin",
+  "totalTrend": " etkin oturumlarda",
+  "tabs": {
+    "monitor": "İzleme",
+    "health": "Sağlık"
+  }
+}

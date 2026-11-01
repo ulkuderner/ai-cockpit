@@ -1,0 +1,10 @@
+{
+  "title": "Etkinlik Akışı",
+  "subtitle": "Tüm ajan olaylarının gerçek zamanlı akışı",
+  "paused": "(duraklatıldı - {{count}} ara belleğe alındı)",
+  "resume": "Devam et",
+  "pause": "Duraklat",
+  "noActivity": "Henüz etkinlik yok",
+  "noActivityDesc": "Ajan oturumları çalıştıkça olaylar burada gerçek zamanlı olarak akar.",
+  "viewSession": "Oturum"
+}

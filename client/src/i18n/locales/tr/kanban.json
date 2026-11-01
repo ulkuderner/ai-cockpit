@@ -1,0 +1,45 @@
+{
+  "title": "Kanban Panosu",
+  "subtitle": "Tüm ajanların duruma göre Kanban görünümü",
+  "subtitleSessions": "Tüm oturumların duruma göre Kanban görünümü",
+  "viewToggle": {
+    "agents": "Ajanlar",
+    "sessions": "Oturumlar"
+  },
+  "noAgents": "Henüz izlenen ajan yok",
+  "noAgentsDesc": "Ajanların burada görünmesi için kancalar kurulu bir izlenen ajan oturumu başlatın.",
+  "agentCount_one": "{{count}} ajan izleniyor",
+  "agentCount_other": "{{count}} ajan izleniyor",
+  "noAgentsInColumn": "Ajan yok",
+  "noSessions": "Henüz izlenen oturum yok",
+  "noSessionsDesc": "Oturumların burada görünmesi için kancalar kurulu bir izlenen ajan oturumu başlatın.",
+  "sessionCount_one": "{{count}} oturum izleniyor",
+  "sessionCount_other": "{{count}} oturum izleniyor",
+  "noSessionsInColumn": "Oturum yok",
+  "ran": "çalıştı: ",
+  "running": "çalışıyor: ",
+  "session": {
+    "anonymous": "Adsız oturum",
+    "agentSummary_one": "{{count}} ajan",
+    "agentSummary_other": "{{count}} ajan",
+    "subagentSummary_one": "{{count}} alt ajan",
+    "subagentSummary_other": "{{count}} alt ajan",
+    "turnSummary_one": "{{count}} tur",
+    "turnSummary_other": "{{count}} tur"
+  },
+  "tooltip": {
+    "agent": {
+      "working": "Ajan şu anda etkin olarak iş yapıyor.\n\nBu tur bittiğinde Bekliyor durumuna döner.",
+      "waiting": "Ajan turunu tamamladı veya izin onayı gibi bir insan yanıtına ihtiyaç duyuyor.\n\nOturum devam ettiğinde çalışmaya döner.",
+      "completed": "Ajan bu oturum için tamamen sona erdi.\n\nBu ajan adına başka etkinlik kaydedilmeyecek.",
+      "error": "Ajan bir hata kaydetti ve oturum sürdürülene veya yeniden denenene kadar devam etmeyecek."
+    },
+    "session": {
+      "active": "Oturum tur ortasında: bir ajan şu anda çalışıyor ve kullanıcı hiçbir şeyi engellemiyor. Bu durum kısa sürelidir; tur bittiğinde oturum Bekliyor durumuna döner.",
+      "waiting": "Oturum sizi bekliyor. Bir tur tamamlanmış olabilir veya ajanın izne ya da girdiye ihtiyacı olabilir.\n\nYanıt borçlu olduğunuz oturumlar için buraya bakın.",
+      "completed": "Oturum, CLI temiz biçimde çıktığı veya açıkça kapatıldığı için tamamen kapandı.\n\nBu oturumdaki tüm ajanlar da tamamlandı.",
+      "error": "Oturum bir hatayla sona erdi: kurtarılamayan bir arıza veya üst akış API hatası çalışmayı sonlandırdı.",
+      "abandoned": "Oturum temiz bir çıkış sinyali olmadan eskidi. 5 dakikadan uzun süre etkinlik olmadığı için terk edildi olarak işaretlendi (örneğin /resume, ağ kopması veya sonlandırılan CLI sonrası). Tamamlandı durumundan farklıdır: gerçek bir çıkış gözlenmedi."
+    }
+  }
+}

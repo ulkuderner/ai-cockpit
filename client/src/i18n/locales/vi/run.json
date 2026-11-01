@@ -20,6 +20,14 @@
       "description": "Chạy luồng Codex app-server bền vững từ CLI cục bộ đã đăng nhập.",
       "interactiveLabel": "Luồng Codex tương tác",
       "interactiveHint": "Khởi chạy luồng cục bộ bền vững với phản hồi trực tiếp, hoạt động công cụ, hủy và lượt theo dõi."
+    },
+    "cursor": {
+      "label": "Cursor",
+      "subtitle": "Run a headless Cursor agent and watch its tool calls and result stream in.",
+      "description": "Run a one-shot cursor-agent task and review the exact command first.",
+      "headlessLabel": "Headless Cursor run",
+      "headlessHint": "Runs `cursor-agent -p` once and streams its output. Follow-up messages are not available.",
+      "noFollowUps": "Cursor runs are headless: follow-up messages are not available."
     }
   },
   "mode": {
@@ -61,7 +69,9 @@
     "modelCuratedCatalog": "Claude Code không công bố danh sách model theo tài khoản; hãy chọn alias ổn định hoặc nhập ID model khác.",
     "modelCustomClaudeHint": "Đối với model Claude cũ hoặc dành riêng cho tài khoản, hãy nhập chính xác giá trị --model.",
     "effort": "Mức độ suy nghĩ",
-    "effortHint": "Điều chỉnh mức suy luận của model trước khi trả lời. Cao hơn = nhiều token suy nghĩ hơn, chậm hơn, sâu hơn. Để trống để dùng mặc định của model."
+    "effortHint": "Điều chỉnh mức suy luận của model trước khi trả lời. Cao hơn = nhiều token suy nghĩ hơn, chậm hơn, sâu hơn. Để trống để dùng mặc định của model.",
+    "cursorModelPlaceholder": "Empty = CLI default",
+    "cursorModelHint": "Passed as --model. Leave empty for the CLI default."
   },
   "actions": {
     "start": "Chạy",
@@ -84,7 +94,8 @@
   },
   "binary": {
     "missing": "Không thấy CLI `claude` trong PATH. Cài đặt Claude Code hoặc đặt PATH.",
-    "found": "Đang dùng {{path}}"
+    "found": "Đang dùng {{path}}",
+    "missingCursor": "The `cursor-agent` CLI isn't on your PATH. Install Cursor CLI or set CURSOR_AGENT_BIN so the dashboard can spawn it."
   },
   "concurrency": {
     "active_one": "Có {{count}} run đang chạy",
@@ -188,5 +199,12 @@
     "session": "Session",
     "envelopes": "Sự kiện",
     "duration": "Đã chạy"
+  },
+  "cursor": {
+    "previewLabel": "Command to run",
+    "previewEmpty": "Type a prompt to preview the command.",
+    "previewHint": "Nothing runs until you press Start.",
+    "trustLabel": "Trust this folder (--trust)",
+    "trustHint": "Headless Cursor refuses untrusted folders. Tick only for folders whose code you trust."
   }
 }

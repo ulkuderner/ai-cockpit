@@ -1,0 +1,468 @@
+{
+  "title": "İş Akışları",
+  "subtitle": "Ajan orkestrasyon zekası",
+  "failedLoad": "İş akışı verileri yüklenemedi",
+  "filteredBy": "Filtre:",
+  "clearFilter": "Filtreyi temizle",
+  "refreshData": "Verileri yenile",
+  "exportJson": "JSON olarak dışa aktar",
+  "allSessions": "Tüm Oturumlar",
+  "activeOnly": "Yalnızca Etkin",
+  "completed": "Tamamlandı",
+  "runs": {
+    "title": "Dinamik İş Akışları",
+    "subtitle": "Workflow aracının başlattığı filolar, diskteki çalıştırma günlüklerinden yeniden oluşturulur",
+    "sessionTitle": "Dinamik İş Akışları",
+    "loading": "Dinamik iş akışları yükleniyor…",
+    "empty": "Henüz dinamik iş akışı yok. Workflow aracının çalıştırmaları, günlükleri yazıldığında (tamamlanınca) burada görünür.",
+    "noAgents": "Bu çalıştırma için kayıtlı iç ajan yok.",
+    "openSession": "Üst oturumu aç",
+    "filterPhase": "Aşamaya göre filtrele",
+    "clearFilter": "Temizle",
+    "resultsLabel": "Sonuçlar",
+    "promptLabel": "İstem",
+    "resultLabel": "Sonuç",
+    "loadingFull": "Tam metin yükleniyor…",
+    "tokens": "token",
+    "agents_one": "{{count}} ajan",
+    "agents_other": "{{count}} ajan",
+    "tools_one": "{{count}} araç çağrısı",
+    "tools_other": "{{count}} araç çağrısı",
+    "status": {
+      "running": "Çalışıyor",
+      "working": "Çalışıyor",
+      "queued": "Sırada",
+      "completed": "Tamamlandı",
+      "done": "Bitti",
+      "success": "Bitti",
+      "error": "Hata",
+      "failed": "Başarısız"
+    },
+    "col": {
+      "agent": "Ajan",
+      "phase": "Aşama",
+      "state": "Durum",
+      "tokens": "Token",
+      "tools": "Araçlar",
+      "duration": "Süre"
+    }
+  },
+  "chartInfo": {
+    "labels": {
+      "what": "Bu ne gösteriyor",
+      "howToRead": "Nasıl okunur",
+      "why": "Neden önemli"
+    },
+    "orchestration": {
+      "what": "Ajan oturumlarının nasıl dallandığını gösteren katmanlı bir DAG: çıkış oturumlarından ana ajana, her alt ajan türüne, bağlam sıkıştırmalarından geçerek son sonuçlara (tamamlandı / hata / terk edildi).",
+      "howToRead": "Her sütun bir katmandır. Kutu genişliği sabittir; küçük rozet sayıyı gösterir. Kenarlar soldan sağa akar; kalın kenar = daha sık geçiş. İstatistikler için bir düğümün üzerine gelin; sayfanın geri kalanını o düğüme göre filtrelemek için tıklayın.",
+      "why": "'İş akışlarımda iş nereye gidiyor?' sorusunu yanıtlamak için kullanın: hangi alt ajan türleri baskın, sıkıştırma nerede devreye giriyor, hangi yollar hatayla, hangileri temiz tamamlanmayla bitiyor."
+    },
+    "toolFlow": {
+      "what": "Kapsamdaki tüm oturumlarda ardışık araç çağrısı geçişlerini gösteren Sankey tarzı bir grafik. Her bant, tüm oturumlarda sayılan bir (kaynak → hedef) çiftidir.",
+      "howToRead": "Araçlar solda ve sağda renkli çubuklar olarak görünür. Bantlar bunları bağlar: kalınlık = kaynağın hedeften hemen önce çalışma sayısı. Kaynak ve hedef payı yüzdeleri için bir banda, toplam kullanımı ve tüm araç çağrılarındaki payı için bir düğüme gelin.",
+      "why": "Alışkanlık hâline gelmiş araç zincirlerini (örn. Read → Edit → Bash) ortaya çıkarır. Döngüleri, boşa giden adımları ve ajan davranışındaki araç çeşitliliği eksikliğini görmek için yararlıdır."
+    },
+    "pipeline": {
+      "what": "Ajan türlerinin birlikte görülmesini gösteren yönlü bir graf: hangi ajan türleri hangilerinden sonra, ne sıklıkla ardışık çalışıyor.",
+      "howToRead": "Daireler ajan türleridir; boyut toplam başlatma sayısını gösterir. B, aynı oturumda A'dan kısa süre sonra çalışırken görüldüyse ok A → B yönündedir ve etiket sayıyı verir. Kaynak/hedef payı için bir oka, başlatma, oturum ve başarı oranı için bir daireye gelin. Düğümleri sürükleyerek yeniden düzenleyin.",
+      "why": "Bilerek tasarlamamış olabileceğiniz gerçek devir hatlarını ortaya çıkarır; örneğin hemen her zaman bir derleme ajanını izleyen kod inceleme ajanı. Böylece bunları kurallaştırabilir veya sadeleştirebilirsiniz."
+    },
+    "effectiveness": {
+      "what": "Her alt ajan türü için bir kart: başarı oranı halkası, toplam oturum, ortalama süre ve 7 günlük etkinlik çizgisi.",
+      "howToRead": "Halka dolgusu başarı oranıdır; ortadaki yüzde de aynıdır. İki kutu sayıları ve ortalama duvar saati süresini verir. Çizgi son haftanın günlük oturum sayısıdır; günlük sayı için bir çubuğa gelin.",
+      "why": "Ajan başına hızlı sağlık kontrolü: hangi ajanlar güvenilir, hangileri yavaş, hangilerinin kullanımı artıyor veya azalıyor."
+    },
+    "patterns": {
+      "what": "Oturum izlerinden algılanan yinelenen ajan orkestrasyon dizilerinin sıralı listesi ve alt ajansız çalışan tekil oturumlar için bir not.",
+      "howToRead": "Her satır bir adım dizisidir (ana → alt → alt …). Sağ taraf, kaç oturumun eşleştiğini ve bunun tüm oturumların yüzde kaçı olduğunu gösterir. Vurgulamak için bir desene tıklayın.",
+      "why": "Projenizdeki standart iş 'biçimlerini' ortaya çıkarır. Sık desenler, adlandırılmış iş akışları veya beceriler olarak resmileştirmek için iyi adaylardır."
+    },
+    "modelDelegation": {
+      "what": "Hangi ana modellerin hangi alt ajan modellerine iş devrettiğini, düğüm başına ajan sayılarını ve toplam tokenları gösteren iki sütunlu akış.",
+      "howToRead": "Sol sütun = oturumların ana modelleri; sağ sütun = alt ajanların içinde kullanılan modeller. Çizgiler gözlenen ana → alt ajan eşleşmelerini gösterir. Tüm ajanlardaki pay, oturumlar, toplam token ve model ailesi (Opus / Sonnet / Haiku) açıklaması için bir düğüme gelin.",
+      "why": "Maliyet/gecikme kademelendirmesini doğrulamanıza yardımcı olur (örn. ana Sonnet, alt ajanlar Haiku) ve Opus'a istenmeyen yükselmeleri yakalar."
+    },
+    "errorPropagation": {
+      "what": "Hataların ajan hiyerarşisinde nerede kümelendiği: derinliğe (oturum/ana, doğrudan alt ajan, iç içe), ajan türüne ve API/oturum düzeyi hata kategorisine göre.",
+      "howToRead": "Üstteki başlık oturum düzeyi hata oranını verir. Derinlik çubukları her iç içe geçme düzeyinde kaç hata olduğunu gösterir. Hataya yatkın türler listesi alt ajan türlerini hata sayısına göre sıralar. Alttaki blok API/oturum hata özetlerini gösterir.",
+      "why": "Hataların orkestrasyon omurgasında (ana ajan), belirli alt ajanlarda ya da derin iç içe zincirlerde olup olmadığını belirler; yeniden deneme, doğrulama veya yeniden yazma yatırımının nereye yapılacağını yönlendirir."
+    },
+    "concurrency": {
+      "what": "Her ajan türünün oturum zaman çizelgesine göre ne zaman etkin olduğunun toplu zamanlaması ve kaç oturumda yer aldığı.",
+      "howToRead": "Her satır bir ajan türüdür. Çubuk uzunluğu oturum sayısıyla orantılıdır. Sağdaki yüzdeler, bir oturum içindeki ortalama başlangıç ve bitiş konumunu gösterir (%0 = oturum başı, %100 = oturum sonu). Zamanlama deseninin (başa yüklü, oturum ortası, sona yüklü vb.) açıklaması için üzerine gelin.",
+      "why": "Oturumlarınızın ritmini ortaya çıkarır (örn. başta lint, sonda kod incelemesi) ve tüm oturumu tekeline alan ajanları gösterir."
+    },
+    "complexity": {
+      "what": "Her oturumun dağılım grafiği: x = duvar saati süresi, y = katılan toplam ajan, balon boyutu = toplam token, renk = son durum.",
+      "howToRead": "Sağ üstteki balonlar uzun ve ajan yoğun oturumlardır. Büyük balonlar en çok token harcadı. Kırmızı/sarı = hata/terk edilen sonuçlar. Tam oturum istatistikleri için bir balona gelin; aşağıda ayrıntıya inmek için tıklayın.",
+      "why": "Maliyet/karmaşıklık dağılımına tek bir görünüm sağlar. Aykırı değerler, kontrolden çıkmış davranış veya maliyet sıçramaları için incelemeye değer oturumlardır."
+    },
+    "compaction": {
+      "what": "Ajanların oturumlar boyunca bağlamı ne sıklıkla sıkıştırdığı: toplam olay, geri kazanılan token ve oturum başına dağılım.",
+      "howToRead": "İki istatistik kutusu toplam sıkıştırma olaylarını ve geri kazanılan kümülatif tokenları gösterir. Çubuk grafik, en az bir sıkıştırması olan oturumları sayıya göre azalan sırada listeler.",
+      "why": "Sıkıştırmalar bağlam baskısını gösterir. Çok sıkıştırmalı oturumların uzun kuyruğu genellikle bölünmesi, özetlenmesi veya daha uzun bağlamlı bir modele taşınması gereken iş akışları demektir."
+    },
+    "drillIn": {
+      "what": "Oturum başına ayrıntı görünümü: seçtiğiniz oturum için tam ajan ağacı, araç çağrısı zaman çizelgesi ve ham olay dizisi.",
+      "howToRead": "Yukarıdaki açılır listeden bir oturum seçin veya dağılım grafiğindeki bir balona tıklayın. Sekmeler aynı oturumun hiyerarşik (Ajan Ağacı), zamansal (Araç Zaman Çizelgesi) ve kronolojik (Olay Dizisi) görünümleri arasında geçiş yapmanızı sağlar.",
+      "why": "Toplu bir grafik şüpheli bir oturumu işaretlediğinde, tam olarak ne olduğunu sırasıyla okumak için gideceğiniz yer burasıdır."
+    }
+  },
+  "stats": {
+    "avgAgentDepth": "Ort. Ajan Derinliği",
+    "avgSubagentsPerSession": "Ort. Alt Ajan / Oturum",
+    "agentSuccessRate": "Ajan Başarı Oranı",
+    "mostCommonFlow": "En Yaygın Akış",
+    "avgCompactions": "Ort. Sıkıştırma",
+    "avgDuration": "Ort. Süre",
+    "tooltip": {
+      "howCalc": "Nasıl hesaplanır",
+      "whatItMeans": "Bu sayı ne anlama geliyor",
+      "moreInfo": "Bu metriği açıkla",
+      "valueMeansFmt": "{{value}} {{phrase}} şu anlama gelir: {{interpretation}}",
+      "phrase": {
+        "depth": "ortalama ajan derinliği",
+        "subagents": "oturum başına alt ajan",
+        "success": "ajan başarı oranı",
+        "topFlow": "en yaygın akış",
+        "compactions": "oturum başına sıkıştırma",
+        "duration": "ortalama süre"
+      },
+      "calc": {
+        "depth": "Her oturum için en derin ajan iç içe geçme düzeyini kaydederiz (ana = 0, doğrudan alt ajan = 1, alt-alt ajan = 2, …) ve bu en büyük değerlerin ortalamasını geçerli filtredeki tüm oturumlar üzerinden alırız.",
+        "subagents": "Toplam alt ajan çağrısı sayısı (her Task / SubagentStop çifti) kapsamdaki oturum sayısına bölünür. Paralel ve yeniden başlatılanlar dahil her alt ajan çalıştırmasını sayar.",
+        "success": "Kapsamdaki tüm ana + alt ajan çalıştırmaları üzerinden: tamamlanan çalıştırmalar ÷ (tamamlanan + hatalı + terk edilen) × 100. Arada hata olayı olmadan bir Stop / SubagentStop gözlendiğinde çalıştırma tamamlanmış sayılır.",
+        "topFlow": "Bir oturum içindeki her ardışık araç çağrısı çifti bir geçiş olarak sayılır. Tüm oturumlarda en sık görünen çift burada 'kaynak → hedef' olarak gösterilir.",
+        "compactions": "PreCompact / SessionStart(compact) kancalarının kaydettiği toplam bağlam sıkıştırma olayı sayısı, kapsamdaki oturum sayısına bölünür.",
+        "duration": "Her oturumun ilk kaydedilen olayından son kaydedilen olayına kadar geçen duvar saati süresinin, kapsamdaki tüm oturumlar üzerinden ortalaması."
+      },
+      "depth": {
+        "zero": "iç içe ajan gözlenmedi. Her oturum yalnızca ana ajanla çalıştı, alt ajana iş devri olmadı.",
+        "rare": "iç içe geçme nadir. Çoğu oturum 0 derinliğinde (yalnızca ana ajan) kalır; yalnızca küçük bir kısmı alt ajanlara uzanır.",
+        "single": "oturumlar genellikle tek katman alt ajana iş devreder (ana → alt ajan), daha fazla iç içe geçme olmadan.",
+        "multi": "çok katmanlı orkestrasyon yaygın: alt ajanlar sık sık kendileri de alt ajan başlatır (ana → alt → alt).",
+        "deep": "derin, özyinelemeli orkestrasyon norm. Oturumlar tutarlı biçimde üç veya daha fazla ajan katmanını zincirler."
+      },
+      "subagents": {
+        "zero": "hiç alt ajan tetiklenmedi. Oturumlar tamamen ana ajanla tamamlandı.",
+        "lowFreq": "pratikte: yaklaşık her ~{{count}} oturumda bir alt ajan. Çoğu oturum hiç alt ajan başlatmaz.",
+        "moderate": "oturumlar genellikle 1-3 alt ajana iş devreder; uzman yardımcıların ılımlı kullanımı.",
+        "heavy": "yoğun iş devri: oturumlar düzenli olarak birkaç alt ajana dallanır.",
+        "veryHeavy": "çok orkestrasyon yoğun: oturumlar ortalama 6+ alt ajan çalıştırması yapar."
+      },
+      "success": {
+        "perfect": "neredeyse kusursuz. Hemen her ajan çalıştırması hatasız ve terk edilmeden temiz biçimde biter.",
+        "healthy": "sağlıklı. Ajan çalıştırmalarının büyük çoğunluğu başarıyla tamamlanır; yalnızca ara sıra hatalar var.",
+        "acceptable": "kabul edilebilir, ancak hata eğilimine dikkat edin: her 5-20 çalıştırmadan yaklaşık biri başarısız oluyor veya terk ediliyor.",
+        "concerning": "endişe verici: ajan çalıştırmalarının anlamlı bir kısmı başarısız oluyor. Başlıca suçlular için Hatalar sayfasını inceleyin.",
+        "critical": "kritik: ajan çalıştırmalarının çoğu başarısız oluyor veya terk ediliyor. ErrorPropagation'ı ve son dağıtımları kontrol edin."
+      },
+      "topFlow": {
+        "none": "baskın bir çifti ortaya çıkarmak için henüz yeterli ardışık araç çağrısı kaydedilmedi.",
+        "selfLoop": "{{tool}} çoğunlukla kendini izliyor; tekrarlanan okuma/düzenleme veya zincirlenmiş kabuk komutları için tipik.",
+        "pair": "{{source}} çoğunlukla hemen {{target}} öncesinde çalışır. Bunu bir alışkanlık olarak okuyun: ajanlar bir sonraki adım olarak önce {{sourceLower}}, sonra {{targetLower}} eğilimindedir."
+      },
+      "compactions": {
+        "zero": "bağlam sıkıştırması gözlenmedi. Oturumlar modelin bağlam penceresi içinde rahatça kaldı.",
+        "lowFreq": "pratikte: her {{count}} oturumda ~1 sıkıştırma. Uzun süren oturumlar istisnadır.",
+        "moderate": "oturumlar genellikle bir veya iki kez sıkıştırmaya ulaşır; bağlam baskısı var ama yönetilebilir.",
+        "high": "yüksek sıkıştırma oranı. Oturumlar düzenli olarak birden çok bağlam sıkıştırması gerektirecek kadar uzun sürüyor; işi bölmeyi düşünün."
+      },
+      "duration": {
+        "zero": "henüz tamamlanan oturum yok; süre 0.",
+        "veryShort": "çok kısa oturumlar (bir dakikanın altında); muhtemelen hızlı araç çağrıları veya tek seferlik istemler.",
+        "short": "kısa oturumlar, birkaç dakika mertebesinde. Odaklı, tek özellikli işler için tipik.",
+        "medium": "orta uzunlukta oturumlar (5-30 dk). Standart geliştirme temposu.",
+        "long": "uzun oturumlar (30-60 dk). Muhtemelen çok adımlı iş akışları veya daha uzun inceleme döngüleri.",
+        "veryLong": "çok uzun oturumlar (1-3 sa). Sıkıştırmaya ve bağlam baskısına dikkat edin.",
+        "marathon": "maraton oturumlar (3+ saat). İşin birden çok daha kısa oturuma bölünüp bölünemeyeceğini değerlendirin."
+      }
+    }
+  },
+  "orchestration": {
+    "title": "Ajan Orkestrasyon Grafı",
+    "subtitle": "Tüm oturumlardaki toplu başlatma desenleri - Filtrelemek için bir düğüme tıklayın",
+    "sessions": "Oturumlar",
+    "mainAgent": "Ana Ajan",
+    "compactions": "Sıkıştırmalar",
+    "noData": "Orkestrasyon verisi yok",
+    "noDataDesc": "Alt ajanlı oturumlar kaydedildiğinde ajan başlatma verileri burada görünür.",
+    "legend": "Gösterge",
+    "edgeWeight": "Kenar ağırlığı = sıklık",
+    "count": "Sayı",
+    "otherTypes": "{{count}} diğer tür",
+    "ariaLabel": "Ajan orkestrasyonu yönlü döngüsüz graf",
+    "layers": {
+      "origin": "Çıkış",
+      "mainAgent": "Ana Ajan",
+      "subagentTypes": "Alt Ajan Türleri",
+      "compactions": "Sıkıştırmalar",
+      "outcomes": "Sonuçlar"
+    },
+    "tooltip": {
+      "tipClickToFilter": "İpucu: sayfanın geri kalanını bu düğüme göre filtrelemek için tıklayın.",
+      "layer": {
+        "session": "Katman 0 - Çıkış",
+        "main": "Katman 1 - Ana ajan",
+        "subagent": "Katman 2 - Alt ajan türü",
+        "subagentOverflow": "Katman 2 - Alt ajan türleri",
+        "nested": "Katman 3 - Sıkıştırmalar",
+        "outcome": "Katman 4 - Sonuç"
+      },
+      "desc": {
+        "session": "Buradaki her birim, geçerli durum filtresiyle eşleşen bir ajan oturumudur. Giden kenarlar, bu oturumların başlattığı ana ajanlara dallanır.",
+        "main": "Her oturumun en üst düzey ajan çalıştırması. Her oturumun tam olarak bir ana ajanı vardır; graf buradan, iş devrettiği alt ajan türlerine dallanır.",
+        "subagent": "Ana ajanın iş devrettiği uzman bir alt ajan (örn. Task aracıyla).",
+        "subagentClean": " Bu alt ajanın her çalıştırması temiz tamamlandı.",
+        "subagentAllError": " Bu alt ajanın her çalıştırması hata verdi - ajan tanımını inceleyin.",
+        "subagentSomeErrors": " {{count}} çalıştırma hata verdi - ayrıntılar için aşağıdaki Hata Yayılımı bölümüne bakın.",
+        "subagentOverflow": "Graf okunabilir kalsın diye kalan tüm alt ajan türleri tek bir düğümde toplandı. Tek tek istatistikler için diğer alt ajan düğümlerine gelin.",
+        "nested": "Bağlam penceresi sıkıştırma olayları. Çalışan bağlam modelin sınırına yaklaştığında ajan sıkıştırır; sayı, kapsamdaki oturumlarda bunun ne sıklıkla olduğunu yansıtır.",
+        "outcomeCompleted": "Sonlanmadan önce kaydedilmiş hata olmadan temiz biçimde biten oturumlar.",
+        "outcomeError": "Sonlanmadan önce en az bir hata olayı (araç hatası, alt ajan hatası veya oturum hatası) yayan oturumlar.",
+        "outcomeAbandoned": "Temiz bir çıkış sinyali ve açık hata olmadan duran oturumlar; genellikle yarıda kapatılmış.",
+        "outcomeFallback": "Kapsamdaki oturumların, her oturum için gözlenen son olaydan hesaplanan son durumu."
+      }
+    }
+  },
+  "toolFlow": {
+    "title": "Araç Yürütme Akışı",
+    "subtitle": "Araçların nasıl zincirlendiği - Sankey tarzı yönlü akış",
+    "noData": "Araç akışı verisi yok",
+    "transitionCount_one": "{{count}} geçiş",
+    "transitionCount_other": "{{count}} geçiş",
+    "tooltip": {
+      "node": "Araç düğümü",
+      "link": "Araç geçişi",
+      "totalCalls": "Toplam çağrı",
+      "shareOfAll": "Tüm araç kullanımındaki pay",
+      "transitionsObserved": "Gözlenen geçişler",
+      "shareOfSourceFmt": "{{source}} → sonraki payı",
+      "shareOfTargetFmt": "önceki → {{target}} payı",
+      "nodeDescFmt": "Çubuk yüksekliği, {{name}} aracının kapsamdaki tüm oturumlarda ne sıklıkla göründüğünü gösterir. Soldan gelen bantlar {{name}} öncesinde neyin çalıştığını, sağa giden bantlar sonrasında neyin çalıştığını gösterir.",
+      "linkDescFmt": "Tüm oturumlarda, {{source}} aracının hemen {{target}} öncesinde kaç kez çalıştığını sayar. Kalın bant = daha yaygın geçiş; yüzdeler bu adımın her aracın giden / gelen akışı içinde ne kadar baskın olduğunu gösterir."
+    }
+  },
+  "pipeline": {
+    "title": "Ajan Hat Grafı",
+    "subtitle": "Yönlü iş akışı - hangi ajan türleri hangilerinden sonra çalışıyor, sıklık etiketleriyle",
+    "noData": "Henüz hat verisi yok",
+    "noDataDesc": "Ajan türleri birden çok oturumda ardışık çalıştığında yönlü iş akışı kenarları görünür.",
+    "legend": "Gösterge",
+    "legendDesc": "A, B'den önce çalışır (etiketli sayı)",
+    "frequency": "Sıklık",
+    "meaning": "Anlamı",
+    "times": " kez",
+    "ranAfter": " şundan sonra çalıştı: ",
+    "spawns": " başlatma",
+    "spawned": "Başlatılan",
+    "inSessions": "Oturumlarda",
+    "ariaLabel": "Ajan hat grafı",
+    "tooltip": {
+      "agentType": "Ajan türü",
+      "edge": "Ardışık kenar",
+      "shareOfAllSpawns": "Tüm başlatmalardaki pay",
+      "sequentialPairs": "Ardışık çiftler",
+      "totalSpawnsFmt": "{{id}} toplam başlatma",
+      "shareOfSrcFmt": "{{source}} → sonraki payı",
+      "shareOfTgtFmt": "önceki → {{target}} payı",
+      "edgeDescFmt": "{{target}}, tüm oturumlarda {{source}} aracından hemen sonra {{count}} kez çalıştı. Ok ne kadar kalınsa bu devir o kadar sık gerçekleşti. İş akışlarınızdaki alışılmış iş devri zincirlerini görmek için kullanın.",
+      "nodeDescFmt": "{{id}}, {{sessions}} oturumda {{total}} kez çalıştı; başarı oranı {{rate}}% ({{health}}). Daire boyutu toplam başlatmayı gösterir; oklar hangi ajan türlerinin onun öncesinde veya sonrasında çalışma eğiliminde olduğunu gösterir.",
+      "health": {
+        "perfect": "neredeyse kusursuz",
+        "healthy": "sağlıklı",
+        "shaky": "dengesiz",
+        "failing": "sık başarısız"
+      }
+    }
+  },
+  "effectiveness": {
+    "title": "Alt Ajan Etkinliği",
+    "subtitle": "Ajan türü başına performans metrikleri",
+    "success": "Başarı",
+    "sessions": "Oturumlar",
+    "avgDuration": "Ort. Süre",
+    "weeklyActivity": "Haftalık etkinlik",
+    "noData": "Alt ajan verisi yok",
+    "successRateAria": "Başarı oranı: {{rate}}%",
+    "weeklyActivityAria": "Haftalık etkinlik çizgisi",
+    "sessionCount_one": "{{count}} oturum",
+    "sessionCount_other": "{{count}} oturum"
+  },
+  "patterns": {
+    "title": "Algılanan İş Akışı Desenleri",
+    "subtitle": "Yaygın ajan orkestrasyon dizileri",
+    "noData": "Henüz desen algılanmadı",
+    "noDataDesc": "Birden çok oturum aynı ajan dizisini paylaştığında desenler görünür.",
+    "solo": "tekil (alt ajan yok)",
+    "label": "İş Akışı Desenleri",
+    "detail": {
+      "clickHint": "Ayrıntılar için tıklayın",
+      "stepsHeading": "Tam adım dizisi",
+      "statsHeading": "İstatistikler",
+      "stepsCount_one": "{{count}} adım",
+      "stepsCount_other": "{{count}} adım",
+      "uniqueAgents": "Benzersiz ajan türleri",
+      "occurrences": "Bu desenle eşleşen oturumlar",
+      "shareOfSessions": "Tüm oturumlardaki pay",
+      "narrativeHeading": "Bu ne anlama geliyor",
+      "suggestionHeading": "Öneri",
+      "narrative": {
+        "soloFmt": "Yalnızca {{first}} ile çalışan oturumlar; diğer ajan türlerine iş devri yok.",
+        "twoStepFmt": "İki adımlı bir devir: {{first}} doğrudan {{last}} ajanına iş devreder, başka dallanma yok.",
+        "shortFmt": "{{first}} ile başlayıp {{last}} ile biten {{count}} adımlı bir zincir.",
+        "longFmt": "Uzun, {{count}} adımlı bir zincir: {{first}} ile başlar, birkaç ajandan geçer ve {{last}} ile biter.",
+        "loopHintFmt": " {{agent}} bu dizide birden fazla kez görünüyor; bir doğrulama veya revizyon döngüsü için tipik.",
+        "dominant": " Bu, projenizdeki baskın iş akışı: oturumların yarısından fazlası bunu izliyor.",
+        "common": " Bu yaygın bir iş akışı; oturumların kabaca dörtte birini oluşturuyor.",
+        "regular": " Tanınan bir iş akışı, ancak çoğunluk deseni değil.",
+        "niche": " Yalnızca ara sıra ortaya çıkan niş bir desen."
+      },
+      "suggestion": {
+        "solo": "Tekil çalıştırma: bir kod inceleyici veya test çalıştırıcı alt ajanı bu oturumların kalitesini artırır mı?",
+        "shortChain": "Kısa zincir. Tekrarlanıyorsa kolay yeniden üretilsin diye eğik çizgi komutu, beceri veya adlandırılmış iş akışı olarak adlandırın.",
+        "mediumChain": "Resmileştirmek için yeterince sık. Adlandırılmış bir iş akışı veya şablon bu deseni yeniden kullanılabilir yapar.",
+        "longChain": "Uzun zincir: her adımın gerekli olup olmadığını ya da bazı ajanların birleştirilip birleştirilemeyeceğini veya atlanıp atlanamayacağını gözden geçirin.",
+        "loop": "Döngü algılandı. Tekrarlanan adımın, başarısız bir çağrının sessiz yeniden denemesi değil, bilinçli bir doğrulama olduğunu doğrulayın."
+      }
+    }
+  },
+  "modelDelegation": {
+    "title": "Model İş Devri Akışı",
+    "subtitle": "Modellerin ajan hiyerarşilerinde nasıl yönlendirildiği",
+    "mainModels": "ANA MODELLER",
+    "subagentModels": "ALT AJAN MODELLERİ",
+    "noData": "Model iş devri verisi yok",
+    "agentsCount_one": "{{count}} ajan",
+    "agentsCount_other": "{{count}} ajan",
+    "tokensCount": "{{tokens}} token",
+    "sessionsCount_one": "{{count}} oturum",
+    "sessionsCount_other": "{{count}} oturum",
+    "ariaLabel": "Model iş devri akış diyagramı",
+    "tooltip": {
+      "mainModel": "Ana model",
+      "subagentModel": "Alt ajan modeli",
+      "agentRuns": "Ajan çalıştırmaları",
+      "shareOfAll": "Tüm ajanlardaki pay",
+      "sessionsOnModel": "Bu modeldeki oturumlar",
+      "totalTokens": "Toplam token",
+      "family": {
+        "opus": "Opus - en yüksek yetenek kademesi; karmaşık akıl yürütme ve en uzun bağlam için en iyisi, token başına en pahalısı.",
+        "sonnet": "Sonnet - dengeli kademe; çoğu kodlama ve araç kullanımı iş akışı için iyi varsayılan.",
+        "haiku": "Haiku - en hızlı, en ucuz kademe; kısa, gecikmeye duyarlı alt ajanlar için ideal.",
+        "other": "Anthropic dışı veya tanınmayan model - standart Opus/Sonnet/Haiku ailelerinin dışında."
+      },
+      "lines": {
+        "main": "Sağdaki çizgiler, bu ana modelin iş devrettiği alt ajan modellerini gösterir.",
+        "sub": "Soldaki çizgiler, bu alt ajan modeline iş devreden ana modelleri gösterir."
+      }
+    }
+  },
+  "errorPropagation": {
+    "title": "Hata Yayılım Haritası",
+    "subtitle": "Hataların ajan hiyerarşisi derinliğinde nerede kümelendiği",
+    "noErrors": "Kayıtlı hata yok",
+    "allSuccess": "Tüm oturumlar başarıyla tamamlandı",
+    "sessionsHadErrors": " oturumda hata oldu",
+    "sessionsErrorSummary": "{{totalSessions}} oturumun {{errorSessions}} tanesinde hata oldu",
+    "agentErrors": " hiyerarşi genelinde ajan düzeyi hata",
+    "sessionErrorsOnly": "Yalnızca oturum düzeyi hatalar",
+    "errorsByDepth": "Hiyerarşi derinliğine göre hatalar",
+    "errorProneTypes": "Hataya yatkın ajan türleri",
+    "apiSessionErrors": "API ve oturum hataları",
+    "depthLabels": {
+      "sessionMain": "Oturum / Ana",
+      "directSubagent": "Doğrudan Alt Ajan",
+      "nested": "İç içe (derinlik 2)",
+      "deep": "Derin (derinlik 3+)"
+    }
+  },
+  "concurrency": {
+    "title": "Ajan Eşzamanlılık Zaman Çizelgesi",
+    "subtitle": "Paralel ajan yürütme desenleri - Ajanların zamanda nasıl örtüştüğünü gösterir",
+    "noData": "Eşzamanlılık verisi yok",
+    "noDataDesc": "Alt ajanlı oturumlar kaydedildiğinde eşzamanlılık verileri görünür.",
+    "sessions": "Oturumlar",
+    "timing": "Zamanlama",
+    "max": " en çok",
+    "sessionInfo_one": "{{count}} oturum - oturumun {{from}}%-{{to}}% aralığında etkin",
+    "sessionInfo_other": "{{count}} oturum - oturumun {{from}}%-{{to}}% aralığında etkin",
+    "tooltip": {
+      "lane": "Eşzamanlılık şeridi",
+      "sessionsWith": "Bu ajanın bulunduğu oturumlar",
+      "avgStart": "Oturumda ort. başlangıç",
+      "avgEnd": "Oturumda ort. bitiş",
+      "barHint": "Çubuk uzunluğu, bu ajan türünün kaç oturumda yer aldığıyla orantılıdır. Zamanlama yüzdeleri bu oturumların ortalamalarıdır.",
+      "timing": {
+        "wholeSession": "Neredeyse tüm oturum boyunca etkin: baştan sona çalışır.",
+        "frontLoadedFmt": "Başa yüklü: genellikle oturum başından yolun ~{{end}}% kadarına kadar etkin.",
+        "backLoadedFmt": "Sona yüklü: genellikle oturumun {{start}}% civarında devreye girer ve sona kadar sürer.",
+        "tightFmt": "Dar kapsamlı: oturum zaman çizelgesinin {{start}}% ile {{end}}% arasındaki dar bir bantta çalışır.",
+        "midSessionFmt": "Oturum ortası iş: oturum zaman çizelgesinin kabaca {{start}}% ile {{end}}% arasında çalışır."
+      }
+    }
+  },
+  "complexity": {
+    "title": "Oturum Karmaşıklığı Dağılımı",
+    "subtitle": "Süre - ajan sayısı - token karşılaştırması - Balon boyutu = token kullanımı",
+    "noData": "Oturum karmaşıklığı verisi yok",
+    "noDataDesc": "Oturumlar ajan etkinliğiyle tamamlandığında burada görünür.",
+    "duration": "Süre",
+    "agentCount": "Ajan Sayısı",
+    "ariaLabel": "Oturum karmaşıklığı dağılım grafiği",
+    "tooltip": {
+      "duration": "Süre:",
+      "agents": "Ajanlar:",
+      "subagents": "Alt ajanlar:",
+      "tokens": "Token:",
+      "model": "Model:"
+    }
+  },
+  "compaction": {
+    "title": "Sıkıştırma Etki Analizi",
+    "subtitle": "Bağlam sıkıştırmasının oturumlarınıza nasıl dağıldığı",
+    "help": "Bir oturumun bağlam penceresi dolduğunda etkin ajan eski geçmişi bir özete sıkıştırır. Her sıkıştırma böyle bir olaydır.",
+    "noData": "Kayıtlı sıkıştırma yok",
+    "totalCompactions": "Toplam sıkıştırma",
+    "sessionsAffected": "Etkilenen oturumlar",
+    "ofTotal": "/ {{total}}",
+    "avgPerSession": "Ort. / etkilenen oturum",
+    "peakSession": "Tek oturumda en çok",
+    "tokensRecovered": "Geri Kazanılan Token",
+    "distribution": "Sıkıştırma sayısına göre oturumlar",
+    "xAxis": "Oturum başına sıkıştırma",
+    "yAxis": "Oturumlar",
+    "summary": "{{total}} oturumun {{affected}} tanesi ({{pct}}%) bağlam sıkıştırması kullandı.",
+    "tokensFreed": "Sıkıştırma ~{{tokens}} token bağlam açtı.",
+    "ariaLabel": "Sıkıştırma sayısına göre oturum sayısı",
+    "tipTitle": "{{count}} kez sıkıştırıldı",
+    "tipDetail": "{{sessions}} oturum · etkilenenlerin {{pct}}%'i"
+  },
+  "drillIn": {
+    "title": "Oturum Ayrıntısı",
+    "subtitle": "İncelemek için dağılım grafiğinden bir oturum seçin veya açılır listeyi kullanın",
+    "searchPlaceholder": "Oturum ara...",
+    "noSessionSelected": "Oturum seçilmedi",
+    "noSessionDesc": "Ajan ağacına, araç zaman çizelgesine ve olay dizisine inmek için yukarıdan bir oturum arayıp seçin veya dağılım grafiğindeki bir balona tıklayın.",
+    "failedLoad": "Oturum yüklenemedi",
+    "loading": "Yükleniyor...",
+    "loadMore": "Daha fazla yükle",
+    "noMatch": "Aramanızla eşleşen oturum yok.",
+    "notFound": "Oturum bulunamadı.",
+    "unknownModel": "bilinmeyen model",
+    "closePanel": "Ayrıntı panelini kapat",
+    "close": "Kapat",
+    "tabs": {
+      "agentTree": "Ajan Ağacı",
+      "toolTimeline": "Araç Zaman Çizelgesi",
+      "eventSequence": "Olay Dizisi"
+    },
+    "noAgentTree": "Ajan ağacı verisi yok.",
+    "noToolEvents": "Kayıtlı araç olayı yok.",
+    "noEvents": "Bu oturum için kayıtlı olay yok.",
+    "showingOf": "{{total}} olaydan 100 tanesi gösteriliyor",
+    "sessionInfo": " oturum - oturumun {{from}}%-{{to}}% aralığında etkin",
+    "sortedByCompaction": " oturum (sıkıştırma sayısına göre sıralı)"
+  }
+}

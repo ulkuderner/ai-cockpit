@@ -96,7 +96,7 @@ describe("i18n resources", () => {
     for (const namespace of namespaces) {
       const english = flattenResource(i18n.getResourceBundle("en", namespace));
 
-      for (const language of ["zh", "vi", "ko", "es"]) {
+      for (const language of ["zh", "vi", "ko", "es", "tr"]) {
         const locale = flattenResource(i18n.getResourceBundle(language, namespace));
 
         expect(Object.keys(locale).sort(), `${language}/${namespace} keys`).toEqual(

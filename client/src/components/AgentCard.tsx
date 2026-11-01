@@ -172,9 +172,11 @@ export function AgentCard({
     : sessionName;
   const isCodexMain = isMain && session?.provider === "codex" && agent.name.trim() === "Codex";
   const isCursorMain = isMain && session?.provider === "cursor";
+  const isGeminiMain = isMain && session?.provider === "gemini";
   const isClaudeMain =
     isMain &&
     session?.provider !== "cursor" &&
+    session?.provider !== "gemini" &&
     session?.provider !== "codex" &&
     /^Main Agent(?:\s*-|$)/i.test(agent.name.trim());
   // Provider-owned main cards title themselves with the session's own title;
@@ -185,9 +187,11 @@ export function AgentCard({
     ? "Codex"
     : isCursorMain
       ? "Cursor"
-      : isClaudeMain
-        ? "Claude Code"
-        : null;
+      : isGeminiMain
+        ? "Gemini"
+        : isClaudeMain
+          ? "Claude Code"
+          : null;
   const displayName = providerLabel ? realSessionName || t("session.anonymous") : agent.name;
   // Session titles and requests are intentionally independent: Claude,
   // Cursor, and Codex persist two recent real human turns on the session, while a

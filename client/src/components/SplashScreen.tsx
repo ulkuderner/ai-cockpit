@@ -75,7 +75,7 @@ import { setProviderScope, type ProviderScope } from "../lib/dataScope";
 const ONBOARDING_KEY = "provider-onboarding-shown-v2";
 
 /** A provider whose hooks the setup checks: Claude Code or Codex. */
-type HookProvider = Exclude<ProviderScope, "both">;
+type HookProvider = Exclude<ProviderScope, "both" | "gemini">;
 
 /** Hook installation status from `/api/settings/info`, per provider. */
 type HookStatus = {
@@ -102,6 +102,7 @@ type HookStatus = {
  * @returns The providers whose hooks are needed.
  */
 export function hookProvidersForScope(provider: ProviderScope): HookProvider[] {
+  if (provider === "gemini") return []; // Gemini sessions are imported, no hooks
   return provider === "both" ? ["claude", "codex"] : [provider];
 }
 

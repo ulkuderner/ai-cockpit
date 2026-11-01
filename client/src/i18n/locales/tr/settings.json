@@ -1,0 +1,639 @@
+{
+  "title": "Ayarlar",
+  "subtitle": "Fiyatlandırma, bildirimler, veriler ve kancaları yönetin",
+  "exportData": "Verileri Dışa Aktar",
+  "acrossSessions": "İzlenen tüm oturumlarda",
+  "basedOnUsage": "Model başına token kullanımına göre",
+  "tabby": {
+    "title": "Tabby arkadaşı",
+    "description": "Canlı oturumlarınıza tepki veren yüzen bir kedi.",
+    "enable": "Tabby'yi göster",
+    "enableDesc": "Köşe arkadaşını panel genelinde göster (açmak için ⌘B)"
+  },
+  "sound": {
+    "title": "Ses",
+    "description": "Canlı oturum etkinliği için kısa, sessiz çınlamalar. Tarayıcıda üretilir: indirme yok, izleme yok.",
+    "enable": "Ses İpuçlarını Etkinleştir",
+    "enableDesc": "Oturumlar başladığında, bittiğinde veya hata verdiğinde hafif bir ses çal",
+    "volume": "Ses düzeyi",
+    "playWhen": "Şu durumlarda ses çal...",
+    "newSession": "Bir oturum başladığında",
+    "sessionComplete": "Bir oturum yanıtı bitirdiğinde",
+    "sessionError": "Bir oturum hata verdiğinde",
+    "subagentSpawned": "Bir alt ajan başlatıldığında",
+    "notification": "Claude Code bildirim gönderdiğinde",
+    "connection": "Canlı bağlantı koptuğunda veya geri geldiğinde",
+    "interaction": "Düğmelere ve bağlantılara tıklandığında",
+    "interactionDesc": "Her basışta güçlükle duyulan bir tık sesi",
+    "preview": "Sesi Dinle",
+    "throttleInfo": "İpuçları hız sınırlıdır, bu yüzden bir etkinlik dalgası ses dalgasına dönüşmez.",
+    "disabledInfo": "Ses ipuçları kapalı: panel tamamen sessiz kalır"
+  },
+  "pricing": {
+    "title": "Anthropic Claude Model Fiyatlandırması",
+    "navClaude": "Claude Fiyatlandırması",
+    "navCursor": "Cursor Fiyatlandırması",
+    "navGpt": "Codex Fiyatlandırması",
+    "description": "Milyon token başına Anthropic API ücretleri (USD). Desenlerde joker karakter olarak % kullanın. Bazı modellerin süreli tanıtım ücreti vardır (mor renkte gösterilir); bitiş tarihinde veya öncesindeki kullanım bu ücretle, sonrası standart ücretle faturalanır.",
+    "introNote": "Tanıtım ${{input}}/${{output}}, {{until}} tarihine kadar",
+    "introRatesTitle": "Tanıtım ücretleri",
+    "introRatesHint": "Promosyon yoksa tarihi boş bırakın",
+    "introUntil": "Bitiş (tarih)",
+    "introUntilInvalid": "Tanıtım bitiş tarihi YYYY-MM-DD biçiminde olmalı",
+    "resetConfirm": "Sıfırlamayı Onayla",
+    "resetDefaults": "Varsayılanlara Sıfırla",
+    "resetResult": "{{count}} varsayılan kurala sıfırlandı",
+    "addModel": "Model Ekle",
+    "pattern": "Desen",
+    "patternPlaceholder": "claude-opus-4%",
+    "namePlaceholder": "Claude Opus 4",
+    "validationRequired": "Desen ve görünen ad gereklidir",
+    "lastUpdated": "Son güncelleme: ",
+    "tooltip": {
+      "title": "Model fiyatlandırması nasıl çalışır",
+      "howItWorks": "Nasıl çalışır",
+      "howItWorksBody": "Bir oturum kullanım bildirdiğinde panel, deseni model kimliğiyle eşleşen ilk fiyatlandırma kuralını bulur ve maliyeti hesaplamak için (girdi tokenı / 1M) ve (çıktı tokenı / 1M) değerlerini aşağıdaki ücretlerle çarpar. Kurallar yukarıdan aşağıya değerlendirilir: ilk eşleşme kazanır.",
+      "patternsTitle": "Desen sözdizimi",
+      "patternsBody": "Desenler SQL tarzı glob'lardır. % herhangi bir karakterle eşleşen joker karakterdir. Örneğin: claude-opus-4-7% , claude-opus-4-7 ile başlayan her model kimliğiyle eşleşir (örn. claude-opus-4-7, claude-opus-4-7-20260101). claude-%-haiku herhangi bir haiku varyantıyla eşleşir. claude-sonnet-4-6 gibi tam bir kimlik yalnızca kendisiyle eşleşir.",
+      "manualUpdates": "Fiyatları elle güncellemelisiniz",
+      "manualUpdatesBody": "Anthropic fiyat değişikliklerini web sitesinde yayımlar, canlı bir akış yoktur. Yeni bir model çıktığında veya ücretler değiştiğinde, yeni kaydedilen oturumların doğru maliyetlendirilmesi için ilgili kuralı düzenleyin (veya her şeyi yakalayan kuralın üzerine yenisini ekleyin). Daha önce saklanan oturumlar, alım sırasında uygulanan fiyatı korur.",
+      "apiPricing": "Yalnızca başvuru - API ücretleri",
+      "apiPricingBody": "Bunlar kullandıkça öde API ücretleridir. Claude Code'u bir abonelik planında (Pro, Max, Team veya Enterprise) kullanıyorsanız gerçek maliyetiniz token başına değil, sabit aylık ücrettir; bu yüzden buradaki rakamlar genellikle gerçekte ödediğinizden yüksek olur. Buradaki maliyetleri fatura değil, başvuru amaçlı kullanım tahmini olarak değerlendirin."
+    },
+    "cacheWrite5m": "Önbellek Yazma (5dk)",
+    "cacheWrite1h": "Önbellek Yazma (1sa)",
+    "fastInput": "Hızlı Girdi",
+    "fastOutput": "Hızlı Çıktı",
+    "cursor": {
+      "title": "Cursor Model Fiyatlandırması",
+      "description": "Cursor'ın Cursor'a özgü ve yönlendirilen üçüncü taraf modeller için yayımladığı ücretler. 1M token başına USD; en özel eşleşen desen kazanır.",
+      "source": "Cursor Modelleri ve Fiyatlandırmasını Gör ↗",
+      "planNote": "Tahminler Cursor'ın token başına ücret tarifesini kullanır. Dahil kullanım havuzları, plan hakları, Auto yönlendirme ve ekip token ücreti faturalaması gerçek abonelik ücretinizin farklı olmasına yol açabilir.",
+      "name": "Ad",
+      "input": "Girdi",
+      "write": "Önbellek yazma",
+      "cached": "Önbellek okuma",
+      "output": "Çıktı",
+      "deleteConfirm": "Bu Cursor fiyatlandırma kuralı silinsin mi?",
+      "tooltip": {
+        "title": "Cursor fiyatlandırması nasıl çalışır",
+        "howItWorks": "Nasıl çalışır",
+        "howItWorksBody": "Cursor oturum kullanımı yalnızca bu Cursor ücret tarifesine göre fiyatlandırılır. Girdi, önbellek yazma, önbellek okuma ve çıktı tokenları 1M token başına USD olarak ayrı ayrı hesaplanır.",
+        "patternsTitle": "Desen sözdizimi",
+        "patternsBody": "Desenler SQL tarzı % joker karakterlerini kullanır. Daha özel desenler kazanır, bu yüzden bir Hızlı veya sürümlü model, daha geniş bir aile kuralını güvenle geçersiz kılabilir.",
+        "manualUpdates": "Fiyatları elle güncellemelisiniz",
+        "manualUpdatesBody": "Cursor model fiyat değişikliklerini web sitesinde yayımlar; canlı bir akış yoktur. Cursor bir model adını veya ücretini değiştirdiğinde bir kural ekleyin veya düzenleyin.",
+        "apiPricing": "Plan faturalaması farklı olabilir",
+        "apiPricingBody": "Ücret tarifesi token değerini tahmin eder. Aylık dahil havuzlar, ek kullanım, Auto yönlendirme ve Teams veya Enterprise faturalama kuralları panel tarafından yeniden oluşturulmaz."
+      }
+    },
+    "gpt": {
+      "title": "OpenAI GPT Model Fiyatlandırması",
+      "description": "Codex kullanımı için yayımlanan OpenAI API ücretleri. Standart istekler 272K girdi tokenı ve altında Kısa, üzerinde Uzun ücretleri kullanır; Hızlı modun ayrı Kısa ve Uzun ücretleri vardır. 1M token başına USD.",
+      "tooltip": {
+        "title": "GPT fiyatlandırması nasıl çalışır",
+        "howItWorks": "Nasıl çalışır",
+        "howItWorksBody": "Her tutar 1M token başına USD'dir. Standart Codex istekleri 272K girdi tokenı ve altında Kısa, 272K üzerinde Uzun ücretleri kullanır. Hızlı modun ayrı Kısa ve Uzun ücretleri vardır. Yeni girdi, önbellekli girdi, önbellek yazma ve çıktı ayrı fiyatlandırılır.",
+        "patternsTitle": "Desen sözdizimi",
+        "patternsBody": "Desenler SQL tarzı % joker karakterlerini kullanır. Panel en özel model desenlerini önce değerlendirir ve bildirilen model kimliğiyle eşleşen ilk kuralı kullanır.",
+        "manualUpdates": "Fiyatları elle güncellemelisiniz",
+        "manualUpdatesBody": "OpenAI API fiyat değişikliklerini web sitesinde yayımlar; canlı bir akış yoktur. Yeni kaydedilen kullanımın doğru fiyatlandırılması için modeller veya ücretler değiştiğinde eşleşen bir kuralı güncelleyin veya ekleyin.",
+        "apiPricing": "Yayımlanmayan ücretler fiyatsız kalır",
+        "apiPricingBody": "Tire işareti, OpenAI'ın o bağlam veya Hızlı mod ücretini yayımlamadığı anlamına gelir. Eşleşen kullanım tahmin edilmek yerine fiyatsız olarak işaretlenir. Bunlar başvuru için kullandıkça öde API ücretleridir, abonelik planı faturalaması değildir."
+      },
+      "name": "Ad",
+      "short": "Standart · Kısa ≤272K",
+      "long": "Standart · Uzun >272K",
+      "fast": "Hızlı · Kısa ≤272K",
+      "fastLong": "Hızlı · Uzun >272K",
+      "input": "Girdi",
+      "cached": "Önbellekli",
+      "write": "Önbellek yazma",
+      "output": "Çıktı",
+      "deleteConfirm": "Bu GPT fiyatlandırma kuralı silinsin mi?"
+    }
+  },
+  "claudeHome": {
+    "title": "Claude Code ana dizini",
+    "description": "Claude Code dökümleri, içe aktarmaları ve yapılandırması için kök dizin. Değiştirmek sonraki dosya okumalarını hemen günceller.",
+    "save": "Kaydet",
+    "saving": "Kaydediliyor...",
+    "current": "Geçerli:",
+    "placeholder": "/path/to/claude-home",
+    "saveFailed": "CLAUDE_HOME güncellenemedi"
+  },
+  "codexHome": {
+    "title": "Codex ana dizini",
+    "description": "Codex rollout oturumları ve kancaları için kök dizin. Yeni bir konum kaydetmek canlı izlemeyi yeniden kurar ve oturumlarını hemen tarar.",
+    "save": "Kaydet",
+    "saving": "Kaydediliyor...",
+    "current": "Geçerli:",
+    "placeholder": "/path/to/codex-home",
+    "saveFailed": "Codex ana dizini güncellenemedi"
+  },
+  "homes": {
+    "title": "Oturum Verisi Konumları",
+    "description": "Panelin okuduğu yerel Claude Code ve Codex dizinlerini yapılandırın. Kaydedilen her konum uygulamayı yeniden başlatmadan uygulanır."
+  },
+  "display": {
+    "title": "Panel Verileri",
+    "description": "Uygulama genelinde hangi ürünün oturumlarının, tokenlarının, maliyetlerinin ve etkinliğinin görüneceğini seçin. Değişiklik hemen geçerli olur ve makine veri kaynağı filtresinden bağımsız kalır.",
+    "claude": "Claude Code",
+    "codex": "Codex",
+    "both": "İkisi de",
+    "claudeDescription": "Claude Code ve Cursor verilerini göster.",
+    "codexDescription": "Yalnızca Codex verilerini göster.",
+    "bothDescription": "Claude Code, Cursor ve Codex verilerini birleştir.",
+    "beta": "Beta",
+    "gemini": "Gemini",
+    "geminiDescription": "Yalnızca Gemini CLI verilerini göster."
+  },
+  "hooks": {
+    "title": "Kanca Yapılandırması",
+    "description": "Claude Code ve Codex kancaları olayları panele gerçek zamanlı iletir.",
+    "allInstalled": "Tüm kancalar kurulu",
+    "someInstalled": "Kancalar yapılandırıldı",
+    "incomplete": "Kancalar eksik",
+    "reinstall": "Kancaları Yeniden Kur",
+    "configure": "Kancaları Yapılandır",
+    "success": "Kancalar başarıyla kuruldu",
+    "failed": "Kanca kurulumu başarısız",
+    "display": {
+      "title": "Panel verileri",
+      "description": "Her panel görünümünü hemen bir ürüne göre filtreleyin. Makine veri kaynağı filtresi bağımsız kalır.",
+      "both": "İkisi de"
+    },
+    "modal": {
+      "title": "Panel kancalarını kur",
+      "description": "Bir veya iki ürünü seçin. Mevcut panel kanca girdileri güncellenir; ilgisiz kanca komutlarınıza dokunulmaz.",
+      "claude": "~/.claude/settings.json içindeki yaşam döngüsü kancaları.",
+      "codex": "~/.codex/hooks.json içindeki yaşam döngüsü kancaları, gerçek zamanlı yedek olarak rollout JSONL ile.",
+      "installed": "Zaten kurulu",
+      "overrideWarning": "Seçili bir veya daha fazla ürün için mevcut kanca yapılandırması bulundu. Devam etmek yalnızca bu panelin eşleşen girdilerini değiştirir ve ilgisiz kancaları korur.",
+      "preserveNote": "En az bir ürün seçilmelidir.",
+      "install": "Seçili kancaları kur",
+      "failed": "Seçili kancalar kurulamadı."
+    }
+  },
+  "notifications": {
+    "title": "Bildirimler",
+    "description": "Önemli olaylar için tarayıcı bildirimleri. İzin gerektirir.",
+    "enable": "Tarayıcı Bildirimlerini Etkinleştir",
+    "granted": "İzin verildi",
+    "blocked": "İzin engellendi",
+    "required": "İzin gerekli",
+    "notifyWhen": "Şu durumlarda bildir...",
+    "newSession": "Yeni oturum başladığında",
+    "sessionComplete": "Oturum tamamlandığında",
+    "sessionError": "Oturum hata verdiğinde",
+    "subagentSpawned": "Alt ajan başlatıldığında",
+    "testTitle": "Ajan İzleyici",
+    "testBody": "Bildirimler çalışıyor!",
+    "sendTest": "Test Bildirimi Gönder",
+    "disabledInfo": "Bildirimler devre dışı: oturum olayları için uyarı almak üzere etkinleştirin"
+  },
+  "import": {
+    "title": "Geçmişi İçe Aktar",
+    "providerLabel": "İçe aktarma sağlayıcısı",
+    "providerHint": "Bu panele getirmek istediğiniz yerel ajan geçmişini seçin.",
+    "providerClaude": "Claude Code",
+    "providerCodex": "Codex",
+    "backupProviderNote": "Panel dışa aktarımları Claude Code ve Codex verilerini içerebilir. Geri yükleme, dışa aktarımdaki her sağlayıcıyı birleştirir.",
+    "description": "Mevcut Claude Code oturumlarını panele getirin. Token sayıları, model başına maliyet, sıkıştırmalar, alt ajanlar, araç kullanımları ve tur süreleri özgün JSONL dökümlerinden yeniden oluşturulur; canlı oturumların yakalanmasıyla aynı şekilde.",
+    "scopeNote": "Bu içe aktarma yalnızca Claude Code dökümlerini işler. Codex geçmişinizi veya iki CLI'nın yapılandırmasını asla değiştirmez.",
+    "accuracyNote": "Yeniden çalıştırmak güvenlidir. Oturumlar oturum kimliğine göre tekilleştirilir ve sıkıştırma taban çizgileri token toplamlarının asla çift sayılmamasını sağlar.",
+    "supportedFiles": "Desteklenen girdiler: .jsonl, .meta.json, .zip, .tar, .tar.gz, .tgz, .gz",
+    "instructions": "Geçmişinizi nasıl toplarsınız",
+    "stepLocate": "1. Claude Code geçmişinizi bulun",
+    "stepLocateBody": "Her Claude Code oturumu, projects klasörü altında bir JSONL dökümü olarak saklanır. Her alt klasör, oturumun başladığı çalışma dizininin adını taşır (eğik çizgiler tireyle değiştirilir).",
+    "stepArchive": "2. Aktarım için paketleyin (isteğe bağlı)",
+    "stepArchiveBody": "Geçmişi başka bir makineden taşımak için önce tüm klasörü arşivleyin, sonra kopyalayın (AirDrop, scp, USB, bulut depolama):",
+    "stepChoose": "3. Aşağıdan bir içe aktarma modu seçin",
+    "stepChooseBody": "Varsayılan konumu yeniden tarayın, geçmişi çıkardığınız herhangi bir klasörü gösterin veya dosyaları/arşivleri doğrudan yükleyin.",
+    "stepVerify": "4. Token ve maliyeti doğrulayın",
+    "stepVerifyBody": "İçe aktarmadan sonra dökümü doğrulamak için Analitik → Maliyet sayfasını açın. Aynı oturumu yeniden içe aktarmak her zaman güvenlidir.",
+    "defaultLocation": "Bu makinedeki varsayılan konum",
+    "locationFound": "Klasör bulundu",
+    "locationMissing": "Klasör bulunamadı",
+    "projectsLabel": "proje",
+    "jsonlLabel": "JSONL dosyası",
+    "modeRescan": "Varsayılan klasörü yeniden tara",
+    "modeRescanDesc": "~/.claude/projects dizinini yeniden oku ve yeni olan her şeyi içe aktar.",
+    "modeFolder": "Bir klasörü tara",
+    "modeFolderDesc": "Bu makinedeki herhangi bir dizini JSONL dökümleri için tara (alt klasörleri gezer).",
+    "modeUpload": "Dosya yükle",
+    "modeUploadDesc": "JSONL dosyalarını veya bir arşivi (.zip / .tar.gz) doğrudan tarayıcıya bırakın.",
+    "modeBackup": "Yedeği geri yükle",
+    "modeBackupDesc": "Verileri dışa aktar ile alınan bir panel dışa aktarımını (.json) içe aktarın; başka bir makinenin geçmişini birleştirin.",
+    "backupHint": "Bir dışa aktarım .json dosyasını buraya bırakın veya seçmek için tıklayın",
+    "backupSub": "Verileri dışa aktar düğmesinin ürettiği dosya (Ayarlar'ın üstünde)",
+    "runRestore": "Geri yükle",
+    "backupResult": {
+      "title": "Geri yükleme tamamlandı",
+      "sessionsImported": "Eklenen oturum: {{count}}",
+      "sessionsSkipped": "Zaten mevcut: {{count}}",
+      "events": "Olay: {{count}}",
+      "pricing": "Fiyatlandırma kuralı: {{count}}",
+      "detail": "{{agents}} ajan · {{workflows}} iş akışı · {{runs}} çalıştırma · {{rules}} uyarı kuralı"
+    },
+    "folderPlaceholder": "/absolute/path/to/claude-history",
+    "folderHelper": "Mutlak yol. Tilde (~) genişletilir. Alt klasörler özyinelemeli taranır.",
+    "runRescan": "Şimdi Yeniden Tara",
+    "runScan": "Klasörü Tara",
+    "runUpload": "Yükle ve İçe Aktar",
+    "dropzoneHint": "Dosyaları buraya sürükleyin veya seçmek için tıklayın",
+    "dropzoneSub": ".jsonl, .meta.json, .zip, .tar, .tar.gz, .tgz, .gz kabul edilir",
+    "filesSelected": "{{count}} dosya seçildi",
+    "clearSelection": "Temizle",
+    "copy": "Kopyala",
+    "copied": "Kopyalandı",
+    "progress": {
+      "scan": "Dizin taranıyor...",
+      "extract": "Arşivler çıkarılıyor ({{processed}}/{{total}})...",
+      "parse": "Dökümler ayrıştırılıyor ({{processed}}/{{total}})...",
+      "complete": "İçe aktarma tamamlandı",
+      "error": "İçe aktarma başarısız"
+    },
+    "result": {
+      "imported": "İçe aktarılan: {{count}}",
+      "backfilled": "Zenginleştirilen mevcut: {{count}}",
+      "skipped": "Zaten güncel: {{count}}",
+      "errors": "Hata: {{count}}",
+      "filesScanned": "Taranan dosya: {{count}}",
+      "title": "Son içe aktarma sonucu"
+    },
+    "errors": {
+      "noFiles": "Dosya seçilmedi",
+      "noJsonl": "Yüklenen içerikte .jsonl dosyası bulunamadı",
+      "pathRequired": "Yol gerekli",
+      "pathInvalid": "Yol mutlak olmalı",
+      "pathNotFound": "Yol mevcut değil",
+      "pathNotDir": "Yol bir dizin değil",
+      "generic": "İçe aktarma başarısız: {{message}}"
+    },
+    "codex": {
+      "description": "Mevcut Codex oturumlarını panele getirin. Kullanıcı mesajları, asistan çıktısı, token anlık görüntüleri, araç çağrıları ve bekliyor/etkin yaşam döngüsü durumu, gerçek zamanlı izlemeyle aynı hat kullanılarak özgün rollout JSONL dosyalarından yeniden oluşturulur.",
+      "scopeNote": "Bu içe aktarma yalnızca {{provider}} dökümlerini işler. Claude Code geçmişinizi veya Codex CLI yapılandırmanızı asla değiştirmez.",
+      "accuracyNote": "Yeniden çalıştırmak güvenlidir. İçe aktarılan rollout imleçleri korunur, bu yüzden zaten hesaba katılmış token farkları ve araç çağrıları iki kez eklenmez.",
+      "stepLocate": "1. Codex rollout geçmişinizi bulun",
+      "stepLocateBody": "Codex her oturumu sessions klasörü altında yalnızca eklemeli bir rollout JSONL dosyası olarak saklar. İç içe tarih klasörleri otomatik taranır.",
+      "stepArchive": "2. Aktarım için paketleyin (isteğe bağlı)",
+      "stepArchiveBody": "Geçmişi başka bir makineden taşımak için önce sessions klasörünü arşivleyin, sonra kopyalayın (AirDrop, scp, USB, bulut depolama). O makineden yerel /rename başlıklarını istiyorsanız session_index.jsonl dosyasını da ekleyin.",
+      "stepChoose": "3. Aşağıdan bir içe aktarma modu seçin",
+      "stepChooseBody": "Bu makinenin Codex oturumlarını yeniden tarayın, kopyalanmış veya çıkarılmış bir klasörü gösterin ya da rollout dosyalarını ve arşivleri doğrudan yükleyin.",
+      "stepVerify": "4. Token ve maliyeti doğrulayın",
+      "stepVerifyBody": "İçe aktarmadan sonra dökümü doğrulamak için Analitik → Maliyet sayfasını açın. Aynı rollout her zaman güvenle yeniden içe aktarılabilir.",
+      "defaultLocation": "Bu makinedeki varsayılan Codex oturumları konumu",
+      "locationFound": "Oturumlar klasörü bulundu",
+      "locationMissing": "Oturumlar klasörü bulunamadı",
+      "projectsLabel": "oturum klasörü",
+      "jsonlLabel": "rollout dosyası",
+      "modeRescan": "Codex oturumlarını yeniden tara",
+      "modeRescanDesc": "~/.codex/sessions dizinini yeniden oku ve henüz panelde olmayan rollout geçmişini içe aktar.",
+      "modeFolder": "Bir Codex klasörünü tara",
+      "modeFolderDesc": "Kopyalanmış veya çıkarılmış bir Codex dizinini, iç içe tarih klasörleri dahil rollout JSONL dosyaları için tara.",
+      "modeUpload": "Codex geçmişini yükle",
+      "modeUploadDesc": "Rollout JSONL dosyalarını veya bir arşivi (.zip / .tar.gz) doğrudan tarayıcıya bırakın.",
+      "folderPlaceholder": "/absolute/path/to/codex-history",
+      "folderHelper": "Mutlak yol. Tilde (~) genişletilir. Klasör ve tüm iç içe tarih klasörleri Codex rollout dosyaları için özyinelemeli taranır.",
+      "runRescan": "Codex'i Şimdi Yeniden Tara",
+      "runScan": "Codex Klasörünü Tara",
+      "runUpload": "Codex'i Yükle ve İçe Aktar",
+      "dropzoneHint": "Codex rollout dosyalarını buraya sürükleyin veya seçmek için tıklayın",
+      "dropzoneSub": "Rollout .jsonl dosyaları, session_index.jsonl, .zip, .tar, .tar.gz, .tgz ve .gz arşivleri kabul edilir"
+    }
+  },
+  "data": {
+    "title": "Veri Yönetimi",
+    "description": "Veritabanı bilgisi, içe/dışa aktarma ve temizlik.",
+    "dbOverview": "Veritabanına Genel Bakış",
+    "dbSize": "Veritabanı Boyutu",
+    "loadingDb": "Veritabanı bilgisi yükleniyor...",
+    "sessionCleanup": "Oturum Temizliği",
+    "cleanupDesc": "Eskimiş oturumları terk et ve eski verileri temizle",
+    "abandonAfter": "Şundan eski eskimiş etkin oturumları terk et:",
+    "purgeAfter": "Şundan eski tamamlanan/hatalı oturumları temizle:",
+    "confirmCleanup": "Temizliği Onayla",
+    "runCleanup": "Temizliği Çalıştır",
+    "nothingToClean": "Temizlenecek bir şey yok",
+    "abandonedResult": " oturum terk edildi",
+    "purgedResult": " oturum temizlendi ({{events}} olay, {{agents}} ajan)",
+    "purgedSnapshots": "{{size}} döküm anlık görüntüsü kaldırıldı"
+  },
+  "snapshots": {
+    "title": "Döküm Anlık Görüntüleri",
+    "description": "Claude Code, Codex ve Cursor kendi dökümlerini sildikten sonra da konuşmaların okunabilir kalmasını sağlayan kalıcı kopyalar.",
+    "loading": "Anlık görüntü depolaması yükleniyor...",
+    "total": "Toplam",
+    "files_one": "{{formatted}} dosya",
+    "files_other": "{{formatted}} dosya",
+    "compressedShare": "{{total}} dosyanın {{compressed}} tanesi sıkıştırıldı",
+    "policy": "Sıkıştırma: {{compression}} · Yaş sınırı: {{age}} · Boyut sınırı: {{size}} (DASHBOARD_SNAPSHOT_* ortam değişkenleriyle ayarlanır)",
+    "on": "açık",
+    "off": "kapalı",
+    "unlimited": "yok",
+    "days_one": "{{count}} gün",
+    "days_other": "{{count}} gün",
+    "compressNow": "Şimdi sıkıştır",
+    "compressHint": "Kayıpsız: yalnızca aslı silinmiş anlık görüntüler, düz kopya kaldırılmadan önce doğrulanır.",
+    "compressNone": "Sıkıştırılacak bir şey yok. Her anlık görüntünün aslı hâlâ diskte veya yakın zamanda etkindi.",
+    "compressResult_one": "{{count}} anlık görüntü sıkıştırıldı ({{before}} → {{after}})",
+    "compressResult_other": "{{count}} anlık görüntü sıkıştırıldı ({{before}} → {{after}})",
+    "compressFailed_one": "{{count}} anlık görüntü sıkıştırılamadı ve değiştirilmeden bırakıldı.",
+    "compressFailed_other": "{{count}} anlık görüntü sıkıştırılamadı ve değiştirilmeden bırakıldı.",
+    "compressSkipped": "{{providers}} atlandı: kaynak klasör eksik veya okunamıyor, bu yüzden oradaki hiçbir şey silinmiş sayılmadı.",
+    "pruneTitle": "Eski anlık görüntüleri buda",
+    "pruneDesc": "Biten oturumların anlık görüntülerini bütünüyle, en eskiden başlayarak kaldırır. Önce önizleyin: budanan bir anlık görüntü bir konuşmanın kalan tek kopyası olabilir.",
+    "olderThan": "Şundan eski",
+    "keepUnder": "Toplamı şunun altında tut",
+    "includeOrphans": "Artık veritabanında olmayan oturumların anlık görüntülerini de kaldır",
+    "preview": "Önizle",
+    "previewFirst": "Önce bu ayarları önizleyin",
+    "prune": "Buda",
+    "confirmPrune": "Budamayı onayla",
+    "previewNone": "Eşleşen yok. Hiçbir anlık görüntü kaldırılmaz.",
+    "previewResult_one": "{{count}} oturum ({{files}} dosya, {{size}}) kaldırılır; {{remaining}} kalır.",
+    "previewResult_other": "{{count}} oturum ({{files}} dosya, {{size}}) kaldırılır; {{remaining}} kalır.",
+    "overCap": "Boyut sınırının hâlâ {{size}} üzerinde. Etkin oturumlar ve son 24 saatte etkin olanlar asla budanmaz.",
+    "pruneWarning": "Bu işlem bu anlık görüntüleri kalıcı olarak siler. Aslı zaten silinmiş oturumlar konuşmasını kaybeder.",
+    "pruneResult_one": "{{count}} oturumun anlık görüntüleri budandı ({{size}})",
+    "pruneResult_other": "{{count}} oturumun anlık görüntüleri budandı ({{size}})"
+  },
+  "danger": {
+    "title": "Tehlikeli Bölge",
+    "description": "Verileri kalıcı olarak silen geri alınamaz eylemler",
+    "warning": "Bu işlem tüm oturumları, ajanları, olayları ve token verilerini silecek. Emin misiniz?",
+    "yesClearAll": "Evet, Hepsini Temizle",
+    "clearAllData": "Tüm Verileri Temizle",
+    "clearedResult": "{{count}} satır temizlendi"
+  },
+  "about": {
+    "title": "Hakkında",
+    "description": "Sunucu çalışma zamanı bilgisi.",
+    "release": "Sürüm",
+    "uiBuild": "Arayüz derlemesi v{{version}} (eşleşmesi için istemciyi yeniden derleyin)",
+    "uptime": "Çalışma süresi",
+    "nodejs": "Node.js",
+    "platform": "Platform",
+    "wsClients": "WS İstemcileri",
+    "loadingInfo": "Sunucu bilgisi yükleniyor..."
+  },
+  "tables": {
+    "sessions": "oturum",
+    "agents": "ajan",
+    "events": "olay",
+    "sessionsWithCost": "maliyetli oturum",
+    "pricingRules": "fiyatlandırma kuralı",
+    "cursorPricingRules": "Cursor fiyatlandırma kuralı"
+  },
+  "messages": {
+    "failedLoad": "Yüklenemedi",
+    "failedSave": "Kaydedilemedi",
+    "failedDelete": "Silinemedi",
+    "unknownError": "Bilinmiyor",
+    "actionFailed": "Hata: {{message}}"
+  },
+  "webhooks": {
+    "title": "Webhook Bildirimleri",
+    "description": "Tetiklenen uyarıları Slack'e, Discord'a, Microsoft Teams'e veya herhangi bir HTTP uç noktasına iletin. Teslimat otomatiktir, hata durumunda yeniden denenir ve izlemeyi asla engellemez.",
+    "count_one": "{{count}} hedef",
+    "count_other": "{{count}} hedef",
+    "add": "Webhook Ekle",
+    "loading": "Webhook'lar yükleniyor…",
+    "empty": "Yapılandırılmış webhook yok. Uyarıları Slack'e, Discord'a, Teams'e veya özel bir uç noktaya iletmek için bir tane ekleyin.",
+    "scopedTo_one": "{{count}} kural",
+    "scopedTo_other": "{{count}} kural",
+    "enabled": "Etkin",
+    "test": "Test",
+    "edit": "Düzenle",
+    "delete": "Sil",
+    "confirmDelete": "Onayla",
+    "testOk": "Teslim edildi (HTTP {{status}})",
+    "testFail": "Başarısız: {{error}}",
+    "addTitle": "Yeni Webhook",
+    "editTitle": "Webhook'u Düzenle",
+    "fieldName": "Ad",
+    "fieldNamePlaceholder": "örn. Ekip Slack #alerts",
+    "fieldType": "Tür",
+    "type": {
+      "slack": "Slack",
+      "discord": "Discord",
+      "teams": "Microsoft Teams",
+      "generic": "Genel (özel JSON)"
+    },
+    "fieldUrl": "Webhook URL'si",
+    "urlKeepHint": "mevcut olanı korumak için boş bırakın",
+    "urlKeepPlaceholder": "•••••••• (değişmedi)",
+    "urlPlaceholder": {
+      "slack": "https://hooks.slack.com/services/…",
+      "discord": "https://discord.com/api/webhooks/…",
+      "teams": "https://outlook.office.com/webhook/…",
+      "generic": "https://example.com/webhook"
+    },
+    "fieldSecret": "İmzalama sırrı (isteğe bağlı)",
+    "secretPlaceholder": "HMAC-SHA256 sırrı",
+    "secretKeepPlaceholder": "•••••••• (korumak için boş bırakın)",
+    "secretHint": "Ayarlandığında istekler X-Webhook-Signature üstbilgisiyle imzalanır.",
+    "fieldHeaders": "Özel üstbilgiler (isteğe bağlı)",
+    "replaceHeaders": "Üstbilgileri değiştir",
+    "headerKey": "Üstbilgi",
+    "headerValue": "Değer",
+    "addHeader": "Üstbilgi ekle",
+    "scopeAll": "Tüm kurallardan uyarı al",
+    "enabledOnSave": "Etkin",
+    "save": "Kaydet",
+    "create": "Oluştur",
+    "cancel": "Vazgeç",
+    "urlOptional": "isteğe bağlı geçersiz kılma",
+    "urlAuto": "URL, aşağıdaki kimlik bilgilerinden otomatik ayarlanır.",
+    "deleteTitle": "Webhook silinsin mi?",
+    "deleteMessage": "\"{{name}}\" silinsin mi? Tetiklenen uyarılar bu hedefe iletilmeyecek. Bu işlem geri alınamaz.",
+    "guideToggle": "{{provider}} nasıl kurulur",
+    "guideDocs": "Resmi {{provider}} belgeleri",
+    "guideStaleNote": "Sağlayıcı kurulum ekranları sık değişir, bu yüzden bu adımlar güncel olmayabilir. Her zaman resmi belgelerle doğrulayın."
+  },
+  "alertsHub": {
+    "title": "Uyarılar",
+    "description": "Uyarı kurallarını tanımlayın, webhook kanallarına yönlendirin ve tetiklenenleri tek yerden inceleyin.",
+    "tabRules": "Kurallar",
+    "tabChannels": "Kanallar",
+    "tabActivity": "Etkinlik",
+    "rulesHint": "Bir uyarıyı tetikleyen koşullar. Canlı olay akışına karşı sunucu tarafında değerlendirilir.",
+    "rulesEmptyHint": "Hatalar, hareketsizlik, takılan ajanlar veya token eşikleri için uyarı vermeye başlamak üzere bir kural ekleyin."
+  },
+  "jumpTo": "Git:",
+  "webhookGuides": {
+    "slack": {
+      "steps": [
+        "api.slack.com/apps adresinde bir Slack uygulaması oluşturun veya açın.",
+        "'Incoming Webhooks' özelliğini açın, ardından 'Add New Webhook to Workspace' düğmesine tıklayın.",
+        "Gönderi yapılacak kanalı seçin ve yetkilendirin.",
+        "Oluşturulan URL'yi (https://hooks.slack.com/services/…) kopyalayıp yukarıya yapıştırın."
+      ]
+    },
+    "discord": {
+      "steps": [
+        "Sunucunuzu açın → Server Settings → Integrations → Webhooks.",
+        "'New Webhook' düğmesine tıklayın, bir kanal seçin, isterseniz yeniden adlandırın.",
+        "'Copy Webhook URL' düğmesine tıklayıp yukarıya yapıştırın."
+      ]
+    },
+    "teams": {
+      "steps": [
+        "Hedef Teams kanalında ⋯ → 'Workflows' seçeneğine tıklayın.",
+        "'Post to a channel when a webhook request is received' şablonunu seçin.",
+        "Akışı tamamlayın ve oluşturulan HTTP POST URL'sini kopyalayın.",
+        "Yukarıya yapıştırın. (Klasik Office 365 bağlayıcıları 2025'te kullanımdan kaldırıldı; Workflows kullanın.)"
+      ]
+    },
+    "google_chat": {
+      "steps": [
+        "Google Chat alanını açın → alan başlığı → 'Apps & integrations'.",
+        "'Webhooks' → 'Add webhook' seçeneğine tıklayın ve bir ad verin.",
+        "Webhook URL'sini kopyalayıp yukarıya yapıştırın."
+      ]
+    },
+    "mattermost": {
+      "steps": [
+        "Main Menu → Integrations → Incoming Webhooks (önce bir yöneticinin webhook'ları etkinleştirmesi gerekir).",
+        "'Add Incoming Webhook' düğmesine tıklayın ve bir kanal seçin.",
+        "Kaydedin, ardından webhook URL'sini kopyalayıp yukarıya yapıştırın."
+      ]
+    },
+    "rocketchat": {
+      "steps": [
+        "Administration → Integrations → New → Incoming.",
+        "Etkinleştirin, bir kanal seçin ve kaydedin.",
+        "'Webhook URL' değerini kopyalayıp yukarıya yapıştırın."
+      ]
+    },
+    "telegram": {
+      "steps": [
+        "@BotFather'a mesaj atın, /newbot komutunu çalıştırın ve bot tokenını kopyalayın.",
+        "Botu grubunuza/kanalınıza ekleyin (veya doğrudan ona mesaj atın).",
+        "Sohbet kimliğini bulun: bir mesaj gönderin, https://api.telegram.org/bot<token>/getUpdates adresini açın, result[].message.chat.id değerini okuyun.",
+        "Yukarıya Bot tokenını ve Sohbet Kimliğini girin; URL gerekmez."
+      ]
+    },
+    "pagerduty": {
+      "steps": [
+        "Hedef Service → Integrations → 'Add integration' seçeneğini açın.",
+        "'Events API v2' seçeneğini seçin.",
+        "Integration Key değerini (yönlendirme anahtarı) kopyalayın.",
+        "Yukarıya Yönlendirme anahtarı olarak girin; Events API URL'si önceden doldurulmuştur."
+      ]
+    },
+    "opsgenie": {
+      "steps": [
+        "Settings → Integrations → bir 'API' entegrasyonu ekleyin.",
+        "Oluşturulan API anahtarını kopyalayın.",
+        "Hesap bölgenizi (US veya EU) not edin.",
+        "Yukarıya API anahtarını ve bölgeyi girin; uyarı URL'si bölgeden türetilir."
+      ]
+    },
+    "splunk_oncall": {
+      "steps": [
+        "Integrations → REST Endpoint seçeneğini etkinleştirin.",
+        "REST URL'sini kopyalayın; API anahtarınızı zaten içerir.",
+        "Sondaki '$routing_key' ifadesini yönlendirme anahtarlarınızdan biriyle değiştirin.",
+        "Tam URL'yi yukarıya yapıştırın."
+      ]
+    },
+    "zapier": {
+      "steps": [
+        "'Webhooks by Zapier' → 'Catch Hook' tetikleyicisiyle bir Zap oluşturun.",
+        "Verdiği özel webhook URL'sini kopyalayın.",
+        "Yukarıya yapıştırın. Uyarı JSON olarak gelir: { event, alert }."
+      ]
+    },
+    "make": {
+      "steps": [
+        "Bir senaryonun ilk adımı olarak 'Webhooks' → 'Custom webhook' modülü ekleyin.",
+        "'Add' düğmesine tıklayın, kancayı oluşturun ve URL'sini kopyalayın.",
+        "Yukarıya yapıştırın, ardından Make'in yük biçimini öğrenmesi için bir kez çalıştırın."
+      ]
+    },
+    "n8n": {
+      "steps": [
+        "İş akışınıza bir 'Webhook' düğümü ekleyin; yöntemi POST olarak ayarlayın.",
+        "Production URL'sini kopyalayın.",
+        "İş akışını etkinleştirin ve URL'yi yukarıya yapıştırın (kendi barındırmanız için http'ye izin verilir)."
+      ]
+    },
+    "pipedream": {
+      "steps": [
+        "'HTTP / Webhook' tetikleyicisiyle bir iş akışı oluşturun.",
+        "Benzersiz uç nokta URL'sini kopyalayın.",
+        "Yukarıya yapıştırın; teslimatları Pipedream olay denetçisinde inceleyin."
+      ]
+    },
+    "generic": {
+      "steps": [
+        "Bunu JSON POST kabul eden herhangi bir uç noktaya yöneltin (https veya yerel test için http).",
+        "Gövde biçimi: { event: 'alert.triggered', source, sent_at, alert: { … } }.",
+        "İsteğe bağlı: bir imzalama sırrı (gövde üzerinde HMAC-SHA256 → X-Webhook-Signature üstbilgisi) ve özel üstbilgiler ayarlayın.",
+        "İpucu: tam yükü görmek için webhook.site gibi ücretsiz bir denetçi kullanın."
+      ]
+    }
+  },
+  "remoteSources": {
+    "title": "Uzak Veri Kaynakları",
+    "description": "Diğer makinelerden SSH üzerinden Claude Code ve Codex kullanımını toplayın; örneğin bu paneli yerelde çalıştırırken SSH ile eriştiğiniz bir geliştirme makinesi veya bulut VM. Kimlik doğrulama kendi SSH kurulumunuzu (~/.ssh/config, anahtarlar, ajan) kullanır; burada parola saklanmaz.",
+    "scopeTitle": "Veri kapsamı",
+    "scopeDesc": "Panelin tamamının hangi makinelerin verilerini göstereceğini seçin. Değişiklikler her sayfada hemen uygulanır: oturumlar, analitik ve maliyet.",
+    "scopeAll": "Tüm kaynaklar",
+    "scopeAllDesc": "Bu makine ve yapılandırılmış her uzak kaynak, birleşik.",
+    "scopeLocal": "Yalnızca bu makine",
+    "scopeLocalDesc": "Yalnızca yerelde toplanan oturumlar; tüm uzak kaynak verilerini gizler.",
+    "scopeSelected": "Seçili kaynaklar",
+    "scopeSelectedDesc": "Hangi makinelerin dahil edileceğini aşağıdan tam olarak seçin.",
+    "scopeSelectedCount": "{{total}} kaynaktan {{n}} tanesi seçili",
+    "scopePickMachines": "Dahil edilecek makineler",
+    "thisMachine": "Bu makine",
+    "listTitle": "Yapılandırılmış kaynaklar",
+    "add": "Kaynak ekle",
+    "addTitle": "Uzak kaynak ekle",
+    "editTitle": "Kaynağı düzenle",
+    "fieldLabel": "Etiket",
+    "fieldHost": "SSH ana makinesi",
+    "fieldPort": "Bağlantı noktası (isteğe bağlı)",
+    "fieldIdentity": "Kimlik dosyası (isteğe bağlı)",
+    "fieldRemoteHome": "Uzak Claude ana dizini (isteğe bağlı)",
+    "fieldRemoteHomeHint": "Linux/macOS: varsayılan ~/.claude (veya /home/you/.claude gibi mutlak bir yol). Windows SSH + WSL'de Claude: boş bırakın (otomatik algılama) veya wsl:~/.claude kullanın. Yerel Windows: C:/Users/you/.claude.",
+    "fieldRemoteCodexHome": "Uzak Codex ana dizini (isteğe bağlı)",
+    "fieldRemoteCodexHomeHint": "Varsayılan ~/.codex; oturumlarını ve yerel yeniden adlandırılmış başlıkları içe aktarır. WSL'de Codex bulunan Windows SSH için boş bırakın (otomatik algılama) veya wsl:~/.codex kullanın.",
+    "fieldEnabled": "Arka planda otomatik eşitle",
+    "empty": "Henüz uzak kaynak yok.",
+    "emptyHint": "Claude Code ve Codex kullanımını çekmek için SSH ile eriştiğiniz bir makine ekleyin.",
+    "paused": "Otomatik eşitleme kapalı",
+    "sessionCount": "{{n}} oturum",
+    "sessionCountLinked": "{{n}} bağlı",
+    "sessionCountHint": "Bu kaynağa bağlı oturumlar (veri kapsamı Tümü iken görünen her oturum değil)",
+    "lastSync": "Son eşitleme: {{when}}",
+    "neverSynced": "Hiç eşitlenmedi",
+    "imported": "{{n}} içe aktarıldı",
+    "syncNew": "{{n}} yeni",
+    "syncOnRemote": "uzakta {{n}}",
+    "providerClaude": "Claude Code",
+    "providerCodex": "Codex",
+    "providerSessions": "{{n}} oturum",
+    "providerStatus": {
+      "idle": "Denetlenmedi",
+      "syncing": "Denetleniyor",
+      "ok": "Hazır",
+      "unavailable": "Bulunamadı",
+      "error": "Kullanılamıyor"
+    },
+    "test": "Test",
+    "syncNow": "Eşitle",
+    "syncAll": "Tümünü eşitle",
+    "enable": "Etkinleştir",
+    "disable": "Devre dışı bırak",
+    "confirmDelete": "Bu kaynak kaldırılsın mı?",
+    "purgeData": "Bu kaynaktan içe aktarılan oturumları da sil (geri alınamaz)",
+    "deleteAndPurge": "Kaldır + verileri sil",
+    "removeKeep": "Kaldır (verileri koru)",
+    "remoteSourceBadgeTitle": "Uzak bir makineden toplandı"
+  },
+  "cursorPathsNote": "Cursor, Claude Code panel kapsamına dahildir. Yerel geçmiş ~/.cursor dizininden otomatik bulunur ve anlık görüntüsü alınır; uzak Cursor klasörleri yalnızca Claude'a özgü SSH içe aktarmalarıyla eşitlenmez."
+}

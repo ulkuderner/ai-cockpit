@@ -704,7 +704,7 @@ export interface Session {
   source?: string;
   /** Product that created this session. Historical records default to Claude;
    *  Codex rollouts are marked `codex` and use the GPT price card. */
-  provider?: "claude" | "cursor" | "codex";
+  provider?: "claude" | "cursor" | "gemini" | "codex";
   /** Compact latest task progress attached to Sessions-list rows. Null when the
    * provider never emitted task/checklist/plan state. */
   todo_summary?: SessionTodoSummary | null;

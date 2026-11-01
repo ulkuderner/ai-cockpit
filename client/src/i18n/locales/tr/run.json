@@ -1,0 +1,210 @@
+{
+  "title": "Ajan Çalıştır",
+  "subtitle": "Yerel bir kodlama ajanını doğrudan panelden başlatın.",
+  "provider": {
+    "aria": "Çalıştırma sağlayıcısı",
+    "kicker": "Ajan Çalıştır",
+    "chooseTitle": "Hangi ajanı çalıştırmak istersiniz?",
+    "chooseDescription": "Etkileşimli bir yerel ajan seçin. Yeni bir çalıştırma başlatmadan önce değiştirebilirsiniz.",
+    "choose": "Seç",
+    "cancel": "Vazgeç",
+    "beta": "BETA",
+    "claude": {
+      "label": "Claude Code",
+      "subtitle": "Claude Code oturumlarını canlı akış, konuşma ve terminalinizdekiyle aynı kanca tabanlı analitikle başlatın.",
+      "description": "Claude Code'u konuşma modunda veya tek seferlik görev olarak çalıştırın."
+    },
+    "codex": {
+      "label": "Codex",
+      "subtitle": "Canlı yanıtlar, araç etkinliği ve takip turlarıyla yerel etkileşimli bir Codex iş parçacığı başlatın.",
+      "description": "Oturum açmış yerel CLI'nızdan kalıcı bir Codex app-server iş parçacığı çalıştırın.",
+      "interactiveLabel": "Etkileşimli Codex iş parçacığı",
+      "interactiveHint": "Canlı yanıtlar, araç etkinliği, iptal ve takip turlarıyla kalıcı bir yerel iş parçacığı başlatır."
+    },
+    "cursor": {
+      "label": "Cursor",
+      "subtitle": "Başsız bir Cursor ajanı çalıştırın; araç çağrıları ve sonuç canlı akar.",
+      "description": "Tek seferlik bir cursor-agent görevi çalıştırın; önce tam komutu görün.",
+      "headlessLabel": "Başsız Cursor çalıştırması",
+      "headlessHint": "`cursor-agent -p` komutunu bir kez çalıştırır ve çıktısını akıtır. Takip mesajı gönderilemez.",
+      "noFollowUps": "Cursor çalıştırmaları başsızdır: takip mesajı gönderilemez."
+    }
+  },
+  "mode": {
+    "label": "Mod",
+    "conversation": "Konuşma",
+    "conversationHint": "Çok turlu: ajan çalışırken takip mesajları yazmaya devam edin.",
+    "headless": "Tek seferlik",
+    "headlessHint": "Tek istem, tek yanıt. Başlatmadan sonra stdin kapanır."
+  },
+  "fields": {
+    "prompt": "İstem",
+    "promptPlaceholder": "Claude'a istediğinizi sorun…",
+    "cwd": "Çalışma dizini",
+    "cwdHint": "Mutlak yol. Varsayılan olarak panelin kendi cwd değeri kullanılır.",
+    "cwdPlaceholder": "Aramak için yazın veya mutlak bir yol yapıştırın…",
+    "cwdGroups": {
+      "dashboard": "Panel sunucusu",
+      "home": "Ana dizin",
+      "recent": "Son kullanılanlar - Claude Code tarafından"
+    },
+    "cwdNoMatches": "Eşleşme yok. Doğrudan kullanmak için mutlak bir yol yazın.",
+    "model": "Model",
+    "modelInheritLabel": "Varsayılan (önerilen)",
+    "modelCustom": "Özel…",
+    "modelCustomPlaceholder": "model kimliği (örn. claude-opus-4-7-20260101)",
+    "permissionMode": "İzin modu",
+    "permissionAcceptEdits": "acceptEdits (önerilen)",
+    "permissionDefault": "default (etkileşimli istemler - oturumlar başsız modda takılabilir)",
+    "permissionPlan": "plan (salt okunur planlama)",
+    "permissionBypass": "bypassPermissions (TEHLİKE - her şeye sormadan izin verir)",
+    "approvalUntrusted": "Güvenilmeyen (güvenilmeyen komutlardan önce sor)",
+    "approvalOnRequest": "İstek üzerine (Codex ne zaman soracağına karar verir)",
+    "approvalNever": "Asla (yürütme hatalarını doğrudan döndür)",
+    "sandbox": "Sandbox",
+    "sandboxReadOnly": "Salt okunur",
+    "sandboxWorkspaceWrite": "Çalışma alanına yazma",
+    "sandboxDanger": "Tam erişim (tehlikeli)",
+    "modelLiveCatalog": "Oturum açmış Codex CLI'nızdan canlı katalog",
+    "modelCuratedCatalog": "Claude Code hesap model listesi yayımlamaz; kararlı takma adlarını seçin veya başka bir model kimliği girin.",
+    "modelCustomClaudeHint": "Önceki veya hesaba özel bir Claude modeli için tam --model değerini girin.",
+    "effort": "Düşünme eforu",
+    "effortHint": "Modelin yanıtlamadan önce ne kadar akıl yürüteceğini belirler. Yüksek = daha çok düşünme tokenı, daha yavaş, daha derin. Boş bırakılırsa modelin varsayılanı kullanılır.",
+    "cursorModelPlaceholder": "Boş = CLI varsayılanı",
+    "cursorModelHint": "--model olarak iletilir. CLI varsayılanı için boş bırakın."
+  },
+  "actions": {
+    "start": "Çalıştır",
+    "starting": "Başlatılıyor…",
+    "send": "Gönder",
+    "sending": "Gönderiliyor…",
+    "stop": "Durdur",
+    "stopping": "Durduruluyor…",
+    "newRun": "Yeni çalıştırma",
+    "viewSession": "Oturumu gör"
+  },
+  "status": {
+    "idle": "Boşta",
+    "spawning": "Başlatılıyor…",
+    "running": "Çalışıyor",
+    "completed": "Tamamlandı",
+    "error": "Hata",
+    "killed": "Sonlandırıldı",
+    "abandoned": "Terk edildi"
+  },
+  "binary": {
+    "missing": "`claude` CLI'ı PATH üzerinde değil. Panelin başlatabilmesi için Claude Code'u kurun veya PATH'i ayarlayın.",
+    "found": "{{path}} kullanılıyor",
+    "missingCursor": "`cursor-agent` CLI'ı PATH içinde değil. Cursor CLI'ı kurun veya CURSOR_AGENT_BIN değişkenini ayarlayın."
+  },
+  "concurrency": {
+    "active_one": "{{count}} çalıştırma zaten sürüyor",
+    "active_other": "{{count}} çalıştırma zaten sürüyor",
+    "viewActive": "Panel çalıştırmaları",
+    "atCap": "Eşzamanlılık sınırına ulaşıldı ({{max}}). Yenisini başlatmak için çalışanlardan birini durdurun."
+  },
+  "hint": {
+    "shortcut": "Göndermek için Cmd+Enter / Ctrl+Enter",
+    "permissionWarning": "bypassPermissions tüm araç çağrılarına onay almadan izin verir. Yalnızca güvendiğiniz istemler için kullanın.",
+    "headlessExplain": "Başsız mod, tam olarak ne istediğinizi bildiğiniz betiklenmiş görevler için en iyisidir. Oturum takip soruları soramaz ve acceptEdits modunda kalmazsanız izin istemlerinde takılır."
+  },
+  "empty": {
+    "title": "Henüz bir şey yok",
+    "body": "Bir istem yazıp Çalıştır'a tıklayın. Model düşündükçe, araç çağırdıkça ve yanıtladıkça çıktı burada akar."
+  },
+  "events": {
+    "you": "Siz",
+    "claude": "Claude",
+    "tool": "Araç",
+    "toolResult": "Araç sonucu",
+    "system": "Sistem",
+    "thinking": "Düşünüyor",
+    "expand": "Genişlet",
+    "collapse": "Daralt"
+  },
+  "footer": {
+    "duration": "Süre",
+    "cost": "Maliyet",
+    "turns": "Tur",
+    "exitCode": "Çıkış kodu",
+    "sessionId": "Oturum Kimliği"
+  },
+  "errors": {
+    "startFailed": "Çalıştırma başlatılamadı: {{message}}",
+    "sendFailed": "Gönderilemedi: {{message}}",
+    "killFailed": "Durdurulamadı: {{message}}",
+    "attachFailed": "Çalıştırmaya bağlanılamadı: {{message}}"
+  },
+  "runs": {
+    "switcher": "Panel çalıştırmaları",
+    "switcherEmpty": "Etkin çalıştırma yok",
+    "attached": "Mevcut çalıştırmaya bağlandı",
+    "started": "Başlatıldı: {{when}}",
+    "viewActive": "Panel çalıştırmaları",
+    "viewActive_other": "{{count}} panel çalıştırması",
+    "scopeNote": "Yalnızca bu panelden başlattığınız çalıştırmaları gösterir.",
+    "allSessionsLink": "Tüm Claude Code oturumlarını gör →",
+    "viewLabel": "Gör"
+  },
+  "resume": {
+    "label": "Kaynak oturum",
+    "freshOption": "Yeni oturum",
+    "freshHint": "Yepyeni bir Claude Code oturumu başlatın.",
+    "resumeOption": "Mevcut oturumu sürdür",
+    "resumeHint": "Geçmişinizden bir oturum seçip konuşmaya devam edin. Cwd özgün değere kilitlenir.",
+    "pickSession": "Bir oturum seçin…",
+    "search": "Kimlik, cwd veya duruma göre ara…",
+    "noSessions": "Oturum bulunamadı.",
+    "originalCwd": "Özgün cwd",
+    "preview": "Son etkinlik",
+    "selectedBadge": "Sürdürülüyor",
+    "clear": "Seçimi temizle"
+  },
+  "limitations": {
+    "title": "Claude'u tarayıcınızda çalıştırma",
+    "subtitle": "aynı ikili dosya, farklı yüzey",
+    "peek": "TUI özelliklerinin çoğu burada da çalışır. Birkaç etkileşimli özellik çalışmaz.",
+    "why": "Neden",
+    "intro": "Arka planda terminalinizin kullandığı aynı `claude` ikili dosyasını başlatıyoruz, ancak stream-json (Claude'un sunduğu tek programatik arayüz) tek yönlü bir veri akışıdır, etkileşimli TUI değildir. Çalışan bir terminal oturumuna bağlı her şey (yerinde izin istemleri, tuş atama katmanı, oturum ortası yapılandırma değişiklikleri) konuşma sırasında değil, başlatma anında ayarlanmalıdır.",
+    "supported": "Burada çalışır",
+    "limited": "Yalnızca CLI",
+    "tldr": "Bir özellik burada yoksa aynı oturumu terminalinizde `claude --resume <session-id>` ile açın. İki taraf da diskteki aynı JSONL dökümünü paylaşır, bu yüzden yüzey değiştirirken bağlam kaybetmezsiniz.",
+    "dismiss": "Anladım",
+    "minimize": "Küçült",
+    "restore": "Tarayıcı içi çalıştırma notlarını göster",
+    "expand": "Devamını oku",
+    "collapse": "Daralt"
+  },
+  "tokens": {
+    "label": "Bağlam",
+    "input": "Girdi",
+    "output": "Çıktı",
+    "cacheRead": "Önbellek isabeti",
+    "cost": "Maliyet"
+  },
+  "autocomplete": {
+    "slashHint": "Eğik çizgi komutları için / yazın",
+    "fileHint": "Bir dosyaya başvurmak için @ yazın",
+    "noMatches": "Eşleşme yok",
+    "groupBuiltin": "Yerleşik (yalnızca CLI - buradan çalışmaz)",
+    "groupUser": "Kullanıcı komutları",
+    "groupProject": "Proje komutları",
+    "groupFiles": "Cwd içindeki dosyalar"
+  },
+  "statusHeader": {
+    "model": "Model",
+    "effort": "Efor",
+    "permissionMode": "Mod",
+    "cwd": "Cwd",
+    "session": "Oturum",
+    "envelopes": "Olaylar",
+    "duration": "Geçen süre"
+  },
+  "cursor": {
+    "previewLabel": "Çalıştırılacak komut",
+    "previewEmpty": "Komutu görmek için bir istem yazın.",
+    "previewHint": "Başlat'a basana kadar hiçbir şey çalışmaz.",
+    "trustLabel": "Bu klasöre güven (--trust)",
+    "trustHint": "Başsız Cursor güvenilmeyen klasörde çalışmaz. Yalnız koduna güvendiğin klasörlerde işaretle."
+  }
+}

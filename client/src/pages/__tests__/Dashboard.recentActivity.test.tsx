@@ -97,6 +97,8 @@ function makeEvent(overrides: Partial<DashboardEvent> & { id: number }): Dashboa
 }
 
 vi.mock("../../lib/api", () => ({
+  // LimitsCard (AI Cockpit) fetches through request; keep it pending.
+  request: vi.fn(() => new Promise(() => {})),
   api: {
     stats: {
       get: vi.fn(() =>

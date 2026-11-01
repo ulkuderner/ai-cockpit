@@ -1,7 +1,8 @@
 {
-  "brand": "Agent Dashboard",
-  "brandSub": "Claude Code Monitor",
+  "brand": "AI Cockpit",
+  "brandSub": "Claude · Cursor · Codex · Gemini",
   "dashboard": "대시보드",
+  "plan": "Plan",
   "agentBoard": "칸반 보드",
   "sessions": "세션",
   "activityFeed": "활동 피드",
@@ -59,14 +60,16 @@
     "zh": "중국어",
     "vi": "베트남어",
     "ko": "한국어",
-    "es": "스페인어"
+    "es": "스페인어",
+    "tr": "터키어"
   },
   "languageShort": {
     "en": "EN",
     "zh": "中文",
     "vi": "VI",
     "ko": "한국어",
-    "es": "ES"
+    "es": "ES",
+    "tr": "TR"
   },
   "palette": {
     "title": "명령 팔레트",
@@ -102,7 +105,8 @@
     "provider": {
       "both": "Claude 및 Codex 데이터",
       "claude": "Claude 데이터만",
-      "codex": "Codex 데이터만"
+      "codex": "Codex 데이터만",
+      "gemini": "Gemini data only"
     },
     "on": "켬",
     "off": "끔",

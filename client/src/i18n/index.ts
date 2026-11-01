@@ -2,7 +2,7 @@
  * @file index.ts
  * @description i18next bootstrap for the dashboard client. Registers bundled JSON
  * locale files for English (`en`), Chinese (`zh`), Vietnamese (`vi`),
- * Korean (`ko`), and Spanish (`es`), wires browser language detection, and
+ * Korean (`ko`), Spanish (`es`), and Turkish (`tr`, the default), wires browser language detection, and
  * exports the configured singleton consumed by `react-i18next`.
  *
  * ## Namespaces
@@ -114,8 +114,11 @@ import alerts_en from "./locales/en/alerts.json";
 import alerts_zh from "./locales/zh/alerts.json";
 import alerts_vi from "./locales/vi/alerts.json";
 import splash_en from "./locales/en/splash.json";
+import cockpit_en from "./locales/en/cockpit.json";
 import splash_zh from "./locales/zh/splash.json";
+import cockpit_zh from "./locales/zh/cockpit.json";
 import splash_vi from "./locales/vi/splash.json";
+import cockpit_vi from "./locales/vi/cockpit.json";
 
 import common_ko from "./locales/ko/common.json";
 import nav_ko from "./locales/ko/nav.json";
@@ -132,6 +135,7 @@ import ccConfig_ko from "./locales/ko/ccConfig.json";
 import run_ko from "./locales/ko/run.json";
 import alerts_ko from "./locales/ko/alerts.json";
 import splash_ko from "./locales/ko/splash.json";
+import cockpit_ko from "./locales/ko/cockpit.json";
 
 import common_es from "./locales/es/common.json";
 import nav_es from "./locales/es/nav.json";
@@ -148,6 +152,32 @@ import ccConfig_es from "./locales/es/ccConfig.json";
 import run_es from "./locales/es/run.json";
 import alerts_es from "./locales/es/alerts.json";
 import splash_es from "./locales/es/splash.json";
+import cockpit_es from "./locales/es/cockpit.json";
+import common_tr from "./locales/tr/common.json";
+import nav_tr from "./locales/tr/nav.json";
+import dashboard_tr from "./locales/tr/dashboard.json";
+import sessions_tr from "./locales/tr/sessions.json";
+import activity_tr from "./locales/tr/activity.json";
+import analytics_tr from "./locales/tr/analytics.json";
+import workflows_tr from "./locales/tr/workflows.json";
+import settings_tr from "./locales/tr/settings.json";
+import kanban_tr from "./locales/tr/kanban.json";
+import errors_tr from "./locales/tr/errors.json";
+import updates_tr from "./locales/tr/updates.json";
+import ccConfig_tr from "./locales/tr/ccConfig.json";
+import run_tr from "./locales/tr/run.json";
+import alerts_tr from "./locales/tr/alerts.json";
+import splash_tr from "./locales/tr/splash.json";
+import cockpit_tr from "./locales/tr/cockpit.json";
+
+// Turkish is the default: seed it when the user has not chosen a language yet.
+try {
+  if (typeof localStorage !== "undefined" && !localStorage.getItem("i18nextLng")) {
+    localStorage.setItem("i18nextLng", "tr");
+  }
+} catch {
+  /* storage unavailable: detector falls back to "en" */
+}
 
 i18n
   .use(LanguageDetector)
@@ -170,6 +200,7 @@ i18n
         run: run_en,
         alerts: alerts_en,
         splash: splash_en,
+        cockpit: cockpit_en,
       },
       zh: {
         common: common_zh,
@@ -187,6 +218,7 @@ i18n
         run: run_zh,
         alerts: alerts_zh,
         splash: splash_zh,
+        cockpit: cockpit_zh,
       },
       vi: {
         common: common_vi,
@@ -204,6 +236,7 @@ i18n
         run: run_vi,
         alerts: alerts_vi,
         splash: splash_vi,
+        cockpit: cockpit_vi,
       },
       ko: {
         common: common_ko,
@@ -221,6 +254,7 @@ i18n
         run: run_ko,
         alerts: alerts_ko,
         splash: splash_ko,
+        cockpit: cockpit_ko,
       },
       es: {
         common: common_es,
@@ -238,9 +272,28 @@ i18n
         run: run_es,
         alerts: alerts_es,
         splash: splash_es,
+        cockpit: cockpit_es,
+      },
+      tr: {
+        common: common_tr,
+        nav: nav_tr,
+        dashboard: dashboard_tr,
+        sessions: sessions_tr,
+        activity: activity_tr,
+        analytics: analytics_tr,
+        workflows: workflows_tr,
+        settings: settings_tr,
+        kanban: kanban_tr,
+        errors: errors_tr,
+        updates: updates_tr,
+        ccConfig: ccConfig_tr,
+        run: run_tr,
+        alerts: alerts_tr,
+        splash: splash_tr,
+        cockpit: cockpit_tr,
       },
     },
-    supportedLngs: ["en", "zh", "vi", "ko", "es"],
+    supportedLngs: ["en", "zh", "vi", "ko", "es", "tr"],
     nonExplicitSupportedLngs: true,
     fallbackLng: "en",
     ns: [
@@ -259,11 +312,13 @@ i18n
       "run",
       "alerts",
       "splash",
+      "cockpit",
     ],
     defaultNS: "common",
     interpolation: { escapeValue: false },
+    // navigator is intentionally not consulted; see the Turkish default seeded before init.
     detection: {
-      order: ["localStorage", "navigator"],
+      order: ["localStorage"],
       caches: ["localStorage"],
       lookupLocalStorage: "i18nextLng",
     },

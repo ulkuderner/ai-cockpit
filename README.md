@@ -1,3 +1,62 @@
+# AI Cockpit
+
+Yapay zekâ ile kod geliştirirken çalışan ajanları tek ekranda izleme ve yönetme kokpiti. Yerel çalışır, veri makineden çıkmaz.
+
+**Developed by Caglar Ulkuderner** · Lisans: [GPL-3.0-or-later](./LICENSE)
+
+[Claude-Code-Agent-Monitor](https://github.com/hoangsonww/Claude-Code-Agent-Monitor) (MIT, Son Nguyen) üzerine kurulu bir çatallamadır; o projenin tüm özellikleri (canlı oturumlar, alt ajan ağacı, Kanban, analiz, token/maliyet, Run) aynen durur. Aşağıdakiler AI Cockpit eklemeleridir.
+
+## Ne ekler
+
+- **Plan**: herhangi bir projenin plan Markdown dosyasını ekle. `#`/`##` başlıkları aşama, `### Task 3a:` / `### Görev 17c:` başlıkları görev olur. Bitti/bekliyor elle işaretlenir; "çalışıyor" otomatik gelir (çalışan bir oturumun ya da alt ajanın isteminde görev kimliği geçiyorsa). Sıradaki işler yukarı/aşağı oklarıyla sıralanır. Tahmini süreler, biten görevlerin gerçek oturum sürelerinin medyanından hesaplanır ve "tahmin" diye etiketlenir.
+- **Kullanım limitleri**: Codex 5 saatlik/haftalık limit loglardan okunur. Claude Code limitleri yalnız durum satırına bildirir; bağlamak için aşağıya bak.
+- **Gemini CLI** oturumları (`~/.gemini/tmp/*/chats/session-*.json`) salt okunur içe alınır.
+- **Cursor'dan ajan başlatma**: Ajan Çalıştır sayfasında Cursor seçilir; tam `cursor-agent` komutu başlatmadan önce önizlenir, "Bu klasöre güven (--trust)" açıkça işaretlenmeden güvenilmeyen klasörde çalışmaz, durdurma düğmesi vardır.
+- **Türkçe arayüz** (varsayılan), "AI Cockpit" adı.
+
+## Kurulum ve açma
+
+Node 22.22+ gerekir.
+
+```bash
+git clone <bu depo> ~/ai-cockpit
+ln -s ~/ai-cockpit/bin/ai-cockpit ~/.local/bin/ai-cockpit   # bir kez
+ai-cockpit                                                  # her yerden açar: http://localhost:4820
+```
+
+İlk açılışta Claude Code hook'ları `~/.claude/settings.json`'a eklenir (yalnız `localhost`'a, en geç 2.5 sn içinde biten olay gönderimi). Geliştirme modu: `DASHBOARD_UPDATE_CHECK=0 npm run dev` (http://localhost:5173).
+
+npm kurulum betiklerinden yalnız `better-sqlite3` onaylıdır (`package.json` > `allowScripts`); `@scarf/scarf` analitik betiği çalışmaz.
+
+## Claude limitleri
+
+Claude Code `rate_limits` bilgisini yalnız statusline komutuna verir. `statusline/cockpit-tee.js` girdiyi `~/.ai-cockpit/claude-limits.json`'a yazar ve mevcut statusline komutuna aynen aktarır. `~/.claude/settings.json` içinde:
+
+```json
+"statusLine": {
+  "type": "command",
+  "command": "node /Users/<sen>/ai-cockpit/statusline/cockpit-tee.js -- \"<önceki statusline komutun>\""
+}
+```
+
+## Lisans
+
+AI Cockpit GNU GPL v3 (veya sonraki sürümler) altındadır, bkz. [LICENSE](./LICENSE). Taban projeden gelen kod MIT lisanslıdır; özgün telif ve izin notu [LICENSE-MIT](./LICENSE-MIT) dosyasında korunur.
+
+## Veriler nerede
+
+- Kokpit veritabanı: `~/.claude/agent-dashboard/dashboard.db` (yerel SQLite).
+- Plan listesi, elle işaretler ve sıra: `~/.ai-cockpit/plans.json`.
+- GitHub güncelleme denetimi başlatıcıda kapalıdır (`DASHBOARD_UPDATE_CHECK=0`). Webhook ve push bildirimleri yalnız Ayarlar'dan açıkça kurulursa dışarı bağlanır.
+
+## Bilinen sınırlar
+
+- Etkileşimli Cursor sohbetlerinin içeriği `~/.cursor/chats` altında şifreli tutulduğu için okunamaz; o oturumlar listede görünür ama hangi görev üzerinde çalıştıkları algılanmaz. Kokpitten başlatılan Cursor çalıştırmaları tam görünür.
+- Arayüz koyu temalıdır; açık tema henüz yok.
+- es/ko/vi/zh dillerinde yeni AI Cockpit metinleri İngilizce durur.
+
+---
+
 # Agent Dashboard for Claude Code, Cursor & Codex
 
 ### A local-first control room for AI coding agents

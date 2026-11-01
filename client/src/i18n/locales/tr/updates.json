@@ -1,0 +1,15 @@
+{
+  "title": "Panel güncellemesi mevcut",
+  "lead": "Panelin yeni bir sürümü mevcut. Güncellemek için terminalde aşağıdaki komutu çalıştırın:",
+  "commitsBehind": "{{ref}} gerisinde {{count}} commit",
+  "copy": "Komutu kopyala",
+  "commandLabel": "Paneli güncellemek için terminal komutu",
+  "copied": "Kopyalandı",
+  "dismiss": "Kapat",
+  "fetchError": "Git uzak deposuna ulaşılamadı. Çevrimiçi olduğunuzda tekrar deneyin.",
+  "notGit": "Bu kurulum bir git klonu değil; elle yükseltme yolunu kullanın.",
+  "restartNote": "Komut bittikten sonra paneli başlattığınız şekilde kapatıp yeniden başlatın: npm start kullandıysanız npm start komutunu tekrar çalıştırın.",
+  "checkNow": "Şimdi denetle",
+  "checking": "Denetleniyor...",
+  "checkError": "Güncellemeler denetlenemedi"
+}

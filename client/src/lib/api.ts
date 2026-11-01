@@ -502,7 +502,7 @@ export function dashboardToken(): string | null {
  *   message is `body.error.message` if the error body parsed as JSON and carried
  *   one, otherwise the literal `HTTP <status>`.
  */
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
+export async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const token = dashboardToken();
   // Build the effective header set. Order matters: defaults first so that the
   // token and any caller headers can override, and caller headers land last.
@@ -656,7 +656,7 @@ export const api = {
       /** Rows to skip. */
       offset?: number;
       /** Restrict to one product's sessions. */
-      provider?: "claude" | "codex";
+      provider?: "claude" | "cursor" | "gemini" | "codex";
       /**
        * Include transient rows: interactive Codex TUI processes discovered in memory before Codex
        * has written a session id. Only added to the first page of local results.
@@ -1775,6 +1775,24 @@ export const api = {
       request<{ found: boolean; path: string | null; provider: RunProvider }>(
         `/run/binary?provider=${provider}`
       ),
+    /**
+     * POST /api/run/preview - exact command line a Cursor run would execute (spawns nothing).
+     * @returns `{ provider, bin, argv, cwd, commandLine }`.
+     */
+    preview: (body: {
+      provider: "cursor";
+      prompt: string;
+      model?: string;
+      cwd?: string;
+      trust?: boolean;
+    }) =>
+      request<{
+        provider: "cursor";
+        bin: string;
+        argv: string[];
+        cwd: string;
+        commandLine: string;
+      }>("/run/preview", { method: "POST", body: JSON.stringify(body) }),
     /** Account-aware model discovery. Codex comes directly from its local
      * app-server; Claude Code has no equivalent CLI endpoint, so its response
      * transparently reports observed local models plus supported aliases. */
@@ -2978,7 +2996,7 @@ export interface CodexConfigOverview {
 
 /** "headless" runs to completion unattended and streams only output;
  *  "conversation" keeps stdin open so the user can send follow-up messages. */
-export type RunProvider = "claude" | "codex";
+export type RunProvider = "claude" | "codex" | "cursor";
 /**
  * How a run talks to the CLI. `headless` runs to completion unattended and streams only output;
  * `conversation` keeps the process open so the user can send follow-up messages.
@@ -3007,6 +3025,8 @@ export type EffortLevel = "" | "low" | "medium" | "high" | "xhigh" | "max" | "ul
 export interface RunStartArgs {
   /** Initial prompt/task text passed to the CLI. */
   prompt: string;
+  /** Cursor only: pass --trust so headless cursor-agent accepts the working directory. */
+  trust?: boolean;
   /**
    * Whether to run one-shot (`headless`) or keep the session open for follow-ups (`conversation`).
    */

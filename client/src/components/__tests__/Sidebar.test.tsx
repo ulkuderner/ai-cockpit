@@ -88,12 +88,12 @@ describe("Sidebar", () => {
 
   it("should render the brand name", () => {
     renderSidebar(true);
-    expect(screen.getByText("Agent Dashboard")).toBeInTheDocument();
+    expect(screen.getByText("AI Cockpit")).toBeInTheDocument();
   });
 
   it("should render the subtitle", () => {
     renderSidebar(true);
-    expect(screen.getByText("Claude Code Monitor")).toBeInTheDocument();
+    expect(screen.getByText("Claude · Cursor · Codex · Gemini")).toBeInTheDocument();
   });
 
   it("should render all navigation links", () => {

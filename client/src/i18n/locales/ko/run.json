@@ -20,6 +20,14 @@
       "description": "로그인된 로컬 CLI에서 지속 Codex app-server 스레드를 실행합니다.",
       "interactiveLabel": "대화형 Codex 스레드",
       "interactiveHint": "실시간 응답, 도구 활동, 취소 및 후속 턴을 제공하는 지속 로컬 스레드를 시작합니다."
+    },
+    "cursor": {
+      "label": "Cursor",
+      "subtitle": "Run a headless Cursor agent and watch its tool calls and result stream in.",
+      "description": "Run a one-shot cursor-agent task and review the exact command first.",
+      "headlessLabel": "Headless Cursor run",
+      "headlessHint": "Runs `cursor-agent -p` once and streams its output. Follow-up messages are not available.",
+      "noFollowUps": "Cursor runs are headless: follow-up messages are not available."
     }
   },
   "mode": {
@@ -61,7 +69,9 @@
     "modelCuratedCatalog": "Claude Code는 계정 모델 목록을 제공하지 않습니다. 안정적인 별칭을 선택하거나 다른 모델 ID를 입력하세요.",
     "modelCustomClaudeHint": "이전 또는 계정별 Claude 모델은 정확한 --model 값을 입력하세요.",
     "effort": "사고 노력 수준",
-    "effortHint": "모델이 답변 전에 얼마나 많이 추론할지를 결정합니다. 높을수록 더 많은 사고 토큰을 사용해 느리지만 더 깊게 생각합니다. 비워 두면 모델의 기본값을 상속합니다."
+    "effortHint": "모델이 답변 전에 얼마나 많이 추론할지를 결정합니다. 높을수록 더 많은 사고 토큰을 사용해 느리지만 더 깊게 생각합니다. 비워 두면 모델의 기본값을 상속합니다.",
+    "cursorModelPlaceholder": "Empty = CLI default",
+    "cursorModelHint": "Passed as --model. Leave empty for the CLI default."
   },
   "actions": {
     "start": "실행",
@@ -84,7 +94,8 @@
   },
   "binary": {
     "missing": "`claude` CLI가 PATH에 없습니다. Claude Code를 설치하거나 대시보드가 실행할 수 있도록 PATH를 설정하세요.",
-    "found": "{{path}} 사용 중"
+    "found": "{{path}} 사용 중",
+    "missingCursor": "The `cursor-agent` CLI isn't on your PATH. Install Cursor CLI or set CURSOR_AGENT_BIN so the dashboard can spawn it."
   },
   "concurrency": {
     "active_one": "이미 진행 중인 실행 {{count}}개",
@@ -188,5 +199,12 @@
     "session": "세션",
     "envelopes": "이벤트",
     "duration": "경과 시간"
+  },
+  "cursor": {
+    "previewLabel": "Command to run",
+    "previewEmpty": "Type a prompt to preview the command.",
+    "previewHint": "Nothing runs until you press Start.",
+    "trustLabel": "Trust this folder (--trust)",
+    "trustHint": "Headless Cursor refuses untrusted folders. Tick only for folders whose code you trust."
   }
 }

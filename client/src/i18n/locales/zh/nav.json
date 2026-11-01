@@ -1,7 +1,8 @@
 {
-  "brand": "Agent 仪表盘",
-  "brandSub": "Claude Code 监控",
+  "brand": "AI Cockpit",
+  "brandSub": "Claude · Cursor · Codex · Gemini",
   "dashboard": "仪表盘",
+  "plan": "Plan",
   "agentBoard": "Kanban 看板",
   "sessions": "会话",
   "activityFeed": "活动流",
@@ -59,14 +60,16 @@
     "zh": "中文",
     "vi": "越南语",
     "ko": "韩语",
-    "es": "西班牙语"
+    "es": "西班牙语",
+    "tr": "土耳其语"
   },
   "languageShort": {
     "en": "EN",
     "zh": "中文",
     "vi": "VI",
     "ko": "한국어",
-    "es": "ES"
+    "es": "ES",
+    "tr": "TR"
   },
   "palette": {
     "title": "命令面板",
@@ -102,7 +105,8 @@
     "provider": {
       "both": "Claude 与 Codex 数据",
       "claude": "仅 Claude 数据",
-      "codex": "仅 Codex 数据"
+      "codex": "仅 Codex 数据",
+      "gemini": "Gemini data only"
     },
     "on": "开",
     "off": "关",

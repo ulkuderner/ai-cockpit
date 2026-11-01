@@ -1,0 +1,113 @@
+{
+  "greeting": {
+    "morning": "Günaydın",
+    "afternoon": "İyi günler",
+    "evening": "İyi akşamlar",
+    "night": "Geç saatlere kadar çalışıyorsunuz"
+  },
+  "tagline": "Ajanlarınızın yaptığı hiçbir şey karanlıkta kalmaz.",
+  "sub1": "Claude Code, Cursor ve Codex oturumları için gerçek zamanlı gözlemlenebilirlik.",
+  "sub2": "Token, araç, maliyet ve iş akışları, hepsi canlı.",
+  "brand": "AI Cockpit",
+  "provider": {
+    "title": "Neyi izlemek istersiniz?",
+    "description": "Panelde gösterilecek veri kaynağını seçin. Bunu daha sonra Ayarlar'dan değiştirebilirsiniz.",
+    "claude": {
+      "description": "Claude Code ve Cursor oturumları, ajanları, geçmişleri ve maliyetleri, kutudan çıktığı gibi dahil."
+    },
+    "codex": {
+      "description": "Codex oturumları, GPT token kullanımı ve maliyetleri."
+    },
+    "both": {
+      "label": "İkisi de",
+      "description": "Tüm Claude Code, Cursor ve Codex oturumları, kullanımı ve maliyetleri."
+    },
+    "beta": "Beta",
+    "continue": "Panele devam et"
+  },
+  "hookGate": {
+    "kicker": "Canlı izleme",
+    "title": "Canlı izlemeyi kur",
+    "description": "Hafif yerel kancaları yalnızca hâlâ ihtiyaç duyan seçili sağlayıcılar için kurun.",
+    "selectedProviders": "Kanca gereken sağlayıcılar",
+    "realTime": "Kancalar yaşam döngüsü olaylarını bu yerel panele gerçek zamanlı gönderir. Verileriniz bu makinede kalır.",
+    "checking": "Mevcut kanca kurulumu denetleniyor...",
+    "installed": "Kancalar kuruldu ve canlı izlemeye hazır",
+    "existing": "Mevcut panel kancaları algılandı",
+    "ready": "Seçili kancalar kurulmaya hazır",
+    "overrideWarning": "Seçili bir sağlayıcı için panel kancaları zaten var. Kurulum yalnızca panel girdilerini yeniler. İlgisiz kancalarınız korunur.",
+    "output": "Kurulum çıktısı",
+    "failure": "Seçili kancaların tümü kurulamadı. Çıktıyı inceleyin, ardından tekrar deneyin ya da kurulumu başka bir yolla tamamladıysanız devam edin.",
+    "checkFailed": "Mevcut kanca kurulumunuz denetlenemedi. Yine de seçili kancaları kurabilirsiniz.",
+    "preserveNote": "Bu yalnızca panel kancalarını yönetir. Diğer kancalarınız değişmeden kalır.",
+    "alreadyInstalled": "Kancaları zaten kurdum",
+    "install": "Kancaları kur",
+    "installing": "Kancalar kuruluyor...",
+    "continue": "Panele devam et"
+  },
+  "taglines": [
+    "Ajanlarınızın yaptığı hiçbir şey karanlıkta kalmaz.",
+    "Ajanlarınızın attığı her adımı görün.",
+    "Ajanlarınız, tamamen gözlemlenebilir.",
+    "Her token, araç ve tur gözünüzün önünde.",
+    "Filonuzun düşünmesini izleyin.",
+    "Claude Code oturumlarının netleştiği yer.",
+    "Her ajanın üzerinde gerçek zamanlı gözler.",
+    "İstemden sonuca, her şey kayıtta.",
+    "Yapay zeka ajanlarınız için kontrol odası.",
+    "Her alt ajan hesapta.",
+    "Ajanlarınızın tam olarak neye mal olduğunu bilin.",
+    "Ajan iş akışlarınız okunabilir hâle geldi.",
+    "Gözlemle. Ölç. İyileştir.",
+    "Claude Code için görev kontrol merkezi.",
+    "Ajan kaosunu net bir tabloya dönüştürün.",
+    "Her çalıştırmanın makbuzu."
+  ],
+  "subs": [
+    [
+      "Her Claude Code oturumu için gerçek zamanlı gözlemlenebilirlik.",
+      "Token, araç, maliyet ve iş akışları, hepsi canlı."
+    ],
+    [
+      "Canlı oturumlar, ajanlar ve olaylar, tam da gerçekleşirken.",
+      "Model başına token ve maliyet dökümü, tahmin yok."
+    ],
+    [
+      "Ajan ağacınız boyunca her araç çağrısını izleyin.",
+      "Yavaş turu, pahalı modeli, sessiz hatayı fark edin."
+    ],
+    ["Kancalar doğrudan yerel bir panele akar.", "Verileriniz makinenizden asla çıkmaz."],
+    [
+      "Orkestratörlerin alt ajanlara iş devretmesini izleyin.",
+      "DAG'ler, eşzamanlılık ve hata yayılımı, görselleştirilmiş."
+    ],
+    [
+      "Önbellek tokenına kadar maliyet takibi.",
+      "Sıkıştırmayı hesaba katan temel değerlerle model başına fiyatlandırma."
+    ],
+    [
+      "Her oturum, ajan ve olay tek bir yerde.",
+      "Odadan çıkmadan arayın, yeniden oynatın, inceleyin."
+    ],
+    [
+      "SessionStart'tan SessionEnd'e, her şey yakalandı.",
+      "Sıkıştırmalar, API hataları ve tur süreleri dahil."
+    ],
+    [
+      "Hangi modelin ne yaptığını ve neye mal olduğunu bilin.",
+      "Alt ajanlar orkestratörün değil, kendi fiyatıyla hesaplanır."
+    ],
+    ["İş akışı filoları ve iç ajanlar, görünür.", "Hiç kanca tetiklemeyen çalıştırmalar bile."],
+    ["Ajanlarınıza yerel öncelikli bir pencere.", "Bulut yok, hesap yok, telemetri yok."],
+    ["Hissi değil, verimliliği ölçün.", "Hız, önbellek verimliliği ve araç etkinliği puanlanır."],
+    [
+      "Faturadan önce anomaliyi yakalayın.",
+      "Maliyet uç değerleri ve token sıçramaları erkenden işaretlenir."
+    ],
+    [
+      "Claude Code yapılandırmanız, tamamen haritalandı.",
+      "Beceriler, ajanlar, kancalar, MCP ve bellek bir bakışta."
+    ]
+  ],
+  "paletteHint": "İpucu: Herhangi bir sayfaya, oturuma veya ayara atlamak için istediğiniz zaman {{chord}} tuşlarına basın."
+}

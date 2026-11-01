@@ -500,6 +500,24 @@ function mergeEnvelope(prev: Envelope[], envelope: Envelope): Envelope[] {
   if (!envelope || typeof envelope !== "object") return prev;
   const env = envelope as { type?: string };
 
+  // Cursor emits tool_call started then completed with one call_id: keep a single row per call.
+  if (env.type === "tool_call") {
+    const id = (envelope as { call_id?: string }).call_id;
+    const idx = id
+      ? prev.findIndex(
+          (e) =>
+            (e as { type?: string; call_id?: string }).type === "tool_call" &&
+            (e as { call_id?: string }).call_id === id
+        )
+      : -1;
+    if (idx >= 0) {
+      const next = prev.slice();
+      next[idx] = envelope;
+      return next;
+    }
+    return [...prev, envelope];
+  }
+
   if (env.type === "codex_event") {
     const codex = envelope as unknown as CodexEventEnvelope;
     const params = codex.params || {};
@@ -863,6 +881,8 @@ export function Run() {
   const [mode, setMode] = useState<RunMode>("conversation");
   const [prompt, setPrompt] = useState("");
   const [model, setModel] = useState("");
+  // Cursor only: pass --trust for an untrusted workspace; explicit per-run opt-in.
+  const [cursorTrust, setCursorTrust] = useState(false);
   const [models, setModels] = useState<ModelChoice[]>([]);
   const [modelsSource, setModelsSource] = useState<string | null>(null);
   const [modelsLoading, setModelsLoading] = useState(false);
@@ -954,17 +974,20 @@ export function Run() {
       .binary(provider)
       .then(setBinaryStatus)
       .catch(() => setBinaryStatus({ found: false, path: null, provider }));
-    api.run
-      .models(provider)
-      .then((response) => {
-        setModels(response.items);
-        setModelsSource(response.source);
-        const defaultModel = response.items.find((item) => item.isDefault)?.id;
-        setModel((current) => current || defaultModel || "");
-      })
-      .catch(() => setModels([]))
-      .finally(() => setModelsLoading(false));
-    setMode("conversation");
+    // Cursor has no model catalog: the model is free text, empty = CLI default.
+    if (provider === "cursor") setModelsLoading(false);
+    else
+      api.run
+        .models(provider)
+        .then((response) => {
+          setModels(response.items);
+          setModelsSource(response.source);
+          const defaultModel = response.items.find((item) => item.isDefault)?.id;
+          setModel((current) => current || defaultModel || "");
+        })
+        .catch(() => setModels([]))
+        .finally(() => setModelsLoading(false));
+    setMode(provider === "cursor" ? "headless" : "conversation");
     setPermissionMode(provider === "codex" ? "on-request" : "acceptEdits");
     setSandbox("workspace-write");
     setResumeSession(null);
@@ -1185,17 +1208,20 @@ export function Run() {
       const effectiveCwd = resumeSession?.cwd || cwd || undefined;
       // Expand /user-or-project slash commands client-side so the model
       // receives the rendered template, matching what the CLI does.
-      const expandedPrompt = await maybeExpandSlashCommand(prompt, slashCommands);
+      // Cursor runs send the prompt verbatim so it matches the command-line preview.
+      const expandedPrompt =
+        provider === "cursor" ? prompt : await maybeExpandSlashCommand(prompt, slashCommands);
       const result = await api.run.start({
         prompt: expandedPrompt,
         mode: effectiveMode,
         cwd: effectiveCwd,
         model: model || undefined,
-        permissionMode,
+        permissionMode: provider === "cursor" ? undefined : permissionMode,
         provider: provider || "claude",
         sandbox: provider === "codex" ? sandbox : undefined,
         resumeSessionId: resumeSession?.id,
-        effort: effort || undefined,
+        effort: provider === "cursor" ? undefined : effort || undefined,
+        trust: provider === "cursor" ? cursorTrust : undefined,
       });
       setHandle(result);
       // Optimistic user-turn injection so the chat shows your prompt right away.
@@ -1220,6 +1246,7 @@ export function Run() {
     t,
     resumeSession,
     slashCommands,
+    cursorTrust,
   ]);
 
   /**
@@ -1348,7 +1375,8 @@ export function Run() {
   useEffect(() => {
     if (!pendingAutostartRef.current) return;
     if (binaryStatus === null) return; // probe still pending
-    if (!binaryStatus.found) {
+    // Cursor runs always need an explicit Start press after seeing the command preview.
+    if (!binaryStatus.found || provider === "cursor") {
       pendingAutostartRef.current = false;
       return;
     }
@@ -1359,7 +1387,7 @@ export function Run() {
     if (!prompt.trim() || !cwd) return; // wait for prefill + cwd default
     pendingAutostartRef.current = false;
     void start();
-  }, [binaryStatus, prompt, cwd, busy, handle, start]);
+  }, [binaryStatus, prompt, cwd, busy, handle, start, provider]);
 
   /** Send the follow-up message to the running process, expanding slash commands first. */
   const send = useCallback(async () => {
@@ -1450,7 +1478,12 @@ export function Run() {
                   "binary.missingCodex",
                   "The `codex` CLI isn't on your PATH. Install Codex CLI or set PATH so the dashboard can spawn it."
                 )
-              : t("binary.missing")}
+              : provider === "cursor"
+                ? t(
+                    "binary.missingCursor",
+                    "The `cursor-agent` CLI isn't on your PATH. Install Cursor CLI or set CURSOR_AGENT_BIN so the dashboard can spawn it."
+                  )
+                : t("binary.missing")}
           </span>
         </div>
       )}
@@ -1502,6 +1535,8 @@ export function Run() {
           cwdSuggestions={cwdSuggestions}
           model={model}
           onModelChange={setModel}
+          cursorTrust={cursorTrust}
+          onCursorTrustChange={setCursorTrust}
           permissionMode={permissionMode}
           onPermissionModeChange={setPermissionMode}
           sandbox={sandbox}
@@ -2591,7 +2626,7 @@ function RunProviderToggle({
       className="inline-flex rounded-full border border-border bg-surface-2 p-0.5"
       aria-label={t("provider.aria", "Run provider")}
     >
-      {(["claude", "codex"] as const).map((option) => (
+      {(["claude", "codex", "cursor"] as const).map((option) => (
         <button
           key={option}
           disabled={disabled}
@@ -2606,6 +2641,11 @@ function RunProviderToggle({
       ))}
     </div>
   );
+}
+
+/** Fallback display name for a run provider when the i18n label is missing. */
+function providerDisplayName(provider: RunProvider): string {
+  return provider === "codex" ? "Codex" : provider === "cursor" ? "Cursor" : "Claude Code";
 }
 
 /**
@@ -2646,8 +2686,8 @@ function ProviderChooser({
             "Choose an interactive local agent. You can switch before starting a new run."
           )}
         </p>
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
-          {(["claude", "codex"] as const).map((option) => (
+        <div className="mt-6 grid gap-3 sm:grid-cols-3">
+          {(["claude", "codex", "cursor"] as const).map((option) => (
             <button
               key={option}
               onClick={() => onChoose(option)}
@@ -3300,6 +3340,10 @@ interface ConfigCardProps {
   model: string;
   /** Called when the model changes. */
   onModelChange: (s: string) => void;
+  /** Cursor only: whether to pass --trust for the working directory. */
+  cursorTrust: boolean;
+  /** Called when the Cursor trust opt-in changes. */
+  onCursorTrustChange: (v: boolean) => void;
   /** Claude permission mode, or Codex approval policy when `provider` is `codex`. */
   permissionMode: PermissionMode | CodexApprovalPolicy;
   /** Called when the permission mode or approval policy changes. */
@@ -3346,10 +3390,7 @@ interface ConfigCardProps {
  */
 function ConfigCard(props: ConfigCardProps) {
   const { t } = useTranslation("run");
-  const providerLabel = t(
-    `provider.${props.provider}.label`,
-    props.provider === "codex" ? "Codex" : "Claude Code"
-  );
+  const providerLabel = t(`provider.${props.provider}.label`, providerDisplayName(props.provider));
   const atCap =
     props.activeRuns != null && props.activeRuns.activeCount >= props.activeRuns.maxConcurrent;
   const isResume = !!props.resumeSession;
@@ -3410,6 +3451,18 @@ function ConfigCard(props: ConfigCardProps) {
               {t("hint.headlessExplain")}
             </p>
           )}
+        </div>
+      ) : props.provider === "cursor" ? (
+        <div className="border-b border-border px-4 py-3">
+          <div className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+            {t("provider.cursor.headlessLabel", "Headless Cursor run")}
+          </div>
+          <p className="mt-1 text-xs leading-relaxed text-gray-500">
+            {t(
+              "provider.cursor.headlessHint",
+              "Runs `cursor-agent -p` once and streams its output. Follow-up messages are not available."
+            )}
+          </p>
         </div>
       ) : (
         <div className="border-b border-border px-4 py-3">
@@ -3474,7 +3527,8 @@ function ConfigCard(props: ConfigCardProps) {
         <PromptEditor
           value={props.prompt}
           onChange={props.onPromptChange}
-          onSubmit={props.onStart}
+          // Cursor requires pressing Start after reviewing the command preview.
+          onSubmit={props.provider === "cursor" ? () => undefined : props.onStart}
           placeholder={t("fields.promptPlaceholderWithProvider", "Ask {{agent}} anything…", {
             agent: providerLabel,
           })}
@@ -3508,13 +3562,30 @@ function ConfigCard(props: ConfigCardProps) {
           </p>
         </Field>
         <Field label={t("fields.model")}>
-          <ModelPicker
-            provider={props.provider}
-            value={props.model}
-            onChange={props.onModelChange}
-            models={props.models}
-            loading={props.modelsLoading}
-          />
+          {props.provider === "cursor" ? (
+            <>
+              <input
+                type="text"
+                value={props.model}
+                onChange={(e) => props.onModelChange(e.target.value)}
+                placeholder={t("fields.cursorModelPlaceholder", "Empty = CLI default")}
+                autoComplete="off"
+                spellCheck={false}
+                className="w-full bg-surface-2 border border-border rounded-md px-3 py-1.5 text-[11px] font-mono text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-accent/50"
+              />
+              <p className="mt-1 text-[10px] text-gray-500">
+                {t("fields.cursorModelHint", "Passed as --model. Leave empty for the CLI default.")}
+              </p>
+            </>
+          ) : (
+            <ModelPicker
+              provider={props.provider}
+              value={props.model}
+              onChange={props.onModelChange}
+              models={props.models}
+              loading={props.modelsLoading}
+            />
+          )}
           {props.modelsSource && (
             <p className="mt-1 text-[10px] text-gray-500">
               {props.provider === "codex"
@@ -3526,30 +3597,32 @@ function ConfigCard(props: ConfigCardProps) {
             </p>
           )}
         </Field>
-        <Field label={t("fields.permissionMode")}>
-          {props.provider === "claude" ? (
-            <Select<PermissionMode>
-              value={props.permissionMode as PermissionMode}
-              onChange={props.onPermissionModeChange}
-              options={[
-                { value: "acceptEdits", label: t("fields.permissionAcceptEdits") },
-                { value: "default", label: t("fields.permissionDefault") },
-                { value: "plan", label: t("fields.permissionPlan") },
-                { value: "bypassPermissions", label: t("fields.permissionBypass") },
-              ]}
-            />
-          ) : (
-            <Select<CodexApprovalPolicy>
-              value={props.permissionMode as CodexApprovalPolicy}
-              onChange={props.onPermissionModeChange}
-              options={[
-                { value: "untrusted", label: t("fields.approvalUntrusted", "Untrusted") },
-                { value: "on-request", label: t("fields.approvalOnRequest", "On request") },
-                { value: "never", label: t("fields.approvalNever", "Never") },
-              ]}
-            />
-          )}
-        </Field>
+        {props.provider !== "cursor" && (
+          <Field label={t("fields.permissionMode")}>
+            {props.provider === "claude" ? (
+              <Select<PermissionMode>
+                value={props.permissionMode as PermissionMode}
+                onChange={props.onPermissionModeChange}
+                options={[
+                  { value: "acceptEdits", label: t("fields.permissionAcceptEdits") },
+                  { value: "default", label: t("fields.permissionDefault") },
+                  { value: "plan", label: t("fields.permissionPlan") },
+                  { value: "bypassPermissions", label: t("fields.permissionBypass") },
+                ]}
+              />
+            ) : (
+              <Select<CodexApprovalPolicy>
+                value={props.permissionMode as CodexApprovalPolicy}
+                onChange={props.onPermissionModeChange}
+                options={[
+                  { value: "untrusted", label: t("fields.approvalUntrusted", "Untrusted") },
+                  { value: "on-request", label: t("fields.approvalOnRequest", "On request") },
+                  { value: "never", label: t("fields.approvalNever", "Never") },
+                ]}
+              />
+            )}
+          </Field>
+        )}
         {props.provider === "codex" && (
           <Field label={t("fields.sandbox", "Sandbox")}>
             <Select<CodexSandbox>
@@ -3569,19 +3642,49 @@ function ConfigCard(props: ConfigCardProps) {
             />
           </Field>
         )}
-        <Field label={t("fields.effort")}>
-          <Select<EffortLevel>
-            value={props.effort}
-            onChange={props.onEffortChange}
-            options={effortOptions.map((c) => ({
-              value: c.id,
-              label: c.label,
-              hint: c.hint,
-            }))}
-          />
-          <p className="mt-1 text-[10px] text-gray-500">{t("fields.effortHint")}</p>
-        </Field>
+        {props.provider !== "cursor" && (
+          <Field label={t("fields.effort")}>
+            <Select<EffortLevel>
+              value={props.effort}
+              onChange={props.onEffortChange}
+              options={effortOptions.map((c) => ({
+                value: c.id,
+                label: c.label,
+                hint: c.hint,
+              }))}
+            />
+            <p className="mt-1 text-[10px] text-gray-500">{t("fields.effortHint")}</p>
+          </Field>
+        )}
       </div>
+
+      {props.provider === "cursor" && (
+        <>
+          <label className="mx-4 mb-2 flex items-start gap-2 text-xs text-gray-300">
+            <input
+              type="checkbox"
+              className="mt-0.5 accent-indigo-500"
+              checked={props.cursorTrust}
+              onChange={(e) => props.onCursorTrustChange(e.target.checked)}
+            />
+            <span>
+              {t("cursor.trustLabel", "Trust this folder (--trust)")}
+              <span className="block text-[10px] text-gray-500">
+                {t(
+                  "cursor.trustHint",
+                  "Headless Cursor refuses untrusted folders. Tick only for folders whose code you trust."
+                )}
+              </span>
+            </span>
+          </label>
+          <CursorPreview
+            prompt={props.prompt}
+            model={props.model}
+            cwd={props.cwd}
+            trust={props.cursorTrust}
+          />
+        </>
+      )}
 
       {(props.permissionMode === "bypassPermissions" ||
         (props.provider === "codex" && props.sandbox === "danger-full-access")) && (
@@ -3816,10 +3919,7 @@ function CwdAutocomplete({
                   )}
                   {g.kind === "recent"
                     ? t("fields.cwdGroups.recentWithProvider", "Recent - used by {{agent}}", {
-                        agent: t(
-                          `provider.${provider}.label`,
-                          provider === "codex" ? "Codex" : "Claude Code"
-                        ),
+                        agent: t(`provider.${provider}.label`, providerDisplayName(provider)),
                       })
                     : t(`fields.cwdGroups.${g.kind}`)}
                 </div>
@@ -4161,7 +4261,7 @@ function RunSession(props: RunSessionProps) {
   const { t } = useTranslation("run");
   const providerLabel = t(
     `provider.${props.handle.provider}.label`,
-    props.handle.provider === "codex" ? "Codex" : "Claude Code"
+    providerDisplayName(props.handle.provider)
   );
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [pinnedToBottom, setPinnedToBottom] = useState(true);
@@ -4264,6 +4364,15 @@ function RunSession(props: RunSessionProps) {
 
       {/* Footer banner once finished */}
       {props.hasFinished && result && <ResultFooter result={result} />}
+
+      {props.handle.provider === "cursor" && props.isLive && (
+        <div className="border-t border-border px-4 py-2 text-[11px] text-gray-500">
+          {t(
+            "provider.cursor.noFollowUps",
+            "Cursor runs are headless: follow-up messages are not available."
+          )}
+        </div>
+      )}
 
       {/* Follow-up input - only for conversation mode while live */}
       {props.mode === "conversation" && props.isLive && (
@@ -4391,6 +4500,10 @@ function EnvelopeRow({ envelope }: { envelope: Envelope }) {
       return null; // shown in the footer
     case "stream_event":
       return null; // kept in state for token accounting only - never rendered
+    case "tool_call":
+      return <CursorToolCall env={envelope as Record<string, unknown>} />;
+    case "thinking":
+      return null; // Cursor reasoning deltas are not rendered
     case "codex_assistant":
       return <CodexAssistantTurn env={envelope as { text?: string; streaming?: boolean }} />;
     case "codex_reasoning":
@@ -4428,6 +4541,94 @@ function CodexAssistantTurn({ env }: { env: { text?: string; streaming?: boolean
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * Debounced (~300ms) monospace preview of the exact `cursor-agent` command line the server would
+ * run, from POST /api/run/preview. Spawns nothing.
+ */
+function CursorPreview({
+  prompt,
+  model,
+  cwd,
+  trust,
+}: {
+  prompt: string;
+  model: string;
+  cwd: string;
+  trust: boolean;
+}) {
+  const { t } = useTranslation("run");
+  const [state, setState] = useState<{ line?: string; cwd?: string; error?: string }>({});
+  useEffect(() => {
+    if (!prompt.trim()) {
+      setState({});
+      return;
+    }
+    let live = true;
+    const timer = setTimeout(() => {
+      api.run
+        .preview({
+          provider: "cursor",
+          prompt,
+          model: model.trim() || undefined,
+          cwd: cwd.trim() || undefined,
+          trust,
+        })
+        .then((r) => live && setState({ line: r.commandLine, cwd: r.cwd }))
+        .catch(
+          (err: unknown) =>
+            live && setState({ error: err instanceof Error ? err.message : "unknown" })
+        );
+    }, 300);
+    return () => {
+      live = false;
+      clearTimeout(timer);
+    };
+  }, [prompt, model, cwd, trust]);
+  return (
+    <div className="mx-4 mb-3">
+      <div className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-1">
+        {t("cursor.previewLabel", "Command to run")}
+      </div>
+      <pre className="rounded-md border border-border bg-surface-2 px-3 py-2 text-[11px] font-mono text-gray-300 whitespace-pre-wrap break-all max-h-40 overflow-auto">
+        {state.error
+          ? state.error
+          : state.line
+            ? `${state.line}\n(cwd: ${state.cwd})`
+            : t("cursor.previewEmpty", "Type a prompt to preview the command.")}
+      </pre>
+      <p className="mt-1 text-[10px] text-gray-500">
+        {t("cursor.previewHint", "Nothing runs until you press Start.")}
+      </p>
+    </div>
+  );
+}
+
+/** Compact row for one Cursor tool_call envelope: tool name, short args, and status. */
+function CursorToolCall({ env }: { env: Record<string, unknown> }) {
+  const call = (env.tool_call as Record<string, { args?: unknown }> | undefined) || {};
+  const key = Object.keys(call)[0] || "tool";
+  const name = key.replace(/ToolCall$/, "");
+  const args = JSON.stringify(call[key]?.args ?? {});
+  const done = env.subtype === "completed";
+  return (
+    <details className="rounded-md border border-border bg-surface-2 px-2.5 py-1.5">
+      <summary className="text-[11px] font-mono text-gray-400 cursor-pointer flex items-center gap-2 min-w-0">
+        <Wrench className="w-3 h-3 flex-shrink-0" />
+        <span className="text-gray-200">{name}</span>
+        <span className="truncate text-gray-500">
+          {args.length > 90 ? `${args.slice(0, 90)}…` : args}
+        </span>
+        <span className={`ml-auto flex-shrink-0 ${done ? "text-emerald-400" : "text-amber-300"}`}>
+          {done ? "✓" : "…"}
+        </span>
+      </summary>
+      <pre className="mt-2 text-[10px] font-mono text-gray-400 whitespace-pre-wrap break-words max-h-48 overflow-auto">
+        {JSON.stringify(call[key], null, 2)}
+      </pre>
+    </details>
   );
 }
 

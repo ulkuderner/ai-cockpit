@@ -14,17 +14,24 @@ const router = Router();
 // shortcut: scans every session/agent row each request; add an index or cache if plans get slow with 10k+ sessions.
 function loadWork() {
   const sessions = db
-    .prepare("SELECT name, card_prompt_preview, status, started_at, ended_at FROM sessions")
+    .prepare(
+      "SELECT id, name, card_prompt_preview, status, started_at, ended_at, cwd FROM sessions"
+    )
     .all()
     .map((s) => ({
+      id: s.id,
       text: `${s.name || ""}\n${s.card_prompt_preview || ""}`,
       started_at: s.started_at,
       ended_at: s.ended_at,
       live: s.status === "active",
       label: s.name || "Oturum",
+      cwd: s.cwd,
     }));
   const agents = db
-    .prepare("SELECT name, task, status, started_at, ended_at FROM agents WHERE type = 'subagent'")
+    .prepare(
+      `SELECT a.name, a.task, a.status, a.started_at, a.ended_at, s.cwd
+       FROM agents a JOIN sessions s ON s.id = a.session_id WHERE a.type = 'subagent'`
+    )
     .all()
     .map((a) => ({
       text: `${a.name || ""}\n${a.task || ""}`,
@@ -32,7 +39,17 @@ function loadWork() {
       ended_at: a.ended_at,
       live: a.status === "working" || a.status === "waiting",
       label: a.name || "Alt ajan",
+      cwd: a.cwd,
     }));
+  // User prompts carry most task mentions ("Görev 17a'yı yap"); the card preview keeps only the last two.
+  const prompts = db
+    .prepare(
+      `SELECT e.session_id AS id, group_concat(substr(e.data, 1, 4000), '\n') AS text
+       FROM events e WHERE e.event_type = 'UserPromptSubmit' GROUP BY e.session_id`
+    )
+    .all();
+  const byId = new Map(prompts.map((p) => [p.id, p.text]));
+  for (const s of sessions) if (byId.has(s.id)) s.text += `\n${byId.get(s.id)}`;
   return [...sessions, ...agents];
 }
 

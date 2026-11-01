@@ -60,6 +60,7 @@ test("buildPlan merges manual status, running detection, queue and estimate", ()
       ended_at: "2026-11-01T02:00:00Z",
       live: false,
       label: "a",
+      cwd: dir,
     },
     {
       text: "Task 2",
@@ -67,6 +68,7 @@ test("buildPlan merges manual status, running detection, queue and estimate", ()
       ended_at: "2026-11-01T04:00:00Z",
       live: false,
       label: "b",
+      cwd: dir,
     },
     {
       text: "Görev 17a başla",
@@ -74,6 +76,7 @@ test("buildPlan merges manual status, running detection, queue and estimate", ()
       ended_at: null,
       live: true,
       label: "grok",
+      cwd: dir,
     },
   ];
   const out = plan.buildPlan(cfg, state, work, now);
@@ -86,6 +89,9 @@ test("buildPlan merges manual status, running detection, queue and estimate", ()
   assert.deepEqual(out.queue, ["17a", "17c", "3"]);
   assert.equal(out.totals.remaining_ms, 5 * h);
   assert.equal(out.totals.done, 2);
+  assert.equal(out.totals.done_spent_ms, 6 * h);
+  assert.equal(out.totals.started_at, "2026-11-01T00:00:00.000Z");
+  assert.equal(tasks["17a"].started_at, "2026-11-01T11:00:00.000Z");
 });
 
 test("buildPlan reports a missing file instead of throwing", () => {
@@ -95,4 +101,35 @@ test("buildPlan reports a missing file instead of throwing", () => {
     []
   );
   assert.match(out.error, /okunamadı/);
+});
+
+test("buildPlan ignores sessions from other repos", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "plan-repo-"));
+  fs.mkdirSync(path.join(dir, ".git"));
+  fs.mkdirSync(path.join(dir, "docs"));
+  const file = path.join(dir, "docs", "p.md");
+  fs.writeFileSync(file, "## A\n### Task 1: X\n");
+  const cfg = { id: "p", name: "P", file };
+  const work = [
+    {
+      text: "Task 1",
+      started_at: "2026-07-04T00:00:00Z",
+      ended_at: "2026-07-04T05:00:00Z",
+      live: false,
+      label: "other",
+      cwd: "/elsewhere",
+    },
+    {
+      text: "Task 1",
+      started_at: "2026-11-01T00:00:00Z",
+      ended_at: "2026-11-01T01:00:00Z",
+      live: false,
+      label: "mine",
+      cwd: dir,
+    },
+  ];
+  const out = plan.buildPlan(cfg, { tasks: {}, order: {} }, work);
+  const t = out.phases[0].tasks[0];
+  assert.equal(t.spent_ms, 3600_000);
+  assert.equal(t.started_at, "2026-11-01T00:00:00.000Z");
 });

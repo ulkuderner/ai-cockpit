@@ -15,6 +15,8 @@ export interface PlanTask {
   running: string[];
   spent_ms: number;
   remaining_ms: number | null;
+  started_at: string | null;
+  done_at?: string | null;
 }
 
 export interface Plan {
@@ -31,6 +33,8 @@ export interface Plan {
     running: number;
     blocked: number;
     remaining_ms: number | null;
+    done_spent_ms?: number;
+    started_at?: string | null;
   };
 }
 

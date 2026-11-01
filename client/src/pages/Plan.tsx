@@ -71,6 +71,11 @@ function Summary({ plan }: { plan: PlanData }) {
       value: String(tot.running),
       sub: tot.blocked ? t("blockedCount", { count: tot.blocked }) : " ",
     },
+    {
+      label: t("completedWork"),
+      value: dur(tot.done_spent_ms ?? null),
+      sub: t("completedWorkSub", { count: tot.done }),
+    },
     { label: t("remainingWork"), value: dur(tot.remaining_ms), sub: t("estimate") },
     {
       label: t("estimatedFinish"),
@@ -78,6 +83,20 @@ function Summary({ plan }: { plan: PlanData }) {
       sub: plan.typical_task_ms
         ? t("typicalTask", { d: dur(plan.typical_task_ms) })
         : t("noHistory"),
+    },
+    {
+      label: t("startedOn"),
+      value: tot.started_at
+        ? new Date(tot.started_at).toLocaleDateString(i18n.language, {
+            day: "numeric",
+            month: "long",
+          })
+        : "—",
+      sub: tot.started_at
+        ? t("daysAgo", {
+            count: Math.max(0, Math.round((Date.now() - Date.parse(tot.started_at)) / 86_400_000)),
+          })
+        : " ",
     },
   ];
   return (
@@ -95,7 +114,7 @@ function Summary({ plan }: { plan: PlanData }) {
           style={{ width: `${pct}%` }}
         />
       </div>
-      <dl className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+      <dl className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-5">
         {items.map((it) => (
           <div key={it.label}>
             <dt className="text-xs uppercase tracking-wider text-gray-500">{it.label}</dt>
@@ -115,7 +134,7 @@ function TaskRow({
   task: PlanTask;
   onStatus: (s: "todo" | "done" | "blocked") => void;
 }) {
-  const { t } = useTranslation("cockpit");
+  const { t, i18n } = useTranslation("cockpit");
   const dur = (ms: number | null) => formatDuration(ms, t("h"), t("m"));
   const btn =
     "p-1.5 rounded-md text-gray-500 hover:text-gray-100 hover:bg-surface-5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent";
@@ -135,6 +154,26 @@ function TaskRow({
         )}
       </div>
       <div className="hidden sm:block w-28 text-right text-xs text-gray-500 tabular-nums">
+        {task.done_at && (
+          <div>
+            {t("doneAt", {
+              date: new Date(task.done_at).toLocaleDateString(i18n.language, {
+                day: "numeric",
+                month: "short",
+              }),
+            })}
+          </div>
+        )}
+        {task.started_at && (
+          <div>
+            {t("startedAt", {
+              date: new Date(task.started_at).toLocaleDateString(i18n.language, {
+                day: "numeric",
+                month: "short",
+              }),
+            })}
+          </div>
+        )}
         {task.spent_ms > 0 && <div>{t("spent", { d: dur(task.spent_ms) })}</div>}
         {task.status !== "done" && task.remaining_ms != null && (
           <div>{t("left", { d: dur(task.remaining_ms) })}</div>

@@ -104,6 +104,7 @@ import { useDataScope } from "../lib/dataScope";
 import { StatCard } from "../components/StatCard";
 import { LimitsCard } from "../components/LimitsCard";
 import { TelemetryCard } from "../components/TelemetryCard";
+import { PriceChangeNotice } from "../components/PriceSync";
 import { AgentCard } from "../components/AgentCard";
 import { AgentStatusBadge } from "../components/StatusBadge";
 import { EmptyState } from "../components/EmptyState";
@@ -1369,6 +1370,7 @@ export function Dashboard() {
             />
           </div>
 
+          <PriceChangeNotice />
           <div className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
             <TelemetryCard />
             <LimitsCard />

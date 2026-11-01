@@ -65,6 +65,17 @@ function mentionRegex(id) {
   return new RegExp(`(?:task|g(?:ö|o)rev|\\bg)\\s*${id}(?![0-9a-z])`, "i");
 }
 
+/** Nearest ancestor of `file` holding a .git entry; the file's folder when there is none. */
+function repoRoot(file) {
+  let dir = path.dirname(path.resolve(file));
+  for (;;) {
+    if (fs.existsSync(path.join(dir, ".git"))) return dir;
+    const up = path.dirname(dir);
+    if (up === dir) return path.dirname(path.resolve(file));
+    dir = up;
+  }
+}
+
 function median(nums) {
   if (nums.length === 0) return null;
   const s = [...nums].sort((a, b) => a - b);
@@ -85,6 +96,9 @@ function buildPlan(planCfg, state, work, now = Date.now()) {
     return { ...planCfg, error: `Plan dosyası okunamadı: ${err.code || err.message}`, phases: [] };
   }
   const manual = state.tasks[planCfg.id] || {};
+  // Only sessions run inside the plan's own repo count; "Task 1" appears in many unrelated projects.
+  const root = repoRoot(planCfg.file);
+  work = work.filter((w) => w.cwd && (w.cwd === root || w.cwd.startsWith(root + path.sep)));
   const phases = parsePlan(markdown);
   const all = phases.flatMap((p) => p.tasks);
 
@@ -97,8 +111,11 @@ function buildPlan(planCfg, state, work, now = Date.now()) {
       return Number.isFinite(start) && end > start ? sum + (end - start) : sum;
     }, 0);
     task.running = hits.filter((w) => w.live).map((w) => w.label);
+    const starts = hits.map((w) => Date.parse(w.started_at)).filter(Number.isFinite);
+    task.started_at = starts.length ? new Date(Math.min(...starts)).toISOString() : null;
     const m = manual[task.id]?.status;
     task.status = m === "done" || m === "blocked" ? m : task.running.length ? "running" : "todo";
+    task.done_at = m === "done" ? manual[task.id].at || null : null;
   }
 
   const typical = median(
@@ -134,6 +151,12 @@ function buildPlan(planCfg, state, work, now = Date.now()) {
       running: all.filter((t) => t.status === "running").length,
       blocked: all.filter((t) => t.status === "blocked").length,
       remaining_ms,
+      done_spent_ms: all.filter((t) => t.status === "done").reduce((s, t) => s + t.spent_ms, 0),
+      started_at:
+        all
+          .map((t) => t.started_at)
+          .filter(Boolean)
+          .sort()[0] || null,
     },
   };
 }

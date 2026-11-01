@@ -818,6 +818,7 @@ function attachAgentCosts(agents) {
 
 module.exports = router;
 module.exports.calculateCost = calculateCost;
+module.exports.matchesModelPattern = matchesModelPattern;
 module.exports.calculateGptCost = calculateGptCost;
 module.exports.calculateCursorCost = calculateCursorCost;
 module.exports.calculateProviderCost = calculateProviderCost;

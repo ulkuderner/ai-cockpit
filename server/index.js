@@ -121,6 +121,7 @@ function createApp() {
   app.use("/api/plan", require("./routes/plan"));
   app.use("/api/telemetry", require("./routes/telemetry"));
   app.use("/api/community", require("./routes/community"));
+  app.use("/api/prices", require("./routes/prices"));
   app.use("/api/alerts", alertsRouter);
   app.use("/api/webhooks", webhooksRouter);
   app.use("/api/remote-sources", remoteSourcesRouter);
@@ -535,6 +536,7 @@ function startBackgroundServices() {
   }
   try {
     require("./lib/telemetry").start();
+    require("./lib/price-sync").startWeekly();
   } catch (err) {
     console.warn("Telemetry sampler failed to start:", err.message);
   }

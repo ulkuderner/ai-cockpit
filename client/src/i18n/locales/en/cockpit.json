@@ -243,5 +243,35 @@
     "useFolder": "Use this folder",
     "notGit": "This folder is not a git repo",
     "noSubfolders": "No subfolders"
-  }
+  },
+  "completedWork": "Completed work",
+  "completedWorkSub_one": "{{count}} task, agent time",
+  "completedWorkSub_other": "{{count}} tasks, agent time",
+  "startedOn": "Started",
+  "daysAgo_one": "{{count}} day ago",
+  "daysAgo_other": "{{count}} days ago",
+  "startedAt": "started {{date}}",
+  "prices": {
+    "title": "Price sync",
+    "hint": "Prices come from LiteLLM's public model price list. Only models you use are updated; Cursor keeps its own billing. Checked weekly; the Dashboard tells you when something changed.",
+    "sync": "Sync from LiteLLM",
+    "syncing": "Syncing...",
+    "lastSync": "Last sync: {{when}}",
+    "lastCheck": "last check: {{when}}",
+    "never": "never",
+    "pending_one": "Weekly check found {{count}} difference. Sync to apply it.",
+    "pending_other": "Weekly check found {{count}} differences. Sync to apply them.",
+    "applied_one": "{{count}} price updated.",
+    "applied_other": "{{count}} prices updated.",
+    "upToDate": "Prices are already up to date.",
+    "legend": "Values in $ per 1M tokens: input / output · cache read / cache write",
+    "kind": {
+      "add": "added",
+      "change": "changed"
+    },
+    "notice_one": "{{count}} model price changed.",
+    "notice_other": "{{count}} model prices changed.",
+    "review": "Review"
+  },
+  "doneAt": "done {{date}}"
 }

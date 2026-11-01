@@ -62,6 +62,7 @@
  *
  * ----------------------------------------------------------------------------- */
 
+import { PriceSyncCard } from "../components/PriceSync";
 import { useEffect, useState, useCallback, useRef, useSyncExternalStore, Fragment } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -2373,6 +2374,11 @@ export function Settings() {
           </div>
         </div>
       </section>
+
+      {/* ─── AI COCKPIT PRICE SYNC ─── */}
+      <div id="prices" className="scroll-mt-24">
+        <PriceSyncCard />
+      </div>
 
       {/* ─── CLAUDE PRICING ─── */}
       <section id="claude-pricing" className="scroll-mt-24">

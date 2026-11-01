@@ -243,5 +243,35 @@
     "useFolder": "Bu klasörü seç",
     "notGit": "Bu klasör bir git deposu değil",
     "noSubfolders": "Alt klasör yok"
-  }
+  },
+  "completedWork": "Tamamlanan iş",
+  "completedWorkSub_one": "{{count}} görev, ajan süresi",
+  "completedWorkSub_other": "{{count}} görev, ajan süresi",
+  "startedOn": "Başlangıç",
+  "daysAgo_one": "{{count}} gün önce",
+  "daysAgo_other": "{{count}} gün önce",
+  "startedAt": "başladı {{date}}",
+  "prices": {
+    "title": "Fiyat senkronu",
+    "hint": "Fiyatlar LiteLLM'in açık model fiyat listesinden çekilir. Yalnız kullandığın modeller güncellenir; Cursor kendi faturalandırmasıyla kalır. Haftada bir kendiliğinden kontrol edilir, değişiklik olursa Panel'de haber verilir.",
+    "sync": "LiteLLM'den senkronize et",
+    "syncing": "Senkronize ediliyor...",
+    "lastSync": "Son senkron: {{when}}",
+    "lastCheck": "son kontrol: {{when}}",
+    "never": "hiç",
+    "pending_one": "Haftalık kontrol {{count}} farklılık buldu. Uygulamak için senkronize et.",
+    "pending_other": "Haftalık kontrol {{count}} farklılık buldu. Uygulamak için senkronize et.",
+    "applied_one": "{{count}} fiyat güncellendi.",
+    "applied_other": "{{count}} fiyat güncellendi.",
+    "upToDate": "Fiyatlar zaten güncel.",
+    "legend": "Değerler 1M token başına $: girdi / çıktı · önbellek okuma / önbellek yazma",
+    "kind": {
+      "add": "eklendi",
+      "change": "değişti"
+    },
+    "notice_one": "{{count}} modelin fiyatı değişmiş.",
+    "notice_other": "{{count}} modelin fiyatı değişmiş.",
+    "review": "İncele"
+  },
+  "doneAt": "bitti {{date}}"
 }

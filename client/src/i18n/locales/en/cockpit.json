@@ -95,6 +95,47 @@
       "mine": "Mine",
       "taken": "Taken",
       "review": "In review"
+    },
+    "help": {
+      "title": "How to use",
+      "subtitle": "Steps for the project owner and contributors",
+      "steps": [
+        {
+          "title": "Prepare the repo (owner)",
+          "text": "Keep the project in a GitHub repo. Open every piece of work as an issue labelled \"cockpit-task\". Optionally add an estimate label like \"est:2h\"; totals are computed from it. Invite contributors or make the repo public.",
+          "cmd": "gh issue create -R owner/project --title \"Light theme\" --label cockpit-task --label est:4h"
+        },
+        {
+          "title": "Sign in to GitHub (everyone)",
+          "text": "The cockpit acts with your own GitHub login. Sign in once.",
+          "cmd": "gh auth login"
+        },
+        {
+          "title": "Clone the repo",
+          "text": "Clone the repo to your machine. The cockpit opens task branches in this folder.",
+          "cmd": "gh repo clone owner/project ~/projects/project"
+        },
+        {
+          "title": "Connect it here",
+          "text": "Enter the repo (owner/project), the absolute path of your clone and the task label, then save. The Open, Mine, Taken and PR open lists fill in."
+        },
+        {
+          "title": "Pick your agent, claim a task",
+          "text": "Choose Claude Code, Codex or Cursor under the summary and press \"Claim and start\" on an open task. The issue is assigned to you, a task/<n> branch is created in your clone and the Run page opens with the task text. If someone claimed it first you get a warning."
+        },
+        {
+          "title": "Start the agent and watch",
+          "text": "Check the command on the Run page and press Run. Follow progress on Dashboard, Sessions and the live stream. The agent does not push or open a PR; that step needs your confirmation."
+        },
+        {
+          "title": "Send the PR",
+          "text": "Review the result yourself. Press the PR icon in Mine: the commits and exact commands are shown, and on confirm the branch is pushed and a PR that closes the issue is opened."
+        },
+        {
+          "title": "Review and merge",
+          "text": "Review and merging happen on GitHub. When the PR is merged the issue closes and drops off the list. Changed your mind? \"Release\" frees the task for someone else."
+        }
+      ]
     }
   }
 }

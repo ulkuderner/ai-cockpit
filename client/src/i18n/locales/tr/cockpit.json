@@ -95,6 +95,47 @@
       "mine": "Bende",
       "taken": "Alındı",
       "review": "İncelemede"
+    },
+    "help": {
+      "title": "Nasıl kullanılır",
+      "subtitle": "Proje sahibi ve katılımcılar için adımlar",
+      "steps": [
+        {
+          "title": "Depoyu hazırla (proje sahibi)",
+          "text": "Projeyi GitHub'da bir depoda tut. Yapılacak her işi bir issue olarak aç, \"cockpit-task\" etiketini ekle. İstersen \"est:2h\" gibi bir etiketle tahmini süre ver; toplam süre buradan hesaplanır. Katılımcıları depoya davet et ya da depoyu herkese aç.",
+          "cmd": "gh issue create -R owner/proje --title \"Açık tema\" --label cockpit-task --label est:4h"
+        },
+        {
+          "title": "GitHub oturumunu aç (herkes)",
+          "text": "Kokpit her şeyi senin GitHub oturumunla yapar. Bir kez giriş yapman yeterli.",
+          "cmd": "gh auth login"
+        },
+        {
+          "title": "Kendi klonunu al",
+          "text": "Depoyu kendi bilgisayarına klonla. Kokpit dalları bu klasörde açar.",
+          "cmd": "gh repo clone owner/proje ~/projeler/proje"
+        },
+        {
+          "title": "Depoyu bu sayfaya bağla",
+          "text": "Depo adını (owner/proje), klonunun tam yolunu ve görev etiketini gir, kaydet. Boşta, Bende, Başkasında ve PR açık listeleri dolar."
+        },
+        {
+          "title": "Ajanını seç, işi al",
+          "text": "Kartın altından Claude Code, Codex ya da Cursor'u seç ve boştaki bir görevde \"Al ve başlat\"a bas. Issue sana atanır, klonunda task/<no> dalı açılır ve Ajan Çalıştır sayfası görev metniyle açılır. Başkası senden önce aldıysa uyarı alırsın."
+        },
+        {
+          "title": "Ajanı başlat ve izle",
+          "text": "Ajan Çalıştır'da komutu kontrol edip Çalıştır'a bas. İlerlemeyi Panel, Oturumlar ve canlı akıştan izle. Ajan push etmez ve PR açmaz; o adım senin onayınla yapılır."
+        },
+        {
+          "title": "PR gönder",
+          "text": "Ajan bitince sonucu kendin gözden geçir. Bende listesinde PR simgesine bas: gidecek commit'ler ve çalışacak komutlar gösterilir, onaylarsan dal push edilir ve issue'yu kapatan PR açılır."
+        },
+        {
+          "title": "İnceleme ve birleştirme",
+          "text": "İnceleme ve birleştirme GitHub'da yapılır. PR birleşince issue kendiliğinden kapanır ve listeden düşer. Vazgeçersen \"Bırak\" ile görevi başkasına açarsın."
+        }
+      ]
     }
   }
 }

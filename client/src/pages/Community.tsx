@@ -7,7 +7,15 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
-import { ExternalLink, GitPullRequest, Hand, Play, RotateCcw, Users } from "lucide-react";
+import {
+  CircleHelp,
+  ExternalLink,
+  GitPullRequest,
+  Hand,
+  Play,
+  RotateCcw,
+  Users,
+} from "lucide-react";
 import { cockpit, formatDuration, type CommunityBoard, type CommunityTask } from "../lib/cockpit";
 
 const STATE_STYLE: Record<CommunityTask["state"], string> = {
@@ -174,6 +182,43 @@ function PrDialog({
   );
 }
 
+/** In-app guide: how a project owner and contributors use the shared queue. Open by default until a repo is set. */
+function HowTo({ open }: { open: boolean }) {
+  const { t } = useTranslation("cockpit");
+  const steps = t("community.help.steps", { returnObjects: true }) as Array<{
+    title: string;
+    text: string;
+    cmd?: string;
+  }>;
+  return (
+    <details open={open} className="card overflow-hidden group">
+      <summary className="flex items-center gap-2 px-4 py-3 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+        <CircleHelp className="w-4 h-4 text-accent" aria-hidden />
+        <span className="text-sm font-semibold text-gray-200">{t("community.help.title")}</span>
+        <span className="text-xs text-gray-500">{t("community.help.subtitle")}</span>
+      </summary>
+      <ol className="border-t border-border px-4 py-4 space-y-4">
+        {steps.map((step, i) => (
+          <li key={i} className="flex gap-3">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent-muted text-xs font-semibold text-indigo-200">
+              {i + 1}
+            </span>
+            <div className="min-w-0 space-y-1">
+              <div className="text-sm font-medium text-gray-100">{step.title}</div>
+              <p className="text-xs text-gray-400 leading-relaxed">{step.text}</p>
+              {step.cmd && (
+                <pre className="rounded-md border border-border bg-surface-2 px-3 py-1.5 text-[11px] font-mono text-gray-300 whitespace-pre-wrap break-all">
+                  {step.cmd}
+                </pre>
+              )}
+            </div>
+          </li>
+        ))}
+      </ol>
+    </details>
+  );
+}
+
 export default function Community() {
   const { t } = useTranslation("cockpit");
   const navigate = useNavigate();
@@ -263,6 +308,8 @@ export default function Community() {
           </div>
         )}
       </header>
+
+      {cfg !== undefined && <HowTo open={cfg === null} />}
 
       {(cfg === null || editing) && (
         <Setup

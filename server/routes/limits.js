@@ -18,4 +18,13 @@ router.get("/", (_req, res) => {
   }
 });
 
+// AI Cockpit: every AI subscription set up on this machine, with plan, windows and today's activity.
+router.get("/subscriptions", (_req, res) => {
+  try {
+    res.json(require("../lib/subscriptions").list());
+  } catch {
+    res.json({ items: [] });
+  }
+});
+
 module.exports = router;

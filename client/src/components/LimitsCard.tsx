@@ -7,7 +7,8 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Gauge } from "lucide-react";
-import { cockpit, type LimitsPayload, type LimitWindow } from "../lib/cockpit";
+import { type LimitWindow } from "../lib/cockpit";
+import { request } from "../lib/api";
 
 function tone(pct: number) {
   if (pct >= 90) return "#f87171";
@@ -57,17 +58,27 @@ function Meter({ win, label }: { win: LimitWindow | null; label: string }) {
   );
 }
 
+interface Subscription {
+  provider: string;
+  name: string;
+  plan: string | null;
+  windows: { five_hour: LimitWindow | null; seven_day: LimitWindow | null } | null;
+  sessions_today: number | null;
+  requests_today?: number | null;
+  dashboard: string;
+  note: "statusline" | "no-local-quota" | null;
+}
+
 export function LimitsCard() {
   const { t } = useTranslation("cockpit");
-  const [data, setData] = useState<LimitsPayload | null>(null);
+  const [items, setItems] = useState<Subscription[] | null>(null);
   const [error, setError] = useState(false);
 
   useEffect(() => {
     let alive = true;
     const load = () =>
-      cockpit
-        .limits()
-        .then((d) => alive && (setData(d), setError(false)))
+      request<{ items: Subscription[] }>("/limits/subscriptions")
+        .then((d) => alive && (setItems(d.items), setError(false)))
         .catch(() => alive && setError(true));
     load();
     const id = setInterval(load, 30_000);
@@ -76,11 +87,6 @@ export function LimitsCard() {
       clearInterval(id);
     };
   }, []);
-
-  const rows: Array<[string, LimitsPayload["claude"]]> = [
-    ["Claude Code", data?.claude ?? null],
-    ["Codex", data?.codex ?? null],
-  ];
 
   return (
     <section className="card p-5" aria-labelledby="limits-title">
@@ -92,17 +98,44 @@ export function LimitsCard() {
         {error && <span className="ml-auto text-xs text-red-400">{t("limitsError")}</span>}
       </div>
       <div className="space-y-5">
-        {rows.map(([name, p]) => (
-          <div key={name} className="space-y-3">
-            <div className="text-xs uppercase tracking-wider text-gray-500">{name}</div>
-            <div className="grid grid-cols-2 gap-4">
-              <Meter win={p?.five_hour ?? null} label={t("fiveHour")} />
-              <Meter win={p?.seven_day ?? null} label={t("weekly")} />
+        {items?.map((s) => (
+          <div key={s.provider} className="space-y-2.5">
+            <div className="flex items-center gap-2">
+              <span className="text-xs uppercase tracking-wider text-gray-500">{s.name}</span>
+              {s.plan && (
+                <span className="rounded bg-accent-muted px-1.5 py-0.5 text-[10px] text-indigo-200">
+                  {s.plan}
+                </span>
+              )}
+              <a
+                href={s.dashboard}
+                target="_blank"
+                rel="noreferrer"
+                className="ml-auto text-[11px] text-gray-500 hover:text-gray-200 hover:underline"
+              >
+                {t("usagePanel")} ↗
+              </a>
+            </div>
+            {s.windows ? (
+              <div className="grid grid-cols-2 gap-4">
+                <Meter win={s.windows.five_hour ?? null} label={t("fiveHour")} />
+                <Meter win={s.windows.seven_day ?? null} label={t("weekly")} />
+              </div>
+            ) : (
+              <p className="text-[11px] leading-relaxed text-gray-500">
+                {s.note === "statusline" ? t("claudeLimitsHint") : t("noLocalQuota")}
+              </p>
+            )}
+            <div className="text-[11px] text-gray-400 tabular-nums">
+              {t("todayActivity", { count: s.sessions_today ?? 0 })}
+              {s.requests_today != null && ` · ${t("requestsToday", { count: s.requests_today })}`}
             </div>
           </div>
         ))}
+        {items && items.length === 0 && (
+          <p className="text-xs text-gray-500">{t("noSubscriptions")}</p>
+        )}
       </div>
-      {!data?.claude && <p className="mt-4 text-xs text-gray-500">{t("claudeLimitsHint")}</p>}
     </section>
   );
 }

@@ -308,5 +308,12 @@
   "paceDays": "pace: {{d}} days per task",
   "fromGit": "when the plan entered git",
   "completedWorkCalendar_one": "{{count}} task, calendar time",
-  "completedWorkCalendar_other": "{{count}} tasks, calendar time"
+  "completedWorkCalendar_other": "{{count}} tasks, calendar time",
+  "usagePanel": "Usage panel",
+  "noLocalQuota": "This tool keeps no remaining quota on this machine; open the provider's panel for what is left.",
+  "todayActivity_one": "{{count}} session today",
+  "todayActivity_other": "{{count}} sessions today",
+  "requestsToday_one": "{{count}} request",
+  "requestsToday_other": "{{count}} requests",
+  "noSubscriptions": "No AI subscription set up on this machine."
 }

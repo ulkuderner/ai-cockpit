@@ -264,7 +264,12 @@ function Queue({ plan, onMove }: { plan: PlanData; onMove: (order: string[]) => 
         <span className="ml-auto text-xs text-gray-400 tabular-nums">
           {t("queueTotal", {
             count: q.length,
-            d: formatDuration(plan.totals?.remaining_ms ?? null, t("h"), t("m")),
+            d:
+              plan.totals?.estimate_basis === "calendar"
+                ? t("daysValue", {
+                    count: Math.round((plan.totals.remaining_ms ?? 0) / 86_400_000),
+                  })
+                : formatDuration(plan.totals?.remaining_ms ?? null, t("h"), t("m")),
           })}
         </span>
       </div>

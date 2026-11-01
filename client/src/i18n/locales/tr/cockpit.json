@@ -308,5 +308,12 @@
   "paceDays": "tempo: görev başına {{d}} gün",
   "fromGit": "plan dosyası git'e girdiğinde",
   "completedWorkCalendar_one": "{{count}} görev, takvim süresi",
-  "completedWorkCalendar_other": "{{count}} görev, takvim süresi"
+  "completedWorkCalendar_other": "{{count}} görev, takvim süresi",
+  "usagePanel": "Kullanım paneli",
+  "noLocalQuota": "Bu araç kalan kotasını bilgisayarda tutmuyor; kalan kullanım için sağlayıcının panelini aç.",
+  "todayActivity_one": "bugün {{count}} oturum",
+  "todayActivity_other": "bugün {{count}} oturum",
+  "requestsToday_one": "{{count}} istek",
+  "requestsToday_other": "{{count}} istek",
+  "noSubscriptions": "Bu bilgisayarda kurulu AI aboneliği bulunamadı."
 }

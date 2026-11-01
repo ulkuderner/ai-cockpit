@@ -3,7 +3,7 @@
   "brandSub": "Claude · Cursor · Codex · Gemini",
   "dashboard": "Panel",
   "plan": "Plan",
-  "community": "Community",
+  "community": "Comunidad",
   "agentBoard": "Tablero Kanban",
   "sessions": "Sesiones",
   "activityFeed": "Feed de Actividad",
@@ -14,6 +14,10 @@
   "run": "Ejecutar agente",
   "settings": "Configuración",
   "language": "Idioma",
+  "theme": "Tema",
+  "themeSystem": "Sistema",
+  "themeLight": "Claro",
+  "themeDark": "Oscuro",
   "github": "GitHub",
   "website": "Sitio web",
   "notFound": "No encontrado",
@@ -107,7 +111,7 @@
       "both": "datos de Claude y Codex",
       "claude": "solo datos de Claude",
       "codex": "solo datos de Codex",
-      "gemini": "Gemini data only"
+      "gemini": "Solo datos de Gemini"
     },
     "on": "Activado",
     "off": "Desactivado",

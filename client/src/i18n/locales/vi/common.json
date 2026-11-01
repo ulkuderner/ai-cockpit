@@ -177,7 +177,7 @@
       "statusErrorDesc": "Sự kiện lỗi (error, APIError, codex_error).",
       "lifecycleTitle": "Vòng đời sự kiện",
       "lifecycleDesc": "Một lần gọi công cụ thường phát ra hai sự kiện chia sẻ tool_use_id:",
-      "lifecycleFlow": "PreToolUse (Working) → PostToolUse (Waiting) → ... → Stop (Completed)",
+      "lifecycleFlow": "PreToolUse (Đang làm việc) → PostToolUse (Đang chờ) → ... → Stop (Hoàn tất)",
       "filtersTitle": "Cách bộ lọc hoạt động",
       "filterTip1": "Các bộ lọc kết hợp AND giữa các danh mục. Trong một danh mục, nhiều lựa chọn là OR.",
       "filterTip2": "Status là lối tắt mở rộng thành event_type (Working → PreToolUse, Completed → Stop/SessionEnd/codex_task_complete, ...).",

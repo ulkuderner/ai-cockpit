@@ -8,10 +8,200 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Theme tokens: dark values are the original palette; light follows macOS layering. */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+  --surface-0: 6 6 10;
+  --surface-1: 12 12 20;
+  --surface-2: 19 19 30;
+  --surface-3: 26 26 40;
+  --surface-4: 34 34 51;
+  --surface-5: 42 42 61;
+  --gray-50: 249 250 251;
+  --gray-100: 243 244 246;
+  --gray-200: 229 231 235;
+  --gray-300: 209 213 219;
+  --gray-400: 156 163 175;
+  --gray-500: 107 114 128;
+  --gray-600: 75 85 99;
+  --gray-700: 55 65 81;
+  --gray-800: 31 41 55;
+  --gray-900: 17 24 39;
+  --gray-950: 3 7 18;
+  --border: 42 42 61;
+  --border-light: 54 54 80;
+  --accent: 99 102 241;
+  --accent-hover: 129 140 248;
+  --scroll-track: 12 12 20;
+  --scroll-thumb: 42 42 61;
+  --scroll-thumb-hover: 54 54 80;
+  --select-fg: 228 228 237;
+  --picker-filter: var(--picker-filter);
+  --c-emerald-300: 110 231 183;
+  --c-emerald-400: 52 211 153;
+  --c-red-300: 252 165 165;
+  --c-red-400: 248 113 113;
+  --c-violet-300: 196 181 253;
+  --c-violet-400: 167 139 250;
+  --c-amber-300: 252 211 77;
+  --c-amber-400: 251 191 36;
+  --c-blue-300: 147 197 253;
+  --c-blue-400: 96 165 250;
+  --c-yellow-300: 253 224 71;
+  --c-yellow-400: 250 204 21;
+  --c-sky-300: 125 211 252;
+  --c-sky-400: 56 189 248;
+  --c-cyan-300: 103 232 249;
+  --c-cyan-400: 34 211 238;
+  --c-indigo-300: 165 180 252;
+  --c-indigo-400: 129 140 248;
+  --c-orange-300: 253 186 116;
+  --c-orange-400: 251 146 60;
+  --c-rose-300: 253 164 175;
+  --c-rose-400: 251 113 133;
+  --c-teal-300: 94 234 212;
+  --c-teal-400: 45 212 191;
+  --c-pink-300: 249 168 212;
+  --c-pink-400: 244 114 182;
+  --c-fuchsia-300: 240 171 252;
+  --c-fuchsia-400: 232 121 249;
+  --c-green-300: 134 239 172;
+  --c-green-400: 74 222 128;
+  --c-slate-300: 203 213 225;
+  --c-slate-400: 148 163 184;
+  --c-emerald-100: 209 250 229;
+  --c-emerald-200: 167 243 208;
+  --c-red-100: 254 226 226;
+  --c-red-200: 254 202 202;
+  --c-violet-100: 237 233 254;
+  --c-violet-200: 221 214 254;
+  --c-amber-100: 254 243 199;
+  --c-amber-200: 253 230 138;
+  --c-blue-100: 219 234 254;
+  --c-blue-200: 191 219 254;
+  --c-yellow-100: 254 249 195;
+  --c-yellow-200: 254 240 138;
+  --c-sky-100: 224 242 254;
+  --c-sky-200: 186 230 253;
+  --c-cyan-100: 207 250 254;
+  --c-cyan-200: 165 243 252;
+  --c-indigo-100: 224 231 255;
+  --c-indigo-200: 199 210 254;
+  --c-orange-100: 255 237 213;
+  --c-orange-200: 254 215 170;
+  --c-rose-100: 255 228 230;
+  --c-rose-200: 254 205 211;
+  --c-teal-100: 204 251 241;
+  --c-teal-200: 153 246 228;
+  --c-pink-100: 252 231 243;
+  --c-pink-200: 251 207 232;
+  --c-fuchsia-100: 250 232 255;
+  --c-fuchsia-200: 245 208 254;
+  --c-green-100: 220 252 231;
+  --c-green-200: 187 247 208;
+  --c-slate-100: 241 245 249;
+  --c-slate-200: 226 232 240;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --surface-0: 242 242 247;
+  --surface-1: 255 255 255;
+  --surface-2: 245 245 247;
+  --surface-3: 255 255 255;
+  --surface-4: 236 236 240;
+  --surface-5: 225 225 232;
+  --gray-50: 11 11 15;
+  --gray-100: 29 29 31;
+  --gray-200: 44 44 48;
+  --gray-300: 66 66 71;
+  --gray-400: 88 88 94;
+  --gray-500: 102 102 107;
+  --gray-600: 134 134 139;
+  --gray-700: 199 199 204;
+  --gray-800: 217 217 224;
+  --gray-900: 236 236 240;
+  --gray-950: 245 245 247;
+  --border: 217 217 224;
+  --border-light: 199 199 208;
+  --accent: 79 70 229;
+  --accent-hover: 67 56 202;
+  --scroll-track: 245 245 247;
+  --scroll-thumb: 217 217 224;
+  --scroll-thumb-hover: 199 199 208;
+  --select-fg: 29 29 31;
+  --picker-filter: none;
+  --c-emerald-300: 6 95 70;
+  --c-emerald-400: 4 120 87;
+  --c-red-300: 153 27 27;
+  --c-red-400: 185 28 28;
+  --c-violet-300: 91 33 182;
+  --c-violet-400: 109 40 217;
+  --c-amber-300: 146 64 14;
+  --c-amber-400: 180 83 9;
+  --c-blue-300: 30 64 175;
+  --c-blue-400: 29 78 216;
+  --c-yellow-300: 133 77 14;
+  --c-yellow-400: 161 98 7;
+  --c-sky-300: 7 89 133;
+  --c-sky-400: 3 105 161;
+  --c-cyan-300: 21 94 117;
+  --c-cyan-400: 14 116 144;
+  --c-indigo-300: 55 48 163;
+  --c-indigo-400: 67 56 202;
+  --c-orange-300: 154 52 18;
+  --c-orange-400: 194 65 12;
+  --c-rose-300: 159 18 57;
+  --c-rose-400: 190 18 60;
+  --c-teal-300: 17 94 89;
+  --c-teal-400: 15 118 110;
+  --c-pink-300: 157 23 77;
+  --c-pink-400: 190 24 93;
+  --c-fuchsia-300: 134 25 143;
+  --c-fuchsia-400: 162 28 175;
+  --c-green-300: 22 101 52;
+  --c-green-400: 21 128 61;
+  --c-slate-300: 30 41 59;
+  --c-slate-400: 51 65 85;
+  --c-emerald-100: 2 44 34;
+  --c-emerald-200: 6 78 59;
+  --c-red-100: 69 10 10;
+  --c-red-200: 127 29 29;
+  --c-violet-100: 46 16 101;
+  --c-violet-200: 76 29 149;
+  --c-amber-100: 69 26 3;
+  --c-amber-200: 120 53 15;
+  --c-blue-100: 23 37 84;
+  --c-blue-200: 30 58 138;
+  --c-yellow-100: 66 32 6;
+  --c-yellow-200: 113 63 18;
+  --c-sky-100: 8 47 73;
+  --c-sky-200: 12 74 110;
+  --c-cyan-100: 8 51 68;
+  --c-cyan-200: 22 78 99;
+  --c-indigo-100: 30 27 75;
+  --c-indigo-200: 49 46 129;
+  --c-orange-100: 67 20 7;
+  --c-orange-200: 124 45 18;
+  --c-rose-100: 76 5 25;
+  --c-rose-200: 136 19 55;
+  --c-teal-100: 4 47 46;
+  --c-teal-200: 19 78 74;
+  --c-pink-100: 80 7 36;
+  --c-pink-200: 131 24 67;
+  --c-fuchsia-100: 74 4 78;
+  --c-fuchsia-200: 112 26 117;
+  --c-green-100: 5 46 22;
+  --c-green-200: 20 83 45;
+  --c-slate-100: 2 6 23;
+  --c-slate-200: 15 23 42;
+}
+
 @layer base {
   * {
     scrollbar-width: thin;
-    scrollbar-color: #2a2a3d #0c0c14;
+    scrollbar-color: rgb(var(--scroll-thumb)) rgb(var(--scroll-track));
   }
 
   *::-webkit-scrollbar {
@@ -20,25 +210,25 @@
   }
 
   *::-webkit-scrollbar-track {
-    background: #0c0c14;
+    background: rgb(var(--scroll-track));
   }
 
   *::-webkit-scrollbar-thumb {
-    background: #2a2a3d;
+    background: rgb(var(--scroll-thumb));
     border-radius: 3px;
   }
 
   *::-webkit-scrollbar-thumb:hover {
-    background: #363650;
+    background: rgb(var(--scroll-thumb-hover));
   }
 
   ::selection {
     background: rgba(99, 102, 241, 0.3);
-    color: #e4e4ed;
+    color: rgb(var(--select-fg));
   }
 
   ::-webkit-calendar-picker-indicator {
-    filter: invert(1) brightness(0.8);
+    filter: var(--picker-filter);
     cursor: pointer;
     opacity: 0.7;
     transition: opacity 0.2s;
@@ -98,9 +288,9 @@
     z-index: 100;
     padding: 0.5rem 0.75rem;
     border-radius: 0.5rem;
-    border: 1px solid #363650;
-    background: #15151f;
-    color: #e4e4ed;
+    border: 1px solid rgb(var(--border-light));
+    background: rgb(var(--surface-2));
+    color: rgb(var(--select-fg));
     font-size: 0.8125rem;
     font-weight: 500;
     text-decoration: none;
@@ -109,7 +299,7 @@
   }
   .skip-to-content:focus {
     transform: translateY(0);
-    outline: 2px solid #6366f1;
+    outline: 2px solid rgb(var(--accent));
     outline-offset: 2px;
   }
 }

@@ -86,6 +86,7 @@ import { CcConfig } from "./pages/CcConfig";
 import { Run } from "./pages/Run";
 import Plan from "./pages/Plan";
 import Community from "./pages/Community";
+import { TokenGate } from "./components/TokenGate";
 import { NotFound } from "./pages/NotFound";
 import { useWebSocket } from "./hooks/useWebSocket";
 import { useNotifications } from "./hooks/useNotifications";
@@ -127,6 +128,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <TokenGate />
       <DashboardOnboarding />
       <DocumentTitle />
       <Routes>

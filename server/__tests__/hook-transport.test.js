@@ -9,6 +9,8 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
+// Isolate from the user's real ~/.ai-cockpit (AI Cockpit stores a hook token and remote target there).
+process.env.AI_COCKPIT_HOME = fs.mkdtempSync(path.join(os.tmpdir(), "hook-transport-"));
 const transport = require("../../scripts/hook-transport");
 
 const ENV_KEYS = ["CCAM_DASHBOARD_URL", "CCAM_HOOK_TOKEN", "CCAM_HOOK_TOKEN_FILE"];

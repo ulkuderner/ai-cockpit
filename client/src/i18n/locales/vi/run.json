@@ -23,11 +23,11 @@
     },
     "cursor": {
       "label": "Cursor",
-      "subtitle": "Run a headless Cursor agent and watch its tool calls and result stream in.",
-      "description": "Run a one-shot cursor-agent task and review the exact command first.",
-      "headlessLabel": "Headless Cursor run",
-      "headlessHint": "Runs `cursor-agent -p` once and streams its output. Follow-up messages are not available.",
-      "noFollowUps": "Cursor runs are headless: follow-up messages are not available."
+      "subtitle": "Chạy agent Cursor headless và theo dõi lệnh gọi tool cùng luồng kết quả.",
+      "description": "Chạy một tác vụ cursor-agent một lần và xem trước lệnh chính xác.",
+      "headlessLabel": "Lượt chạy Cursor headless",
+      "headlessHint": "Chạy `cursor-agent -p` một lần và phát trực tiếp đầu ra. Không có tin nhắn tiếp theo.",
+      "noFollowUps": "Lượt chạy Cursor là headless: không có tin nhắn tiếp theo."
     }
   },
   "mode": {
@@ -45,8 +45,9 @@
     "cwdPlaceholder": "Gõ để tìm hoặc dán đường dẫn tuyệt đối…",
     "cwdGroups": {
       "dashboard": "Máy chủ dashboard",
-      "home": "Home",
-      "recent": "Gần đây - Claude Code đã dùng"
+      "home": "Thư mục chính",
+      "recent": "Gần đây - Claude Code đã dùng",
+      "recentWithProvider": "Gần đây - dùng bởi {{agent}}"
     },
     "cwdNoMatches": "Không khớp. Gõ đường dẫn tuyệt đối để dùng trực tiếp.",
     "model": "Model",
@@ -70,8 +71,9 @@
     "modelCustomClaudeHint": "Đối với model Claude cũ hoặc dành riêng cho tài khoản, hãy nhập chính xác giá trị --model.",
     "effort": "Mức độ suy nghĩ",
     "effortHint": "Điều chỉnh mức suy luận của model trước khi trả lời. Cao hơn = nhiều token suy nghĩ hơn, chậm hơn, sâu hơn. Để trống để dùng mặc định của model.",
-    "cursorModelPlaceholder": "Empty = CLI default",
-    "cursorModelHint": "Passed as --model. Leave empty for the CLI default."
+    "cursorModelPlaceholder": "Trống = mặc định của CLI",
+    "cursorModelHint": "Được truyền qua --model. Để trống để dùng mặc định của CLI.",
+    "promptPlaceholderWithProvider": "Hỏi {{agent}} bất cứ điều gì…"
   },
   "actions": {
     "start": "Chạy",
@@ -95,7 +97,8 @@
   "binary": {
     "missing": "Không thấy CLI `claude` trong PATH. Cài đặt Claude Code hoặc đặt PATH.",
     "found": "Đang dùng {{path}}",
-    "missingCursor": "The `cursor-agent` CLI isn't on your PATH. Install Cursor CLI or set CURSOR_AGENT_BIN so the dashboard can spawn it."
+    "missingCursor": "CLI `cursor-agent` không có trong PATH. Hãy cài Cursor CLI hoặc đặt CURSOR_AGENT_BIN để dashboard có thể khởi chạy nó.",
+    "missingCodex": "CLI `codex` không có trong PATH. Hãy cài Codex CLI hoặc đặt PATH để dashboard có thể khởi chạy nó."
   },
   "concurrency": {
     "active_one": "Có {{count}} run đang chạy",
@@ -106,7 +109,8 @@
   "hint": {
     "shortcut": "Cmd+Enter / Ctrl+Enter để gửi",
     "permissionWarning": "bypassPermissions cho phép gọi mọi tool không cần xác nhận. Chỉ dùng cho prompt bạn tin tưởng.",
-    "headlessExplain": "Headless phù hợp cho tác vụ tự động. Phiên không thể hỏi lại, sẽ treo ở prompt xin quyền nếu bạn không giữ acceptEdits."
+    "headlessExplain": "Headless phù hợp cho tác vụ tự động. Phiên không thể hỏi lại, sẽ treo ở prompt xin quyền nếu bạn không giữ acceptEdits.",
+    "slashAndFiles": "/ cho lệnh slash · @ để tham chiếu file"
   },
   "empty": {
     "title": "Chưa có gì",
@@ -115,7 +119,7 @@
   "events": {
     "you": "Bạn",
     "claude": "Claude",
-    "tool": "Tool",
+    "tool": "Công cụ",
     "toolResult": "Kết quả tool",
     "system": "Hệ thống",
     "thinking": "Đang suy nghĩ",
@@ -133,7 +137,8 @@
     "startFailed": "Không khởi động được: {{message}}",
     "sendFailed": "Không gửi được: {{message}}",
     "killFailed": "Không dừng được: {{message}}",
-    "attachFailed": "Không gắn được vào run: {{message}}"
+    "attachFailed": "Không gắn được vào run: {{message}}",
+    "sessionRunNotFound": "Hiện không có lượt chạy nào của dashboard đang điều khiển phiên này."
   },
   "runs": {
     "switcher": "Lượt chạy dashboard",
@@ -144,7 +149,20 @@
     "viewActive_other": "{{count}} lượt chạy dashboard",
     "scopeNote": "Chỉ hiển thị các run bạn khởi chạy từ dashboard này.",
     "allSessionsLink": "Xem tất cả phiên Claude Code →",
-    "viewLabel": "Xem"
+    "viewLabel": "Xem",
+    "clear": "Xóa",
+    "modalTitle": "Lượt chạy của dashboard",
+    "modalSubtitle": "Mọi lượt chạy được bắt đầu từ dashboard này, bất kể trạng thái",
+    "refresh": "Làm mới",
+    "searchPlaceholder": "Tìm theo prompt, cwd, model hoặc id phiên…",
+    "filterStatus": "Trạng thái",
+    "allLabel": "Tất cả",
+    "filterMode": "Chế độ",
+    "modalEmpty": "Chưa có lượt chạy nào của dashboard. Hãy bắt đầu một lượt bên dưới để lấp đầy danh sách.",
+    "modalEmptyFiltered": "Không có lượt chạy nào khớp bộ lọc.",
+    "liveBadge": "đang chạy",
+    "currentBadge": "hiện tại",
+    "attachLabel": "Gắn vào"
   },
   "resume": {
     "label": "Phiên nguồn",
@@ -158,7 +176,8 @@
     "originalCwd": "cwd gốc",
     "preview": "Hoạt động gần nhất",
     "selectedBadge": "Đang tiếp tục",
-    "clear": "Xoá lựa chọn"
+    "clear": "Xoá lựa chọn",
+    "freshHintWithProvider": "Bắt đầu phiên {{agent}} mới."
   },
   "limitations": {
     "title": "Chạy Claude trong trình duyệt",
@@ -173,12 +192,26 @@
     "minimize": "Thu nhỏ",
     "restore": "Hiện ghi chú chạy trong trình duyệt",
     "expand": "Đọc thêm",
-    "collapse": "Thu gọn"
+    "collapse": "Thu gọn",
+    "sup": {
+      "stream": "Đầu ra phát trực tiếp - văn bản, suy nghĩ, lệnh gọi tool, kết quả tool",
+      "multiTurn": "Hội thoại nhiều lượt và tiếp tục bất kỳ phiên cũ nào",
+      "slash": "Lệnh slash của user / project / plugin (mở rộng mẫu)",
+      "files": "Tham chiếu file trong thư mục làm việc bằng <c>@</c>",
+      "meter": "Đồng hồ đo token / cửa sổ ngữ cảnh trực tiếp",
+      "switcher": "Chuyển đổi giữa các lượt chạy đang hoạt động; bản ghi đầy đủ tại <c>/sessions</c>"
+    },
+    "lim": {
+      "builtin": "Lệnh slash tích hợp (<c>/help</c>, <c>/model</c>, <c>/clear</c>, <c>/compact</c>) - chúng thay đổi trạng thái chỉ có ở CLI",
+      "permissions": "Hộp thoại xin quyền giữa phiên - hãy chọn chế độ khi khởi chạy",
+      "compaction": "Hộp thoại nén ngữ cảnh giữa cuộc hội thoại",
+      "modelChange": "Đổi model hoặc mức nỗ lực giữa phiên (đặt khi khởi chạy)"
+    }
   },
   "tokens": {
-    "label": "Context",
-    "input": "Input",
-    "output": "Output",
+    "label": "Ngữ cảnh",
+    "input": "Đầu vào",
+    "output": "Đầu ra",
     "cacheRead": "Đọc từ bộ nhớ đệm",
     "cost": "Chi phí"
   },
@@ -193,18 +226,40 @@
   },
   "statusHeader": {
     "model": "Model",
-    "effort": "Effort",
-    "permissionMode": "Mode",
+    "effort": "Mức nỗ lực",
+    "permissionMode": "Chế độ",
     "cwd": "Cwd",
-    "session": "Session",
+    "session": "Phiên",
     "envelopes": "Sự kiện",
     "duration": "Đã chạy"
   },
   "cursor": {
-    "previewLabel": "Command to run",
-    "previewEmpty": "Type a prompt to preview the command.",
-    "previewHint": "Nothing runs until you press Start.",
-    "trustLabel": "Trust this folder (--trust)",
-    "trustHint": "Headless Cursor refuses untrusted folders. Tick only for folders whose code you trust."
+    "previewLabel": "Lệnh sẽ chạy",
+    "previewEmpty": "Nhập prompt để xem trước lệnh.",
+    "previewHint": "Sẽ không có gì chạy cho đến khi bạn bấm Bắt đầu.",
+    "trustLabel": "Tin cậy thư mục này (--trust)",
+    "trustHint": "Cursor headless từ chối các thư mục không tin cậy. Chỉ chọn với thư mục có nội dung bạn tin tưởng."
+  },
+  "slash": {
+    "help": "Liệt kê các lệnh có sẵn",
+    "clear": "Xóa cuộc hội thoại",
+    "config": "Mở menu cấu hình tương tác",
+    "model": "Đổi model giữa phiên",
+    "compact": "Nén ngữ cảnh cuộc hội thoại",
+    "memory": "Sửa CLAUDE.md",
+    "hooks": "Quản lý hook",
+    "cost": "Hiện chi phí phiên",
+    "agents": "Liệt kê subagent",
+    "review": "Xem lại các thay đổi hiện tại",
+    "release-notes": "Hiện ghi chú phát hành của CC",
+    "permissions": "Sửa quy tắc quyền",
+    "status": "Hiện trạng thái phiên",
+    "init": "Khởi tạo CLAUDE.md từ codebase",
+    "login": "Đăng nhập Claude",
+    "logout": "Đăng xuất",
+    "exit": "Thoát phiên",
+    "mcp": "Quản lý máy chủ MCP",
+    "plugin": "Quản lý plugin",
+    "output-style": "Đổi kiểu đầu ra"
   }
 }

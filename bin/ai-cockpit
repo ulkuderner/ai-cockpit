@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
-# AI Cockpit launcher: runs the local server on 127.0.0.1 in the background and opens the browser.
-# Usage: ai-cockpit [start|stop|restart|status]   (default: start)
-#        AI_COCKPIT_PORT=4900 ai-cockpit start
+# AI Cockpit launcher: runs the server in the background and opens the browser.
+# Usage:
+#   ai-cockpit [start|stop|restart|status]      local only (127.0.0.1), the default
+#   ai-cockpit start --remote                   also accept other machines over HTTPS (own certificate) with access tokens
+#   ai-cockpit start --local                    back to local only
+#   ai-cockpit connect <https-url> <hook-token> [<sha256-fingerprint>]   on an agent machine: send live hook events to a remote cockpit
+#   ai-cockpit disconnect                       stop sending to the remote cockpit
+#   AI_COCKPIT_PORT=4900 ai-cockpit start
 set -euo pipefail
 ROOT="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)"
 PORT="${AI_COCKPIT_PORT:-4820}"
@@ -10,10 +15,13 @@ STATE="${AI_COCKPIT_HOME:-$HOME/.ai-cockpit}"
 PIDFILE="$STATE/server.pid"
 LOG="$STATE/server.log"
 TS_PORT="${AI_COCKPIT_TS_PORT:-8443}"
+REMOTE_FLAG="$STATE/remote-mode"
+TLS_PORT="${AI_COCKPIT_TLS_PORT:-$((PORT + 1))}"
 mkdir -p "$STATE"
+chmod 700 "$STATE"
 
-# Tailscale: share the loopback server inside the tailnet over HTTPS (tailscale serve),
-# so the server itself never binds a public interface. Opt out with AI_COCKPIT_TAILSCALE=0.
+# Tailscale: share the loopback server inside the tailnet over HTTPS (tailscale serve).
+# Opt out with AI_COCKPIT_TAILSCALE=0.
 ts_name() {
   [ "${AI_COCKPIT_TAILSCALE:-1}" != "0" ] && command -v tailscale >/dev/null || return 1
   tailscale status --json 2>/dev/null | node -e '
@@ -22,13 +30,56 @@ ts_name() {
     });'
 }
 
-healthy() { curl -fs "$URL/api/health" >/dev/null 2>&1; }
+# 48-hex-char secret in a 0600 file, created once.
+secret() {
+  local f="$STATE/$1"
+  if [ ! -s "$f" ]; then
+    (umask 077 && node -e 'process.stdout.write(require("crypto").randomBytes(24).toString("hex"))' >"$f")
+  fi
+  cat "$f"
+}
+
+# Self-signed certificate for the remote HTTPS listener, valid for this host's names and IPs.
+# Regenerated when the name/IP set changes.
+ensure_cert() {
+  local dir="$STATE/tls" sans
+  mkdir -p "$dir"
+  sans="DNS:localhost,DNS:$(hostname),DNS:$(hostname).local,IP:127.0.0.1"
+  for ip in $(lan_ips); do sans="$sans,IP:$ip"; done
+  [ -n "${1:-}" ] && sans="$sans,DNS:$1"
+  if [ ! -s "$dir/cert.pem" ] || [ "$(cat "$dir/sans" 2>/dev/null)" != "$sans" ]; then
+    (umask 077 && openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:P-256 -nodes -days 825 \
+      -subj "/CN=AI Cockpit $(hostname)" -addext "subjectAltName=$sans" \
+      -addext "basicConstraints=critical,CA:TRUE" \
+      -keyout "$dir/key.pem" -out "$dir/cert.pem" >/dev/null 2>&1)
+    echo "$sans" >"$dir/sans"
+  fi
+}
+
+fingerprint() {
+  openssl x509 -in "$1" -noout -fingerprint -sha256 | cut -d= -f2
+}
+
+lan_ips() {
+  ifconfig 2>/dev/null | awk '/inet / && $2 !~ /^(127\.|169\.254\.)/ { print $2 }'
+}
+
+auth_header() {
+  [ -f "$REMOTE_FLAG" ] && [ -s "$STATE/dashboard-token" ] && echo "x-dashboard-token: $(cat "$STATE/dashboard-token")" || echo "x-none: 1"
+}
+healthy() { curl -fs -H "$(auth_header)" "$URL/api/health" >/dev/null 2>&1; }
 pid() { [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null && cat "$PIDFILE"; }
 
 start() {
+  case "${1:-}" in
+    --remote) touch "$REMOTE_FLAG" ;;
+    --local) rm -f "$REMOTE_FLAG" ;;
+  esac
   cd "$ROOT"
+  local TS_HOST
+  TS_HOST="$(ts_name || true)"
   if healthy; then
-    echo "AI Cockpit zaten çalışıyor: $URL"
+    echo "AI Cockpit zaten çalışıyor: $URL (mod değişikliği için: ai-cockpit restart ${1:-})"
   else
     [ -d node_modules ] || npm install --no-audit --no-fund
     [ -d client/node_modules ] || (cd client && npm install --no-audit --no-fund)
@@ -37,9 +88,18 @@ start() {
       echo "Arayüz derleniyor..."
       npm run build >>"$LOG" 2>&1
     fi
-    TS_HOST="$(ts_name || true)"
+    local hosts="$TS_HOST"
+    local env_extra=()
+    if [ -f "$REMOTE_FLAG" ]; then
+      secret dashboard-token >/dev/null
+      secret hook-token >/dev/null
+      hosts="$(printf '%s\n' "$TS_HOST" "$(hostname)" "$(hostname).local" $(lan_ips) "${AI_COCKPIT_ALLOWED_HOSTS:-}" | grep -v '^$' | paste -sd, -)"
+      ensure_cert "$TS_HOST"
+      env_extra=(DASHBOARD_TOKEN_FILE="$STATE/dashboard-token" DASHBOARD_HOOK_TOKEN_FILE="$STATE/hook-token"
+        DASHBOARD_TLS_CERT_FILE="$STATE/tls/cert.pem" DASHBOARD_TLS_KEY_FILE="$STATE/tls/key.pem" DASHBOARD_TLS_PORT="$TLS_PORT")
+    fi
     # No GitHub update polling: nothing leaves this machine.
-    DASHBOARD_UPDATE_CHECK=0 DASHBOARD_PORT="$PORT" DASHBOARD_ALLOWED_HOSTS="$TS_HOST" \
+    env DASHBOARD_UPDATE_CHECK=0 DASHBOARD_PORT="$PORT" DASHBOARD_ALLOWED_HOSTS="$hosts" ${env_extra[@]+"${env_extra[@]}"} \
       nohup node server/index.js >>"$LOG" 2>&1 &
     echo $! >"$PIDFILE"
     for _ in $(seq 1 60); do healthy && break; sleep 0.25; done
@@ -51,7 +111,23 @@ start() {
     echo "AI Cockpit açıldı: $URL"
     echo "Log: $LOG"
   fi
-  TS_HOST="$(ts_name || true)"
+  local open_url="$URL"
+  if [ -f "$REMOTE_FLAG" ]; then
+    local tok hook
+    tok="$(secret dashboard-token)"
+    hook="$(secret hook-token)"
+    open_url="$URL/#token=$tok"
+    echo
+    echo "Uzak bağlantı açık: yalnız HTTPS, erişim anahtarı zorunlu. Diğer cihazlardan:"
+    for ip in $(lan_ips); do echo "  https://$ip:$TLS_PORT/#token=$tok"; done
+    echo "Sertifika bu makinede üretildi; tarayıcı ilk açılışta uyarı verir. Parmak izi şununla aynıysa kabul et:"
+    echo "  SHA256 $(fingerprint "$STATE/tls/cert.pem")"
+    echo "Bağlantıları yalnız güvendiğin cihazlarda aç; anahtar tarayıcıda saklanır."
+    echo
+    echo "Başka bir makinedeki ajanların canlı olaylarını buraya göndermek için o makinede:"
+    for ip in $(lan_ips); do echo "  ai-cockpit-agent connect https://$ip:$TLS_PORT $hook $(fingerprint "$STATE/tls/cert.pem")"; done
+    [ -n "$TS_HOST" ] && echo "  (Tailscale ile: ai-cockpit-agent connect https://$TS_HOST:$TS_PORT $hook)"
+  fi
   if [ -n "$TS_HOST" ]; then
     # serve blocks waiting for admin approval when Serve is off on the tailnet; cap it (macOS has no timeout(1)).
     if (perl -e 'alarm 15; exec @ARGV' tailscale serve --bg --https="$TS_PORT" "http://127.0.0.1:$PORT" >>"$LOG" 2>&1) 2>/dev/null; then
@@ -60,7 +136,7 @@ start() {
       echo "Tailscale paylaşımı açılamadı. Tailnet'te Serve kapalı olabilir; açma bağlantısı: $LOG" >&2
     fi
   fi
-  command -v open >/dev/null && open "$URL" || true
+  command -v open >/dev/null && open "$open_url" || true
 }
 
 stop() {
@@ -85,6 +161,7 @@ stop() {
 status() {
   if healthy; then
     echo "Çalışıyor: $URL (pid $(pid || echo '?'))"
+    if [ -f "$REMOTE_FLAG" ]; then echo "Mod: uzak bağlantı açık"; else echo "Mod: yalnız yerel"; fi
     local h
     h="$(ts_name || true)"
     [ -n "$h" ] && tailscale serve status 2>/dev/null | grep -q ":$TS_PORT" && echo "Tailscale: https://$h:$TS_PORT" || true
@@ -92,12 +169,62 @@ status() {
     echo "Çalışmıyor."
     return 1
   fi
+  [ -f "$STATE/remote.json" ] && echo "Olaylar şuraya da gidiyor: $(node -e 'console.log(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).url)' "$STATE/remote.json")"
+  return 0
 }
 
-case "${1:-start}" in
-  start) start ;;
+connect() {
+  local url="${1:-}" token="${2:-}" want="${3:-}"
+  if [ -z "$url" ] || [ -z "$token" ]; then
+    echo "Kullanım: ai-cockpit connect <https-adresi> <hook-anahtarı> [<sha256-parmak-izi>]" >&2
+    exit 2
+  fi
+  case "$url" in
+    https://*) ;;
+    *) echo "Adres https:// ile başlamalı; veri yalnız şifreli kanaldan gönderilir." >&2; exit 2 ;;
+  esac
+  local hostport="${url#https://}"
+  hostport="${hostport%%/*}"
+  [ "${hostport#*:}" = "$hostport" ] && hostport="$hostport:443"
+  # Pin the server certificate on first use; compare with the fingerprint the cockpit printed.
+  local pem="$STATE/remote-cert.pem"
+  openssl s_client -connect "$hostport" -servername "${hostport%:*}" </dev/null 2>/dev/null | openssl x509 >"$pem.tmp" 2>/dev/null || {
+    echo "$url adresine TLS bağlantısı kurulamadı." >&2
+    rm -f "$pem.tmp"
+    exit 1
+  }
+  local got
+  got="$(fingerprint "$pem.tmp")"
+  if [ -n "$want" ] && [ "$(echo "$want" | tr a-f A-F)" != "$got" ]; then
+    echo "Parmak izi uyuşmuyor! Beklenen $want, gelen $got. Bağlanılmadı." >&2
+    rm -f "$pem.tmp"
+    exit 1
+  fi
+  mv "$pem.tmp" "$pem"
+  (umask 077 && printf '%s' "$token" >"$STATE/hook-token")
+  # Tailscale names carry a real, regularly renewed certificate: trust the system CAs instead of pinning.
+  local ca="$pem"
+  case "${hostport%:*}" in *.ts.net) ca="" ;; esac
+  (umask 077 && node -e 'process.stdout.write(JSON.stringify({ url: process.argv[1], ca: process.argv[2] || undefined }))' "$url" "$ca" >"$STATE/remote.json")
+  echo "Bağlandı: ajan olayları $url adresine HTTPS ile gidecek."
+  echo "Sertifika parmak izi (sabitlendi): SHA256 $got"
+  [ -z "$want" ] && echo "Bu parmak izini kokpitin yazdığıyla karşılaştır; farklıysa ai-cockpit disconnect çalıştır."
+  echo "Bu makinede kokpit hook'ları kurulu olmalı (bir kez: cd $ROOT && npm run install-hooks)."
+}
+
+disconnect() {
+  rm -f "$STATE/remote.json"
+  echo "Uzak kokpite gönderim kapatıldı; olaylar yalnız bu makinedeki kokpite gider."
+}
+
+cmd="${1:-start}"
+shift || true
+case "$cmd" in
+  start) start "${1:-}" ;;
   stop) stop ;;
-  restart) stop; start ;;
+  restart) stop; start "${1:-}" ;;
   status) status ;;
-  *) echo "Kullanım: ai-cockpit [start|stop|restart|status]" >&2; exit 2 ;;
+  connect) connect "$@" ;;
+  disconnect) disconnect ;;
+  *) echo "Kullanım: ai-cockpit [start [--remote|--local]|stop|restart [--remote|--local]|status|connect <url> <anahtar> [--insecure]|disconnect]" >&2; exit 2 ;;
 esac

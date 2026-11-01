@@ -1,0 +1,127 @@
+{
+  "name": "Samba",
+  "quips": {
+    "session_done": [
+      "một phiên vừa kết thúc! 🐾",
+      "một phiên đã xong, làm tốt lắm! ✨",
+      "phiên đó xong hết rồi 🐶",
+      "kết thúc gọn gàng ghê 💜"
+    ],
+    "session_start": [
+      "một phiên mới vừa bắt đầu! 👀",
+      "một phiên mới tinh vừa đến 🐾",
+      "ồ, có phiên mới để đánh hơi 🐕",
+      "có gì đó mới đang nấu 🍲"
+    ],
+    "subagent_spawn": [
+      "một subagent vừa xuất hiện! 🐾",
+      "một người giúp việc nhỏ vừa gia nhập 🤝",
+      "một subagent đang làm việc 🚀",
+      "một chú cún mới vào đàn 🐶"
+    ],
+    "waiting": [
+      "một phiên cần bạn trả lời 👀",
+      "một phiên đang đợi bạn ⏳",
+      "một phiên dừng lại chờ bạn phản hồi 💬",
+      "đến lượt bạn, có phiên đang đợi 🐾"
+    ],
+    "error": [
+      "ôi, một phiên bị lỗi rồi 🐕",
+      "gâu! có gì đó hỏng, xem thử không? 👀",
+      "một hook bị vấp rồi ⚠️",
+      "grừ… có lỗi xuất hiện 💢"
+    ],
+    "run_done": [
+      "lượt chạy của bạn vừa xong! 🐾",
+      "lượt chạy đã hoàn tất ✨",
+      "chạy xong rồi, ai cũng vẫy đuôi 🐕",
+      "xong lượt chạy đó rồi 💜"
+    ],
+    "disconnected": [
+      "mất kết nối rồi… 😴",
+      "không liên lạc được với máy chủ 📡",
+      "mất tín hiệu, mình đi ngủ chút 💤"
+    ],
+    "worried": ["trông có vẻ không ổn 😟", "mình đang để mắt đây 👀", "hmm, có gì đó lạ 🫣"],
+    "stuck": [
+      "một phiên im lặng lâu rồi… 🤔",
+      "có gì bị kẹt không nhỉ? ⏳",
+      "vẫn đang nhai nó… 🦴"
+    ],
+    "happy": ["lượt chạy tuyệt vời! 🐶", "mình mê cái kết gọn gàng ✨", "tuyệt cú mèo 💜"],
+    "thinking": [
+      "hmm, để mình xem… 🤔",
+      "đang đánh hơi quanh đây… 🐾",
+      "đợi chút, mình kiểm tra 🔍"
+    ],
+    "watching": ["mũi kề sát đất 👀", "đang trông chừng các phiên của bạn 🐕", "mắt mở to rồi 🐾"],
+    "sleeping": [
+      "khò khò… 💤",
+      "có gì xảy ra thì gọi mình dậy nhé 😴",
+      "cuộn tròn, mọi thứ yên bình 🐕"
+    ],
+    "idle": ["yên ắng quá 🐶", "sẵn sàng khi bạn cần 🐾", "thư giãn thôi ✨"]
+  },
+  "panel": {
+    "ariaLabel": "Bạn đồng hành Samba",
+    "live": "Trực tiếp",
+    "offline": "Ngoại tuyến",
+    "close": "Đóng Samba",
+    "chipLive": "đang chạy",
+    "chipWaiting": "đang đợi",
+    "chipErrored": "lỗi",
+    "runClaude": "Chạy Claude",
+    "activity": "Hoạt động",
+    "sessions": "Phiên",
+    "errored": "Phiên lỗi",
+    "mute": "Tắt tiếng",
+    "unmute": "Bật tiếng",
+    "clearAlerts": "Xóa cảnh báo",
+    "askPlaceholder": "Hỏi Samba… (vd: có lỗi không?)",
+    "askLabel": "Hỏi Samba",
+    "send": "Gửi"
+  },
+  "avatar": {
+    "close": "Đóng Samba",
+    "open": "Mở bạn đồng hành Samba",
+    "title": "Samba - ⌘B · kéo để di chuyển",
+    "label": "Samba ({{mood}})"
+  },
+  "bubble": {
+    "dismiss": "Bỏ qua"
+  },
+  "intents": {
+    "empty": "hãy hỏi mình về các phiên: đang chạy gì, có lỗi không, hoặc trạng thái nhanh.",
+    "help": "Mình trông chừng các phiên của bạn. Thử hỏi \"đang chạy gì\", \"có lỗi không\" hoặc \"trạng thái\". Còn lại mình chuyển cho Claude.",
+    "errors_other": "{{count}} phiên bị lỗi - mở bảng điều khiển để xem.",
+    "errorsNone": "không có lỗi, mọi thứ sạch sẽ 🐾",
+    "waiting_other": "{{count}} phiên đang đợi bạn 👀",
+    "waitingNone": "hiện không có gì đang đợi bạn 🐾",
+    "live_other": "{{count}} phiên đang chạy ngay lúc này 🐾",
+    "liveTail": " ({{count}} đang đợi bạn 👀)",
+    "liveNone": "hiện không có gì đang chạy, yên ắng.",
+    "status": "{{live}} đang chạy · {{waiting}} đang đợi · {{errored}} lỗi · {{connection}}.",
+    "connected": "đã kết nối",
+    "disconnected": "ngoại tuyến",
+    "errors_one": "{{count}} phiên bị lỗi - mở bảng điều khiển để xem.",
+    "waiting_one": "{{count}} phiên đang đợi bạn 👀",
+    "live_one": "{{count}} phiên đang chạy ngay lúc này 🐾"
+  },
+  "keywords": {
+    "help": "giúp,trợ giúp,làm được gì,bạn làm gì",
+    "errors": "lỗi,hỏng,thất bại,sập,sự cố",
+    "waiting": "đang đợi,chờ,kẹt,bị chặn,nhập,lượt của tôi,tạm dừng",
+    "live": "đang chạy,hoạt động,trực tiếp,diễn ra,đang xử lý",
+    "status": "trạng thái,tóm tắt,tổng quan,thế nào"
+  },
+  "moods": {
+    "disconnected": "ngoại tuyến",
+    "worried": "lo lắng",
+    "stuck": "bị kẹt",
+    "happy": "vui",
+    "thinking": "đang nghĩ",
+    "watching": "đang theo dõi",
+    "sleeping": "đang ngủ",
+    "idle": "nghỉ"
+  }
+}

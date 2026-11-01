@@ -91,6 +91,20 @@ if ("serviceWorker" in navigator) {
     .catch(() => {});
 }
 
+// AI Cockpit: `ai-cockpit start --remote` prints links ending in #token=…. The fragment never
+// reaches the server or its logs; store the token and drop it from the address bar.
+{
+  const m = /(?:^#|&)token=([^&]+)/.exec(window.location.hash);
+  if (m) {
+    try {
+      localStorage.setItem("dashboard_token", decodeURIComponent(m[1] ?? ""));
+    } catch {
+      /* storage blocked: the token gate will ask */
+    }
+    window.history.replaceState(null, "", window.location.pathname + window.location.search);
+  }
+}
+
 /** Mount point for the React app in `index.html`. */
 const root = document.getElementById("root");
 if (!root) throw new Error("Root element not found");

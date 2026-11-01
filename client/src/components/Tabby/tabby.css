@@ -496,19 +496,19 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #0c0c14;
+  border: 2px solid rgb(var(--surface-1));
 }
 .tabby-bubble {
   max-width: 16rem;
-  background: #1a1a28;
-  border: 1px solid #363650;
-  color: #e8e8f0;
+  background: rgb(var(--surface-3));
+  border: 1px solid rgb(var(--border-light));
+  color: rgb(var(--gray-100));
   font-size: 0.8125rem;
   line-height: 1.2rem;
   padding: 0.5rem 0.75rem;
   border-radius: 0.75rem;
   border-bottom-right-radius: 0.25rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 .tabby-bubble-enter {
   animation: tabby-bubble-in 0.22s ease-out;

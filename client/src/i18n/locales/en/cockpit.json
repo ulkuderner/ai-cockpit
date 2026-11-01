@@ -273,5 +273,11 @@
     "notice_other": "{{count}} model prices changed.",
     "review": "Review"
   },
-  "doneAt": "done {{date}}"
+  "doneAt": "done {{date}}",
+  "tokenGate": {
+    "title": "Access token",
+    "text": "This cockpit accepts remote connections and needs a token. Open the link printed by ai-cockpit start --remote on the host, or paste the token here.",
+    "placeholder": "Token",
+    "save": "Save"
+  }
 }

@@ -146,9 +146,9 @@
     "bothDescription": "Combinar datos de Claude Code, Cursor y Codex.",
     "beta": "Beta",
     "gemini": "Gemini",
-    "geminiDescription": "Show only Gemini CLI data.",
+    "geminiDescription": "Mostrar solo datos de Gemini CLI.",
     "cursor": "Cursor",
-    "cursorDescription": "Cursor sessions only."
+    "cursorDescription": "Solo sesiones de Cursor."
   },
   "hooks": {
     "title": "Configuración de ganchos",

@@ -55,6 +55,7 @@
  *
  * ----------------------------------------------------------------------------- */
 
+import { useTranslation } from "react-i18next";
 import { useState, type FormEvent, type ReactNode } from "react";
 import {
   Play,
@@ -104,6 +105,7 @@ export function TabbyPanel({
   onAsk,
   onClose,
 }: TabbyPanelProps) {
+  const { t } = useTranslation("samba");
   const [query, setQuery] = useState("");
   const [answer, setAnswer] = useState<string | null>(null);
 
@@ -122,7 +124,7 @@ export function TabbyPanel({
     <div
       className="w-72 overflow-hidden rounded-2xl border border-border-light bg-surface-2/95 shadow-2xl shadow-black/50 backdrop-blur-md animate-slide-up"
       role="dialog"
-      aria-label="Samba companion"
+      aria-label={t("panel.ariaLabel")}
     >
       {/* header */}
       <div className="flex items-center justify-between gap-2 border-b border-border/70 bg-gradient-to-r from-accent/10 to-transparent px-3.5 py-2.5">
@@ -130,7 +132,7 @@ export function TabbyPanel({
           <span className="text-base leading-none" aria-hidden>
             🐾
           </span>
-          <span className="text-sm font-semibold text-gray-100">Samba</span>
+          <span className="text-sm font-semibold text-gray-100">{t("name")}</span>
           <span
             className={`ml-0.5 inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
               status.connected ? "bg-emerald-500/15 text-emerald-300" : "bg-red-500/15 text-red-300"
@@ -142,13 +144,13 @@ export function TabbyPanel({
               }`}
               aria-hidden
             />
-            {status.connected ? "Live" : "Offline"}
+            {status.connected ? t("panel.live") : t("panel.offline")}
           </span>
         </div>
         <button
           className="rounded-md p-1 text-gray-500 transition-colors hover:bg-surface-4 hover:text-gray-200"
           onClick={onClose}
-          aria-label="Close Samba"
+          aria-label={t("panel.close")}
         >
           <X size={15} />
         </button>
@@ -159,19 +161,19 @@ export function TabbyPanel({
         <div className="mb-3 grid grid-cols-3 gap-1.5">
           <StatChip
             icon={Radio}
-            label="live"
+            label={t("panel.chipLive")}
             value={status.liveCount}
             tone={status.liveCount > 0 ? "accent" : "muted"}
           />
           <StatChip
             icon={Hourglass}
-            label="waiting"
+            label={t("panel.chipWaiting")}
             value={status.waitingCount}
             tone={status.waitingCount > 0 ? "amber" : "muted"}
           />
           <StatChip
             icon={AlertTriangle}
-            label="errored"
+            label={t("panel.chipErrored")}
             value={status.errorCount}
             tone={status.errorCount > 0 ? "red" : "muted"}
           />
@@ -179,27 +181,35 @@ export function TabbyPanel({
 
         {/* quick actions */}
         <div className="mb-3 grid grid-cols-2 gap-1.5">
-          <ActionButton icon={Play} label="Run Claude" onClick={() => onNavigate("/run")} />
-          <ActionButton icon={Activity} label="Activity" onClick={() => onNavigate("/activity")} />
+          <ActionButton
+            icon={Play}
+            label={t("panel.runClaude")}
+            onClick={() => onNavigate("/run")}
+          />
+          <ActionButton
+            icon={Activity}
+            label={t("panel.activity")}
+            onClick={() => onNavigate("/activity")}
+          />
           <ActionButton
             icon={LayoutList}
-            label="Sessions"
+            label={t("panel.sessions")}
             onClick={() => onNavigate("/sessions")}
           />
           <ActionButton
             icon={AlertTriangle}
-            label="Errored"
+            label={t("panel.errored")}
             disabled={status.errorCount === 0}
             onClick={() => onNavigate("/sessions")}
           />
           <ActionButton
             icon={muted ? BellOff : Bell}
-            label={muted ? "Unmute" : "Mute"}
+            label={muted ? t("panel.unmute") : t("panel.mute")}
             onClick={onToggleMute}
           />
           <ActionButton
             icon={Trash2}
-            label="Clear alerts"
+            label={t("panel.clearAlerts")}
             disabled={status.errorCount === 0}
             onClick={onClearAlerts}
           />
@@ -209,15 +219,15 @@ export function TabbyPanel({
         <form onSubmit={submit} className="flex items-center gap-1.5">
           <input
             className="flex-1 rounded-lg border border-border bg-surface-1 px-2.5 py-1.5 text-xs text-gray-200 placeholder-gray-500 transition-colors focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30"
-            placeholder="Ask Samba… (e.g. any errors?)"
+            placeholder={t("panel.askPlaceholder")}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            aria-label="Ask Samba"
+            aria-label={t("panel.askLabel")}
           />
           <button
             type="submit"
             className="flex items-center justify-center rounded-lg bg-accent px-2.5 py-2 text-white transition-colors hover:bg-accent-hover"
-            aria-label="Send"
+            aria-label={t("panel.send")}
           >
             <Send size={14} />
           </button>

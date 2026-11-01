@@ -8,19 +8,31 @@ const { isHostAllowed, isWebSocketAuthorized } = require("./lib/security");
 
 let wss = null;
 
+/**
+ * Attach the dashboard WebSocket (`/ws`) to an HTTP(S) server. AI Cockpit may call this twice
+ * (loopback HTTP + remote HTTPS listener); both share one WebSocketServer so broadcasts reach all.
+ */
 function initWebSocket(server) {
   // Express middleware doesn't run on WS upgrades, so enforce the same Host
   // allowlist (anti DNS-rebinding) and optional token here (GHSA-gr74-4xfh-6jw9).
-  wss = new WebSocketServer({
-    server,
-    path: "/ws",
-    maxPayload: 64 * 1024,
-    verifyClient(info, done) {
-      if (!isHostAllowed(info.req.headers.host)) return done(false, 403, "host not allowed");
-      if (!isWebSocketAuthorized(info.req)) return done(false, 401, "unauthorized");
-      return done(true);
-    },
+  server.on("upgrade", (req, socket, head) => {
+    let pathname = "";
+    try {
+      pathname = new URL(req.url, "http://localhost").pathname;
+    } catch {
+      /* malformed → rejected below */
+    }
+    if (pathname !== "/ws") return socket.destroy();
+    const reject = (code, text) => {
+      socket.write(`HTTP/1.1 ${code} ${text}\r\nConnection: close\r\n\r\n`);
+      socket.destroy();
+    };
+    if (!isHostAllowed(req.headers.host)) return reject(403, "Forbidden");
+    if (!isWebSocketAuthorized(req)) return reject(401, "Unauthorized");
+    wss.handleUpgrade(req, socket, head, (ws) => wss.emit("connection", ws, req));
   });
+  if (wss) return wss;
+  wss = new WebSocketServer({ noServer: true, maxPayload: 64 * 1024 });
 
   wss.on("connection", (ws) => {
     ws.isAlive = true;

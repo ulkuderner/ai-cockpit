@@ -395,7 +395,7 @@ export function ConcurrencyTimeline({ data }: ConcurrencyTimelineProps) {
           opacity: 0,
           left: 0,
           top: 0,
-          background: "#12121f",
+          background: "rgb(var(--surface-2))",
           border: "1px solid #2a2a4a",
           color: "#e2e8f0",
           minWidth: 240,

@@ -66,68 +66,29 @@
  *
  * ----------------------------------------------------------------------------- */
 
+import i18n from "i18next";
 import type { Mood, TabbyPulse } from "./brain";
 
 /** What a quip responds to: an event pulse or a mood. */
 export type QuipKey = NonNullable<TabbyPulse> | Mood;
 
-/** Lines Tabby can say for each pulse and mood; one is picked at random. */
-const QUIPS: Record<QuipKey, string[]> = {
-  // Pulses (event-driven, transient bubbles)
-  session_done: [
-    "a session just wrapped up! 🐾",
-    "a session finished - nice work! ✨",
-    "that session's all done 🐶",
-    "clean finish on that one 💜",
-  ],
-  session_start: [
-    "a new session started! 👀",
-    "a fresh session just landed 🐾",
-    "ooh, a new session to sniff out 🐕",
-    "something new is cooking 🍲",
-  ],
-  subagent_spawn: [
-    "a subagent just spawned! 🐾",
-    "a little helper joined in 🤝",
-    "a subagent's on the job 🚀",
-    "a new pup joined the pack 🐶",
-  ],
-  waiting: [
-    "a session needs your input 👀",
-    "a session is waiting on you ⏳",
-    "a session paused for your reply 💬",
-    "your turn - a session's waiting 🐾",
-  ],
-  error: [
-    "uh oh, a session hit an error 🐕",
-    "woof! something broke - wanna peek? 👀",
-    "a hook tripped on something ⚠️",
-    "grr… an error popped up 💢",
-  ],
-  run_done: [
-    "your run just finished! 🐾",
-    "the run's all wrapped up ✨",
-    "run complete - tail wags all round 🐕",
-    "all done with that run 💜",
-  ],
-  // Moods (steady-state flavor, used by the panel / idle bubbles)
-  disconnected: [
-    "lost the connection… 😴",
-    "can't reach the server 📡",
-    "no signal - taking a nap 💤",
-  ],
-  worried: ["that didn't look right 😟", "keeping an eye out 👀", "hmm, something's off 🫣"],
-  stuck: [
-    "a session's been quiet a while… 🤔",
-    "is something stuck? ⏳",
-    "still chewing on it… 🦴",
-  ],
-  happy: ["great run! 🐶", "love a tidy finish ✨", "pawsome 💜"],
-  thinking: ["hmm, let me look… 🤔", "sniffing around… 🐾", "one sec, checking 🔍"],
-  watching: ["nose to the ground 👀", "watching your sessions 🐕", "eyes peeled 🐾"],
-  sleeping: ["zzz… 💤", "wake me if something happens 😴", "curled up, all calm 🐕"],
-  idle: ["all quiet 🐶", "ready when you are 🐾", "just vibing ✨"],
-};
+/** Every key with lines under `samba:quips.*` in the locale files. */
+const QUIP_KEYS: QuipKey[] = [
+  "session_done",
+  "session_start",
+  "subagent_spawn",
+  "waiting",
+  "error",
+  "run_done",
+  "disconnected",
+  "worried",
+  "stuck",
+  "happy",
+  "thinking",
+  "watching",
+  "sleeping",
+  "idle",
+];
 
 /**
  * Pick a quip for a key. `rand` is injectable for deterministic tests; defaults
@@ -138,11 +99,11 @@ const QUIPS: Record<QuipKey, string[]> = {
  * @returns One of the lines for that key.
  */
 export function pickQuip(key: QuipKey, rand: () => number = Math.random): string {
-  const pool = QUIPS[key];
-  if (!pool || pool.length === 0) return "";
+  const pool = i18n.t(`samba:quips.${key}`, { returnObjects: true }) as unknown;
+  if (!Array.isArray(pool) || pool.length === 0) return "";
   const i = Math.min(pool.length - 1, Math.max(0, Math.floor(rand() * pool.length)));
-  return pool[i] ?? "";
+  return String(pool[i] ?? "");
 }
 
 /** Every quip key, used by tests to check each one has lines. */
-export const ALL_QUIP_KEYS = Object.keys(QUIPS) as QuipKey[];
+export const ALL_QUIP_KEYS = QUIP_KEYS;

@@ -61,6 +61,7 @@
  *
  * ----------------------------------------------------------------------------- */
 
+import i18n from "i18next";
 import type { TabbyStatus } from "./brain";
 
 /**
@@ -68,8 +69,15 @@ import type { TabbyStatus } from "./brain";
  */
 export type AskResult = { kind: "answer"; text: string } | { kind: "handoff"; prompt: string };
 
-/** Plural suffix for an English count. */
-const plural = (n: number) => (n === 1 ? "" : "s");
+/** Translate a key in the `samba` namespace. */
+const t = (key: string, opts?: Record<string, unknown>): string => i18n.t(`samba:${key}`, opts);
+
+/** Extra, locale-specific trigger words (comma separated in `samba:keywords.*`). */
+const localWords = (group: string): string[] =>
+  t(`keywords.${group}`, { defaultValue: "" })
+    .split(",")
+    .map((w) => w.trim().toLowerCase())
+    .filter(Boolean);
 
 /**
  * Answer simple status questions (what is running, how many sessions are waiting or errored, a
@@ -81,61 +89,58 @@ const plural = (n: number) => (n === 1 ? "" : "s");
  */
 export function matchIntent(query: string, status: TabbyStatus): AskResult {
   const q = query.trim().toLowerCase();
-  if (!q) {
-    return {
-      kind: "answer",
-      text: "ask me about your sessions - what's running, any errors, or a quick status.",
-    };
-  }
+  if (!q) return { kind: "answer", text: t("intents.empty") };
 
-  /** Whether the question mentions any of the words. */
-  const has = (...words: string[]) => words.some((w) => q.includes(w));
+  /** Whether the question mentions any of the words (English plus the active locale's). */
+  const has = (group: string, ...words: string[]) =>
+    [...words, ...localWords(group)].some((w) => q.includes(w));
 
   if (has("help", "what can you", "what do you do")) {
-    return {
-      kind: "answer",
-      text: 'I watch your sessions. Try "what\'s running", "any errors", or "status". Anything else, I\'ll hand to Claude.',
-    };
+    return { kind: "answer", text: t("intents.help") };
   }
 
   // Errors first: "any failed runs" should report errors, not live count.
-  if (has("error", "broke", "broken", "fail", "wrong", "crash")) {
+  if (has("errors", "error", "broke", "broken", "fail", "wrong", "crash")) {
     return {
       kind: "answer",
       text:
         status.errorCount > 0
-          ? `${status.errorCount} session${plural(status.errorCount)} errored - open the panel to jump to them.`
-          : "no errors - all clean 🐾",
+          ? t("intents.errors", { count: status.errorCount })
+          : t("intents.errorsNone"),
     };
   }
 
-  if (has("waiting", "stuck", "blocked", "input", "my turn", "paused")) {
+  if (has("waiting", "waiting", "stuck", "blocked", "input", "my turn", "paused")) {
     return {
       kind: "answer",
       text:
         status.waitingCount > 0
-          ? `${status.waitingCount} session${plural(status.waitingCount)} waiting on you 👀`
-          : "nothing's waiting on you right now 🐾",
+          ? t("intents.waiting", { count: status.waitingCount })
+          : t("intents.waitingNone"),
     };
   }
 
-  if (has("running", "active", "live", "going on", "happening", "in progress")) {
-    const tail = status.waitingCount > 0 ? ` (${status.waitingCount} waiting on you 👀)` : "";
+  if (has("live", "running", "active", "live", "going on", "happening", "in progress")) {
+    const tail =
+      status.waitingCount > 0 ? t("intents.liveTail", { count: status.waitingCount }) : "";
     return {
       kind: "answer",
       text:
         status.liveCount > 0
-          ? `${status.liveCount} session${plural(status.liveCount)} live right now 🐾${tail}`
-          : "nothing's running right now - all quiet.",
+          ? `${t("intents.live", { count: status.liveCount })}${tail}`
+          : t("intents.liveNone"),
     };
   }
 
-  if (has("status", "summary", "overview", "how are things", "how's it", "how is it")) {
+  if (has("status", "status", "summary", "overview", "how are things", "how's it", "how is it")) {
     return {
       kind: "answer",
-      text: `${status.liveCount} live · ${status.waitingCount} waiting · ${status.errorCount} errored · ${
-        status.connected ? "connected" : "offline"
-      }.`,
+      text: t("intents.status", {
+        live: status.liveCount,
+        waiting: status.waitingCount,
+        errored: status.errorCount,
+        connection: t(status.connected ? "intents.connected" : "intents.disconnected"),
+      }),
     };
   }
 

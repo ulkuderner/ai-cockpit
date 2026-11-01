@@ -31,7 +31,7 @@ Ekran görüntüleri örnek veriyle çekildi.
 - **Kullanım limitleri**: Codex 5 saatlik/haftalık limit loglardan okunur. Claude Code limitleri yalnız durum satırına bildirir; bağlamak için aşağıya bak.
 - **Gemini CLI** oturumları (`~/.gemini/tmp/*/chats/session-*.json`) salt okunur içe alınır.
 - **Cursor'dan ajan başlatma**: Ajan Çalıştır sayfasında Cursor seçilir; tam `cursor-agent` komutu başlatmadan önce önizlenir, "Bu klasöre güven (--trust)" açıkça işaretlenmeden güvenilmeyen klasörde çalışmaz, durdurma düğmesi vardır.
-- **Türkçe arayüz** (varsayılan), "AI Cockpit" adı.
+- **Türkçe arayüz** (varsayılan; es/ko/vi/zh/en de var), "AI Cockpit" adı, **açık/koyu/sistem teması** (kenar çubuğunun altında).
 
 ## Kurulum ve açma
 
@@ -60,6 +60,28 @@ Tailscale çalışıyorsa `ai-cockpit start` kokpiti tailnet içine de açar: `h
 - Kapatmak için `AI_COCKPIT_TAILSCALE=0 ai-cockpit start`, port değiştirmek için `AI_COCKPIT_TS_PORT=443`.
 - Kokpitten ajan başlatılabildiği için tailnet'ini başkalarıyla paylaşıyorsan `DASHBOARD_TOKEN` ile bir erişim anahtarı tanımla.
 
+## Başka bilgisayardan erişim ve uzak ajanlar
+
+`ai-cockpit start --remote` kokpiti başka cihazlara açar. Yerel taraf `http://127.0.0.1:4820` olarak kalır (dışarıya kapalı); dış ağa **yalnız HTTPS** ile ayrı bir dinleyici açılır (`https://<ip>:4821`).
+
+- İlk açılışta bu makinenin adı ve IP'leri için bir TLS sertifikası, bir erişim anahtarı ve bir hook anahtarı üretilir (`~/.ai-cockpit/`, yalnız senin okuyabileceğin izinlerle).
+- Başlatıcı her IP için `https://<ip>:4821/#token=...` bağlantısını ve sertifikanın SHA256 parmak izini yazar. `#token` kısmı sunucuya gönderilmez; tarayıcı anahtarı saklar ve adres çubuğundan siler. Anahtarsız gelen tarayıcıya anahtar soran bir pencere çıkar.
+- Tarayıcı kendi üretilmiş sertifika için bir kez uyarı verir; parmak izi aynıysa kabul et. Tailscale açıksa `https://<makine>.ts.net:8443` gerçek sertifikayla çalışır.
+- `ai-cockpit start --local` yeniden yalnız yerel moda döner.
+
+**Uzak ajan (Go, tek dosya):** ajanların çalıştığı makinede Node ya da kokpit kurmaya gerek yok.
+
+```bash
+cd agent && ./build.sh --all          # bin/ai-cockpit-agent ve dist/ altında macOS, Linux, Windows
+ai-cockpit-agent connect https://<kokpit-ip>:4821 <hook-anahtarı> <sha256-parmak-izi>
+ai-cockpit-agent install              # Claude Code hook'larını ekler (önce yedek alır)
+ai-cockpit-agent status
+```
+
+- Veri yalnız HTTPS ile gider; kendi üretilmiş sertifikada parmak izi zorunludur ve sertifika sabitlenir (araya giren biri taklit edemez). `.ts.net` adreslerinde sistem sertifikalarına güvenilir.
+- Her olay ayrı bir süreç olarak birkaç milisaniyede gönderilir; kokpite ulaşılamazsa ajan asla beklemez.
+- `ai-cockpit-agent uninstall` hook'ları, `disconnect` bağlantıyı kaldırır.
+
 ## Claude limitleri
 
 Claude Code `rate_limits` bilgisini yalnız statusline komutuna verir. `statusline/cockpit-tee.js` girdiyi `~/.ai-cockpit/claude-limits.json`'a yazar ve mevcut statusline komutuna aynen aktarır. `~/.claude/settings.json` içinde:
@@ -84,8 +106,6 @@ AI Cockpit GNU GPL v3 (veya sonraki sürümler) altındadır, bkz. [LICENSE](./L
 ## Bilinen sınırlar
 
 - Etkileşimli Cursor sohbetlerinin içeriği `~/.cursor/chats` altında şifreli tutulduğu için okunamaz; o oturumlar listede görünür ama hangi görev üzerinde çalıştıkları algılanmaz. Kokpitten başlatılan Cursor çalıştırmaları tam görünür.
-- Arayüz koyu temalıdır; açık tema henüz yok.
-- es/ko/vi/zh dillerinde yeni AI Cockpit metinleri İngilizce durur.
 
 ---
 

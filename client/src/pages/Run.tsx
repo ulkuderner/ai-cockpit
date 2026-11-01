@@ -81,7 +81,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { flushSync } from "react-dom";
 import { Link, useNavigate, useSearchParams } from "react-router";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import {
   Play,
   Square,
@@ -1693,17 +1693,40 @@ function LimitationsBanner() {
             {t("limitations.supported")}
           </div>
           <ul className="text-[11.5px] text-gray-300 leading-[1.55] space-y-1 marker:text-emerald-500/40 list-disc pl-4">
-            <li>Live streaming output - text, thinking, tool calls, tool results</li>
-            <li>Multi-turn conversations &amp; resuming any past session</li>
-            <li>User / project / plugin slash commands (template expansion)</li>
             <li>
-              <code className="text-[10.5px] text-gray-200">@</code>-references to files in the
-              working directory
+              {t(
+                "limitations.sup.stream",
+                "Live streaming output - text, thinking, tool calls, tool results"
+              )}
             </li>
-            <li>Live token / context-window meter</li>
             <li>
-              Active-runs switcher; full transcripts in{" "}
-              <code className="text-[10.5px] text-gray-200">/sessions</code>
+              {t(
+                "limitations.sup.multiTurn",
+                "Multi-turn conversations & resuming any past session"
+              )}
+            </li>
+            <li>
+              {t(
+                "limitations.sup.slash",
+                "User / project / plugin slash commands (template expansion)"
+              )}
+            </li>
+            <li>
+              <Trans
+                t={t}
+                i18nKey="limitations.sup.files"
+                defaults="<c>@</c>-references to files in the working directory"
+                components={{ c: CODE }}
+              />
+            </li>
+            <li>{t("limitations.sup.meter", "Live token / context-window meter")}</li>
+            <li>
+              <Trans
+                t={t}
+                i18nKey="limitations.sup.switcher"
+                defaults="Active-runs switcher; full transcripts in <c>/sessions</c>"
+                components={{ c: CODE }}
+              />
             </li>
           </ul>
         </div>
@@ -1714,15 +1737,26 @@ function LimitationsBanner() {
           </div>
           <ul className="text-[11.5px] text-gray-300 leading-[1.55] space-y-1 marker:text-rose-500/40 list-disc pl-4">
             <li>
-              Built-in slash commands (<code className="text-[10.5px] text-gray-200">/help</code>,{" "}
-              <code className="text-[10.5px] text-gray-200">/model</code>,{" "}
-              <code className="text-[10.5px] text-gray-200">/clear</code>,{" "}
-              <code className="text-[10.5px] text-gray-200">/compact</code>) - they mutate CLI-only
-              state
+              <Trans
+                t={t}
+                i18nKey="limitations.lim.builtin"
+                defaults="Built-in slash commands (<c>/help</c>, <c>/model</c>, <c>/clear</c>, <c>/compact</c>) - they mutate CLI-only state"
+                components={{ c: CODE }}
+              />
             </li>
-            <li>Mid-session permission prompts - pick the mode at spawn time</li>
-            <li>Compaction prompts mid-conversation</li>
-            <li>Mid-session model or effort changes (set them at spawn time)</li>
+            <li>
+              {t(
+                "limitations.lim.permissions",
+                "Mid-session permission prompts - pick the mode at spawn time"
+              )}
+            </li>
+            <li>{t("limitations.lim.compaction", "Compaction prompts mid-conversation")}</li>
+            <li>
+              {t(
+                "limitations.lim.modelChange",
+                "Mid-session model or effort changes (set them at spawn time)"
+              )}
+            </li>
           </ul>
         </div>
       </div>
@@ -1754,6 +1788,9 @@ function LimitationsBanner() {
     </div>
   );
 }
+
+/** Inline `<code>` element used by Trans placeholders in the run notes card. */
+const CODE = <code className="text-[10.5px] text-gray-200" />;
 
 // ── Token / context-window meter ──────────────────────────────────────
 
@@ -2496,11 +2533,15 @@ function PromptEditor({
                   <span
                     className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${commandSourceTone(c.source)}`}
                   >
-                    {commandSourceLabel(c.source)}
+                    {c.source === "builtin"
+                      ? t("limitations.limited")
+                      : commandSourceLabel(c.source)}
                   </span>
                 </div>
                 {c.description && (
-                  <div className="text-[10.5px] text-gray-500 truncate mt-0.5">{c.description}</div>
+                  <div className="text-[10.5px] text-gray-500 truncate mt-0.5">
+                    {c.source === "builtin" ? t(`slash.${c.name}`, c.description) : c.description}
+                  </div>
                 )}
               </button>
             ))
@@ -3069,7 +3110,7 @@ function RunsModal({
               <button
                 onClick={() => setSearch("")}
                 className="text-gray-500 hover:text-gray-200 text-[10px]"
-                aria-label="Clear"
+                aria-label={t("runs.clear", "Clear")}
               >
                 <X className="w-3 h-3" />
               </button>
@@ -3536,7 +3577,8 @@ function ConfigCard(props: ConfigCardProps) {
           fileCwd={props.resumeSession?.cwd || props.cwd}
         />
         <div className="mt-1 text-[10px] text-gray-600">
-          {t("hint.shortcut")} · / for slash commands · @ for file references
+          {t("hint.shortcut")} ·{" "}
+          {t("hint.slashAndFiles", "/ for slash commands · @ for file references")}
         </div>
       </div>
 

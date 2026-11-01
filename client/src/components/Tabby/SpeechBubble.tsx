@@ -58,6 +58,8 @@
  *
  * ----------------------------------------------------------------------------- */
 
+import { useTranslation } from "react-i18next";
+
 /** Props for {@link SpeechBubble}. */
 interface SpeechBubbleProps {
   /** Quip text to display inside the bubble. */
@@ -71,13 +73,14 @@ interface SpeechBubbleProps {
  * @param props See {@link SpeechBubbleProps}.
  */
 export function SpeechBubble({ text, onDismiss }: SpeechBubbleProps) {
+  const { t } = useTranslation("samba");
   return (
     <div
       className="tabby-bubble tabby-bubble-enter"
       role="status"
       aria-live="polite"
       onClick={onDismiss}
-      title="Dismiss"
+      title={t("bubble.dismiss")}
     >
       {text}
     </div>

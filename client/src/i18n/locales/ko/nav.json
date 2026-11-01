@@ -3,7 +3,7 @@
   "brandSub": "Claude · Cursor · Codex · Gemini",
   "dashboard": "대시보드",
   "plan": "Plan",
-  "community": "Community",
+  "community": "커뮤니티",
   "agentBoard": "칸반 보드",
   "sessions": "세션",
   "activityFeed": "활동 피드",
@@ -14,6 +14,10 @@
   "run": "Agent 실행",
   "settings": "설정",
   "language": "언어",
+  "theme": "테마",
+  "themeSystem": "시스템",
+  "themeLight": "라이트",
+  "themeDark": "다크",
   "github": "GitHub",
   "website": "웹사이트",
   "notFound": "페이지를 찾을 수 없음",
@@ -107,7 +111,7 @@
       "both": "Claude 및 Codex 데이터",
       "claude": "Claude 데이터만",
       "codex": "Codex 데이터만",
-      "gemini": "Gemini data only"
+      "gemini": "Gemini 데이터만"
     },
     "on": "켬",
     "off": "끔",

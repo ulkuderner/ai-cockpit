@@ -504,7 +504,7 @@
     },
     "rocketchat": {
       "steps": [
-        "Administration → Integrations → New → Incoming.",
+        "Yönetim → Entegrasyonlar → Yeni → Gelen.",
         "Etkinleştirin, bir kanal seçin ve kaydedin.",
         "'Webhook URL' değerini kopyalayıp yukarıya yapıştırın."
       ]

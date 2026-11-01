@@ -173,6 +173,28 @@ function startServer(app, port) {
   const server = http.createServer(app);
   initWebSocket(server);
 
+  // AI Cockpit remote mode: a second, HTTPS-only listener for other machines. The plain HTTP
+  // server above stays on loopback for local hooks and the local browser.
+  const tlsCert = process.env.DASHBOARD_TLS_CERT_FILE;
+  const tlsKey = process.env.DASHBOARD_TLS_KEY_FILE;
+  if (tlsCert && tlsKey) {
+    const tlsServer = require("https").createServer(
+      {
+        cert: require("fs").readFileSync(tlsCert),
+        key: require("fs").readFileSync(tlsKey),
+        minVersion: "TLSv1.2",
+      },
+      app
+    );
+    initWebSocket(tlsServer);
+    const tlsPort = Number.parseInt(process.env.DASHBOARD_TLS_PORT || "", 10) || port + 1;
+    const tlsHost = process.env.DASHBOARD_TLS_HOST || "0.0.0.0";
+    tlsServer.listen(tlsPort, tlsHost, () =>
+      console.log(`AI Cockpit HTTPS listener on https://${tlsHost}:${tlsPort} (token required)`)
+    );
+    tlsServer.on("error", (err) => console.error("HTTPS listener failed:", err.message));
+  }
+
   const isProduction = process.env.NODE_ENV === "production";
   if (isProduction) {
     const clientDist = path.join(__dirname, "..", "client", "dist");

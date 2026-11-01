@@ -25,10 +25,10 @@
     "beta": "베타",
     "continue": "대시보드로 계속",
     "cursor": {
-      "description": "Cursor CLI sessions and Cursor runs started from the cockpit."
+      "description": "Cursor CLI 세션과 cockpit에서 시작한 Cursor 실행."
     },
     "gemini": {
-      "description": "Gemini CLI sessions, token usage and cache."
+      "description": "Gemini CLI 세션, 토큰 사용량, 캐시."
     }
   },
   "hookGate": {

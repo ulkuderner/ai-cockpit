@@ -115,10 +115,13 @@ import alerts_zh from "./locales/zh/alerts.json";
 import alerts_vi from "./locales/vi/alerts.json";
 import splash_en from "./locales/en/splash.json";
 import cockpit_en from "./locales/en/cockpit.json";
+import samba_en from "./locales/en/samba.json";
 import splash_zh from "./locales/zh/splash.json";
 import cockpit_zh from "./locales/zh/cockpit.json";
+import samba_zh from "./locales/zh/samba.json";
 import splash_vi from "./locales/vi/splash.json";
 import cockpit_vi from "./locales/vi/cockpit.json";
+import samba_vi from "./locales/vi/samba.json";
 
 import common_ko from "./locales/ko/common.json";
 import nav_ko from "./locales/ko/nav.json";
@@ -136,6 +139,7 @@ import run_ko from "./locales/ko/run.json";
 import alerts_ko from "./locales/ko/alerts.json";
 import splash_ko from "./locales/ko/splash.json";
 import cockpit_ko from "./locales/ko/cockpit.json";
+import samba_ko from "./locales/ko/samba.json";
 
 import common_es from "./locales/es/common.json";
 import nav_es from "./locales/es/nav.json";
@@ -153,6 +157,7 @@ import run_es from "./locales/es/run.json";
 import alerts_es from "./locales/es/alerts.json";
 import splash_es from "./locales/es/splash.json";
 import cockpit_es from "./locales/es/cockpit.json";
+import samba_es from "./locales/es/samba.json";
 import common_tr from "./locales/tr/common.json";
 import nav_tr from "./locales/tr/nav.json";
 import dashboard_tr from "./locales/tr/dashboard.json";
@@ -169,6 +174,7 @@ import run_tr from "./locales/tr/run.json";
 import alerts_tr from "./locales/tr/alerts.json";
 import splash_tr from "./locales/tr/splash.json";
 import cockpit_tr from "./locales/tr/cockpit.json";
+import samba_tr from "./locales/tr/samba.json";
 
 // Turkish is the default: seed it when the user has not chosen a language yet.
 try {
@@ -201,6 +207,7 @@ i18n
         alerts: alerts_en,
         splash: splash_en,
         cockpit: cockpit_en,
+        samba: samba_en,
       },
       zh: {
         common: common_zh,
@@ -219,6 +226,7 @@ i18n
         alerts: alerts_zh,
         splash: splash_zh,
         cockpit: cockpit_zh,
+        samba: samba_zh,
       },
       vi: {
         common: common_vi,
@@ -237,6 +245,7 @@ i18n
         alerts: alerts_vi,
         splash: splash_vi,
         cockpit: cockpit_vi,
+        samba: samba_vi,
       },
       ko: {
         common: common_ko,
@@ -255,6 +264,7 @@ i18n
         alerts: alerts_ko,
         splash: splash_ko,
         cockpit: cockpit_ko,
+        samba: samba_ko,
       },
       es: {
         common: common_es,
@@ -273,6 +283,7 @@ i18n
         alerts: alerts_es,
         splash: splash_es,
         cockpit: cockpit_es,
+        samba: samba_es,
       },
       tr: {
         common: common_tr,
@@ -291,6 +302,7 @@ i18n
         alerts: alerts_tr,
         splash: splash_tr,
         cockpit: cockpit_tr,
+        samba: samba_tr,
       },
     },
     supportedLngs: ["en", "zh", "vi", "ko", "es", "tr"],
@@ -313,6 +325,7 @@ i18n
       "alerts",
       "splash",
       "cockpit",
+      "samba",
     ],
     defaultNS: "common",
     interpolation: { escapeValue: false },

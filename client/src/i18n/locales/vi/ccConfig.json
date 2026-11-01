@@ -97,7 +97,7 @@
     "user": "Người dùng",
     "project": "Dự án",
     "projectLocal": "Dự án (cục bộ)",
-    "home": "Home"
+    "home": "Thư mục chính"
   },
   "tabs": {
     "overview": "Tổng quan",
@@ -115,7 +115,7 @@
   },
   "overview": {
     "rootsTitle": "Thư mục gốc",
-    "claudeHome": "Claude home",
+    "claudeHome": "Thư mục Claude",
     "projectClaudeDir": "Dự án .claude",
     "projectRoot": "Thư mục dự án",
     "claudeJson": "claude.json",
@@ -230,7 +230,7 @@
     "matcher": "Bộ khớp",
     "command": "Lệnh",
     "type": "Loại",
-    "timeout": "Timeout",
+    "timeout": "Hết thời gian chờ",
     "fileMissing": "(không có file settings trong phạm vi này)"
   },
   "settings": {

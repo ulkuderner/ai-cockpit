@@ -261,7 +261,13 @@ function successRate(completed: number, total: number): string {
  * @returns The status palette, or a neutral palette for unknown statuses.
  */
 function outcomeColorSet(status: string) {
-  return OUTCOME_COLORS[status] ?? { fill: "#1a1a28", stroke: "#363650", text: "#9ca3af" };
+  return (
+    OUTCOME_COLORS[status] ?? {
+      fill: "rgb(var(--surface-3))",
+      stroke: "rgb(var(--border-light))",
+      text: "rgb(var(--gray-400))",
+    }
+  );
 }
 
 // ── Layout builder ────────────────────────────────────────────────────────────
@@ -712,7 +718,7 @@ export function OrchestrationDAG({ data, onNodeClick, selectedNode }: Orchestrat
       .attr("x", (_, i) => layerXPositions[i] ?? 0)
       .attr("y", 22)
       .attr("text-anchor", "middle")
-      .attr("fill", "#6b7280")
+      .attr("fill", "rgb(var(--gray-500))")
       .attr("font-size", "10px")
       .attr("font-weight", "500")
       .attr("letter-spacing", "0.08em")
@@ -776,7 +782,7 @@ export function OrchestrationDAG({ data, onNodeClick, selectedNode }: Orchestrat
         .append("path")
         .attr("d", path)
         .attr("fill", "none")
-        .attr("stroke", isZero ? "#2a2a3d" : "#4f46e5")
+        .attr("stroke", isZero ? "rgb(var(--border))" : "#4f46e5")
         .attr("stroke-width", isZero ? 1 : stroke)
         .attr("stroke-opacity", isZero ? 0.3 : 0.55)
         .attr("stroke-linecap", "round");
@@ -976,7 +982,7 @@ export function OrchestrationDAG({ data, onNodeClick, selectedNode }: Orchestrat
         ref={tipRef}
         role="tooltip"
         aria-hidden="true"
-        className="fixed z-50 px-3 py-2 bg-[#12121f] border border-[#2a2a4a] rounded-lg shadow-2xl pointer-events-none"
+        className="fixed z-50 px-3 py-2 bg-surface-2 border border-border-light rounded-lg shadow-2xl pointer-events-none"
         style={{
           display: "none",
           opacity: 0,

@@ -25,10 +25,10 @@
     "beta": "Beta",
     "continue": "Continuar al panel",
     "cursor": {
-      "description": "Cursor CLI sessions and Cursor runs started from the cockpit."
+      "description": "Sesiones de Cursor CLI y ejecuciones de Cursor iniciadas desde el cockpit."
     },
     "gemini": {
-      "description": "Gemini CLI sessions, token usage and cache."
+      "description": "Sesiones de Gemini CLI, uso de tokens y caché."
     }
   },
   "hookGate": {

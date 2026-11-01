@@ -46,7 +46,8 @@
     "cwdGroups": {
       "dashboard": "Panel sunucusu",
       "home": "Ana dizin",
-      "recent": "Son kullanılanlar - Claude Code tarafından"
+      "recent": "Son kullanılanlar - Claude Code tarafından",
+      "recentWithProvider": "Son kullanılanlar - {{agent}} tarafından"
     },
     "cwdNoMatches": "Eşleşme yok. Doğrudan kullanmak için mutlak bir yol yazın.",
     "model": "Model",
@@ -71,7 +72,8 @@
     "effort": "Düşünme eforu",
     "effortHint": "Modelin yanıtlamadan önce ne kadar akıl yürüteceğini belirler. Yüksek = daha çok düşünme tokenı, daha yavaş, daha derin. Boş bırakılırsa modelin varsayılanı kullanılır.",
     "cursorModelPlaceholder": "Boş = CLI varsayılanı",
-    "cursorModelHint": "--model olarak iletilir. CLI varsayılanı için boş bırakın."
+    "cursorModelHint": "--model olarak iletilir. CLI varsayılanı için boş bırakın.",
+    "promptPlaceholderWithProvider": "{{agent}}'a istediğinizi sorun…"
   },
   "actions": {
     "start": "Çalıştır",
@@ -95,7 +97,8 @@
   "binary": {
     "missing": "`claude` CLI'ı PATH üzerinde değil. Panelin başlatabilmesi için Claude Code'u kurun veya PATH'i ayarlayın.",
     "found": "{{path}} kullanılıyor",
-    "missingCursor": "`cursor-agent` CLI'ı PATH içinde değil. Cursor CLI'ı kurun veya CURSOR_AGENT_BIN değişkenini ayarlayın."
+    "missingCursor": "`cursor-agent` CLI'ı PATH içinde değil. Cursor CLI'ı kurun veya CURSOR_AGENT_BIN değişkenini ayarlayın.",
+    "missingCodex": "`codex` CLI'ı PATH üzerinde değil. Codex CLI'ı kurun veya panonun başlatabilmesi için PATH'i ayarlayın."
   },
   "concurrency": {
     "active_one": "{{count}} çalıştırma zaten sürüyor",
@@ -106,7 +109,8 @@
   "hint": {
     "shortcut": "Göndermek için Cmd+Enter / Ctrl+Enter",
     "permissionWarning": "bypassPermissions tüm araç çağrılarına onay almadan izin verir. Yalnızca güvendiğiniz istemler için kullanın.",
-    "headlessExplain": "Başsız mod, tam olarak ne istediğinizi bildiğiniz betiklenmiş görevler için en iyisidir. Oturum takip soruları soramaz ve acceptEdits modunda kalmazsanız izin istemlerinde takılır."
+    "headlessExplain": "Başsız mod, tam olarak ne istediğinizi bildiğiniz betiklenmiş görevler için en iyisidir. Oturum takip soruları soramaz ve acceptEdits modunda kalmazsanız izin istemlerinde takılır.",
+    "slashAndFiles": "/ ile eğik çizgi komutları · @ ile dosya başvuruları"
   },
   "empty": {
     "title": "Henüz bir şey yok",
@@ -133,7 +137,8 @@
     "startFailed": "Çalıştırma başlatılamadı: {{message}}",
     "sendFailed": "Gönderilemedi: {{message}}",
     "killFailed": "Durdurulamadı: {{message}}",
-    "attachFailed": "Çalıştırmaya bağlanılamadı: {{message}}"
+    "attachFailed": "Çalıştırmaya bağlanılamadı: {{message}}",
+    "sessionRunNotFound": "Şu an bu oturumu yürüten etkin bir pano çalıştırması yok."
   },
   "runs": {
     "switcher": "Panel çalıştırmaları",
@@ -144,7 +149,20 @@
     "viewActive_other": "{{count}} panel çalıştırması",
     "scopeNote": "Yalnızca bu panelden başlattığınız çalıştırmaları gösterir.",
     "allSessionsLink": "Tüm Claude Code oturumlarını gör →",
-    "viewLabel": "Gör"
+    "viewLabel": "Gör",
+    "clear": "Temizle",
+    "modalTitle": "Pano çalıştırmaları",
+    "modalSubtitle": "Duruma bakmaksızın bu panodan başlatılan tüm çalıştırmalar",
+    "refresh": "Yenile",
+    "searchPlaceholder": "İstem, cwd, model veya oturum kimliği ara…",
+    "filterStatus": "Durum",
+    "allLabel": "Tümü",
+    "filterMode": "Kip",
+    "modalEmpty": "Henüz pano çalıştırması yok. Listeyi doldurmak için aşağıdan bir tane başlatın.",
+    "modalEmptyFiltered": "Bu filtrelerle eşleşen çalıştırma yok.",
+    "liveBadge": "canlı",
+    "currentBadge": "geçerli",
+    "attachLabel": "Bağlan"
   },
   "resume": {
     "label": "Kaynak oturum",
@@ -158,7 +176,8 @@
     "originalCwd": "Özgün cwd",
     "preview": "Son etkinlik",
     "selectedBadge": "Sürdürülüyor",
-    "clear": "Seçimi temizle"
+    "clear": "Seçimi temizle",
+    "freshHintWithProvider": "Yepyeni bir {{agent}} oturumu başlatın."
   },
   "limitations": {
     "title": "Claude'u tarayıcınızda çalıştırma",
@@ -173,7 +192,21 @@
     "minimize": "Küçült",
     "restore": "Tarayıcı içi çalıştırma notlarını göster",
     "expand": "Devamını oku",
-    "collapse": "Daralt"
+    "collapse": "Daralt",
+    "sup": {
+      "stream": "Canlı akış çıktısı: metin, düşünme, araç çağrıları, araç sonuçları",
+      "multiTurn": "Çok turlu konuşmalar ve geçmiş herhangi bir oturumu sürdürme",
+      "slash": "Kullanıcı / proje / eklenti eğik çizgi komutları (şablon açılımı)",
+      "files": "Çalışma dizinindeki dosyalara <c>@</c> ile başvurma",
+      "meter": "Canlı token / bağlam penceresi göstergesi",
+      "switcher": "Etkin çalıştırma geçişi; tam dökümler <c>/sessions</c> altında"
+    },
+    "lim": {
+      "builtin": "Yerleşik eğik çizgi komutları (<c>/help</c>, <c>/model</c>, <c>/clear</c>, <c>/compact</c>): yalnızca CLI'daki durumu değiştirirler",
+      "permissions": "Oturum ortasında izin istemleri: kipi başlatırken seçin",
+      "compaction": "Konuşma ortasında sıkıştırma istemleri",
+      "modelChange": "Oturum ortasında model veya efor değişikliği (başlatırken ayarlayın)"
+    }
   },
   "tokens": {
     "label": "Bağlam",
@@ -206,5 +239,27 @@
     "previewHint": "Başlat'a basana kadar hiçbir şey çalışmaz.",
     "trustLabel": "Bu klasöre güven (--trust)",
     "trustHint": "Başsız Cursor güvenilmeyen klasörde çalışmaz. Yalnız koduna güvendiğin klasörlerde işaretle."
+  },
+  "slash": {
+    "help": "Kullanılabilir komutları listele",
+    "clear": "Konuşmayı temizle",
+    "config": "Etkileşimli ayar menüsünü aç",
+    "model": "Oturum ortasında modeli değiştir",
+    "compact": "Konuşma bağlamını sıkıştır",
+    "memory": "CLAUDE.md dosyasını düzenle",
+    "hooks": "Kancaları yönet",
+    "cost": "Oturum maliyetini göster",
+    "agents": "Alt ajanları listele",
+    "review": "Mevcut değişiklikleri incele",
+    "release-notes": "CC sürüm notlarını göster",
+    "permissions": "İzin kurallarını düzenle",
+    "status": "Oturum durumunu göster",
+    "init": "CLAUDE.md dosyasını kod tabanından oluştur",
+    "login": "Claude'a giriş yap",
+    "logout": "Çıkış yap",
+    "exit": "Oturumdan çık",
+    "mcp": "MCP sunucularını yönet",
+    "plugin": "Eklentileri yönet",
+    "output-style": "Çıktı stilini değiştir"
   }
 }

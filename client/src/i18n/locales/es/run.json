@@ -23,11 +23,11 @@
     },
     "cursor": {
       "label": "Cursor",
-      "subtitle": "Run a headless Cursor agent and watch its tool calls and result stream in.",
-      "description": "Run a one-shot cursor-agent task and review the exact command first.",
-      "headlessLabel": "Headless Cursor run",
-      "headlessHint": "Runs `cursor-agent -p` once and streams its output. Follow-up messages are not available.",
-      "noFollowUps": "Cursor runs are headless: follow-up messages are not available."
+      "subtitle": "Ejecuta un agente Cursor sin interfaz y observa sus llamadas a herramientas y su resultado en streaming.",
+      "description": "Ejecuta una tarea única de cursor-agent y revisa primero el comando exacto.",
+      "headlessLabel": "Ejecución de Cursor sin interfaz",
+      "headlessHint": "Ejecuta `cursor-agent -p` una vez y transmite su salida. No hay mensajes de seguimiento.",
+      "noFollowUps": "Las ejecuciones de Cursor no tienen interfaz: los mensajes de seguimiento no están disponibles."
     }
   },
   "mode": {
@@ -46,7 +46,8 @@
     "cwdGroups": {
       "dashboard": "Servidor del panel",
       "home": "Inicio",
-      "recent": "Recientes - usados por Claude Code"
+      "recent": "Recientes - usados por Claude Code",
+      "recentWithProvider": "Recientes - usados por {{agent}}"
     },
     "cwdNoMatches": "Sin coincidencias. Escribe una ruta absoluta para usarla directamente.",
     "model": "Modelo",
@@ -70,8 +71,9 @@
     "modelCustomClaudeHint": "Para un modelo de Claude anterior o específico de tu cuenta, introduce su valor exacto de --model.",
     "effort": "Esfuerzo de razonamiento",
     "effortHint": "Controla cuánto razona el modelo antes de responder. Mayor = más tokens de pensamiento, más lento, más profundo. Vacío hereda el valor predeterminado del modelo.",
-    "cursorModelPlaceholder": "Empty = CLI default",
-    "cursorModelHint": "Passed as --model. Leave empty for the CLI default."
+    "cursorModelPlaceholder": "Vacío = predeterminado de la CLI",
+    "cursorModelHint": "Se pasa como --model. Déjalo vacío para usar el valor predeterminado de la CLI.",
+    "promptPlaceholderWithProvider": "Pregunta lo que quieras a {{agent}}…"
   },
   "actions": {
     "start": "Ejecutar",
@@ -95,7 +97,8 @@
   "binary": {
     "missing": "La CLI `claude` no está en tu PATH. Instala Claude Code o configura el PATH para que el panel pueda iniciarlo.",
     "found": "Usando {{path}}",
-    "missingCursor": "The `cursor-agent` CLI isn't on your PATH. Install Cursor CLI or set CURSOR_AGENT_BIN so the dashboard can spawn it."
+    "missingCursor": "La CLI `cursor-agent` no está en tu PATH. Instala Cursor CLI o define CURSOR_AGENT_BIN para que el panel pueda iniciarla.",
+    "missingCodex": "La CLI `codex` no está en tu PATH. Instala Codex CLI o ajusta el PATH para que el panel pueda iniciarla."
   },
   "concurrency": {
     "active_one": "{{count}} ejecución ya en curso",
@@ -106,7 +109,8 @@
   "hint": {
     "shortcut": "Cmd+Enter / Ctrl+Enter para enviar",
     "permissionWarning": "bypassPermissions permite TODAS las invocaciones de herramientas sin confirmación. Usar solo para prompts de confianza.",
-    "headlessExplain": "El modo sin cabeza es ideal para tareas programadas donde sabes exactamente qué quieres. La sesión no puede hacer preguntas de seguimiento y se bloqueará en prompts de permiso a menos que estés en acceptEdits."
+    "headlessExplain": "El modo sin cabeza es ideal para tareas programadas donde sabes exactamente qué quieres. La sesión no puede hacer preguntas de seguimiento y se bloqueará en prompts de permiso a menos que estés en acceptEdits.",
+    "slashAndFiles": "/ para comandos de barra · @ para referencias a archivos"
   },
   "empty": {
     "title": "Nada aún",
@@ -133,7 +137,8 @@
     "startFailed": "No se pudo iniciar la ejecución: {{message}}",
     "sendFailed": "No se pudo enviar: {{message}}",
     "killFailed": "No se pudo detener: {{message}}",
-    "attachFailed": "No se pudo adjuntar a la ejecución: {{message}}"
+    "attachFailed": "No se pudo adjuntar a la ejecución: {{message}}",
+    "sessionRunNotFound": "Ninguna ejecución del panel está llevando esta sesión ahora mismo."
   },
   "runs": {
     "switcher": "Ejecuciones del panel",
@@ -144,7 +149,20 @@
     "viewActive_other": "{{count}} ejecuciones del panel",
     "scopeNote": "Solo muestra ejecuciones que iniciaste desde este panel.",
     "allSessionsLink": "Ver todas las sesiones de Claude Code →",
-    "viewLabel": "Ver"
+    "viewLabel": "Ver",
+    "clear": "Borrar",
+    "modalTitle": "Ejecuciones del panel",
+    "modalSubtitle": "Todas las ejecuciones iniciadas desde este panel, sin importar su estado",
+    "refresh": "Actualizar",
+    "searchPlaceholder": "Buscar por prompt, cwd, modelo o id de sesión…",
+    "filterStatus": "Estado",
+    "allLabel": "Todas",
+    "filterMode": "Modo",
+    "modalEmpty": "Aún no hay ejecuciones del panel. Inicia una abajo para llenar esta lista.",
+    "modalEmptyFiltered": "Ninguna ejecución coincide con estos filtros.",
+    "liveBadge": "en vivo",
+    "currentBadge": "actual",
+    "attachLabel": "Adjuntar"
   },
   "resume": {
     "label": "Sesión de origen",
@@ -158,7 +176,8 @@
     "originalCwd": "Cwd original",
     "preview": "Última actividad",
     "selectedBadge": "Reanudando",
-    "clear": "Limpiar selección"
+    "clear": "Limpiar selección",
+    "freshHintWithProvider": "Inicia una sesión nueva de {{agent}}."
   },
   "limitations": {
     "title": "Ejecutar Claude en tu navegador",
@@ -173,7 +192,21 @@
     "minimize": "Minimizar",
     "restore": "Mostrar notas de ejecución en navegador",
     "expand": "Leer más",
-    "collapse": "Colapsar"
+    "collapse": "Colapsar",
+    "sup": {
+      "stream": "Salida en streaming en vivo: texto, razonamiento, llamadas a herramientas, resultados",
+      "multiTurn": "Conversaciones de varios turnos y reanudación de cualquier sesión anterior",
+      "slash": "Comandos de barra de usuario / proyecto / plugin (expansión de plantillas)",
+      "files": "Referencias <c>@</c> a archivos del directorio de trabajo",
+      "meter": "Medidor en vivo de tokens / ventana de contexto",
+      "switcher": "Selector de ejecuciones activas; transcripciones completas en <c>/sessions</c>"
+    },
+    "lim": {
+      "builtin": "Comandos de barra integrados (<c>/help</c>, <c>/model</c>, <c>/clear</c>, <c>/compact</c>): modifican estado exclusivo de la CLI",
+      "permissions": "Avisos de permisos a mitad de sesión: elige el modo al iniciar",
+      "compaction": "Avisos de compactación a mitad de conversación",
+      "modelChange": "Cambios de modelo o esfuerzo a mitad de sesión (configúralos al iniciar)"
+    }
   },
   "tokens": {
     "label": "Contexto",
@@ -201,10 +234,32 @@
     "duration": "Transcurrido"
   },
   "cursor": {
-    "previewLabel": "Command to run",
-    "previewEmpty": "Type a prompt to preview the command.",
-    "previewHint": "Nothing runs until you press Start.",
-    "trustLabel": "Trust this folder (--trust)",
-    "trustHint": "Headless Cursor refuses untrusted folders. Tick only for folders whose code you trust."
+    "previewLabel": "Comando a ejecutar",
+    "previewEmpty": "Escribe un prompt para previsualizar el comando.",
+    "previewHint": "No se ejecuta nada hasta que pulses Iniciar.",
+    "trustLabel": "Confiar en esta carpeta (--trust)",
+    "trustHint": "Cursor sin interfaz rechaza carpetas no confiables. Marca esta opción solo para carpetas cuyo contenido confíes."
+  },
+  "slash": {
+    "help": "Listar los comandos disponibles",
+    "clear": "Borrar la conversación",
+    "config": "Abrir el menú de configuración interactivo",
+    "model": "Cambiar de modelo a mitad de sesión",
+    "compact": "Compactar el contexto de la conversación",
+    "memory": "Editar CLAUDE.md",
+    "hooks": "Gestionar hooks",
+    "cost": "Mostrar el costo de la sesión",
+    "agents": "Listar subagentes",
+    "review": "Revisar los cambios actuales",
+    "release-notes": "Mostrar las notas de versión de CC",
+    "permissions": "Editar las reglas de permisos",
+    "status": "Mostrar el estado de la sesión",
+    "init": "Inicializar CLAUDE.md desde el código",
+    "login": "Iniciar sesión en Claude",
+    "logout": "Cerrar sesión",
+    "exit": "Salir de la sesión",
+    "mcp": "Gestionar servidores MCP",
+    "plugin": "Gestionar plugins",
+    "output-style": "Cambiar el estilo de salida"
   }
 }

@@ -23,11 +23,11 @@
     },
     "cursor": {
       "label": "Cursor",
-      "subtitle": "Run a headless Cursor agent and watch its tool calls and result stream in.",
-      "description": "Run a one-shot cursor-agent task and review the exact command first.",
-      "headlessLabel": "Headless Cursor run",
-      "headlessHint": "Runs `cursor-agent -p` once and streams its output. Follow-up messages are not available.",
-      "noFollowUps": "Cursor runs are headless: follow-up messages are not available."
+      "subtitle": "运行无头 Cursor 代理,并观察其工具调用和结果流。",
+      "description": "运行一次性的 cursor-agent 任务,并先查看确切的命令。",
+      "headlessLabel": "无头 Cursor 运行",
+      "headlessHint": "运行一次 `cursor-agent -p` 并流式输出结果。无法发送后续消息。",
+      "noFollowUps": "Cursor 运行是无头的:无法发送后续消息。"
     }
   },
   "mode": {
@@ -45,8 +45,9 @@
     "cwdPlaceholder": "输入以搜索或粘贴绝对路径…",
     "cwdGroups": {
       "dashboard": "仪表盘服务器",
-      "home": "Home",
-      "recent": "最近 - Claude Code 使用过"
+      "home": "主目录",
+      "recent": "最近 - Claude Code 使用过",
+      "recentWithProvider": "最近 - {{agent}} 使用过"
     },
     "cwdNoMatches": "无匹配。输入绝对路径直接使用。",
     "model": "模型",
@@ -70,8 +71,9 @@
     "modelCustomClaudeHint": "对于旧版或账户专属 Claude 模型，请输入其准确的 --model 值。",
     "effort": "思考强度",
     "effortHint": "控制模型在回答前的推理量。越高 = 越多思考 token,越慢、越深入。留空使用模型默认值。",
-    "cursorModelPlaceholder": "Empty = CLI default",
-    "cursorModelHint": "Passed as --model. Leave empty for the CLI default."
+    "cursorModelPlaceholder": "空 = CLI 默认值",
+    "cursorModelHint": "以 --model 传入。留空则使用 CLI 默认值。",
+    "promptPlaceholderWithProvider": "向 {{agent}} 随便问点什么…"
   },
   "actions": {
     "start": "运行",
@@ -95,7 +97,8 @@
   "binary": {
     "missing": "未在 PATH 中找到 `claude` CLI。请安装 Claude Code 或设置 PATH。",
     "found": "使用 {{path}}",
-    "missingCursor": "The `cursor-agent` CLI isn't on your PATH. Install Cursor CLI or set CURSOR_AGENT_BIN so the dashboard can spawn it."
+    "missingCursor": "`cursor-agent` CLI 不在你的 PATH 中。请安装 Cursor CLI 或设置 CURSOR_AGENT_BIN,以便仪表盘能够启动它。",
+    "missingCodex": "`codex` CLI 不在你的 PATH 中。请安装 Codex CLI 或设置 PATH,以便仪表盘能够启动它。"
   },
   "concurrency": {
     "active_one": "当前有 {{count}} 个运行正在进行",
@@ -106,7 +109,8 @@
   "hint": {
     "shortcut": "Cmd+Enter / Ctrl+Enter 发送",
     "permissionWarning": "bypassPermissions 允许所有工具调用不经过确认。仅对你信任的提示使用。",
-    "headlessExplain": "Headless 模式适合脚本化任务。会话无法提问,在权限提示时会卡住,除非保持 acceptEdits。"
+    "headlessExplain": "Headless 模式适合脚本化任务。会话无法提问,在权限提示时会卡住,除非保持 acceptEdits。",
+    "slashAndFiles": "/ 使用斜杠命令 · @ 引用文件"
   },
   "empty": {
     "title": "暂无输出",
@@ -133,7 +137,8 @@
     "startFailed": "启动失败:{{message}}",
     "sendFailed": "发送失败:{{message}}",
     "killFailed": "停止失败:{{message}}",
-    "attachFailed": "无法附加到运行:{{message}}"
+    "attachFailed": "无法附加到运行:{{message}}",
+    "sessionRunNotFound": "当前没有仪表盘运行在驱动此会话。"
   },
   "runs": {
     "switcher": "仪表盘运行",
@@ -144,7 +149,20 @@
     "viewActive_other": "{{count}} 个仪表盘运行",
     "scopeNote": "仅显示通过此仪表盘启动的运行。",
     "allSessionsLink": "查看所有 Claude Code 会话 →",
-    "viewLabel": "查看"
+    "viewLabel": "查看",
+    "clear": "清除",
+    "modalTitle": "仪表盘运行",
+    "modalSubtitle": "从此仪表盘启动的所有运行,不论状态",
+    "refresh": "刷新",
+    "searchPlaceholder": "搜索提示词、cwd、模型或会话 ID…",
+    "filterStatus": "状态",
+    "allLabel": "全部",
+    "filterMode": "模式",
+    "modalEmpty": "还没有仪表盘运行。请在下方启动一个来填充此列表。",
+    "modalEmptyFiltered": "没有符合这些筛选条件的运行。",
+    "liveBadge": "运行中",
+    "currentBadge": "当前",
+    "attachLabel": "附加"
   },
   "resume": {
     "label": "源会话",
@@ -158,7 +176,8 @@
     "originalCwd": "原 cwd",
     "preview": "最近活动",
     "selectedBadge": "恢复中",
-    "clear": "清除选择"
+    "clear": "清除选择",
+    "freshHintWithProvider": "开始一个全新的 {{agent}} 会话。"
   },
   "limitations": {
     "title": "在浏览器中运行 Claude",
@@ -173,7 +192,21 @@
     "minimize": "最小化",
     "restore": "显示浏览器内运行说明",
     "expand": "查看详情",
-    "collapse": "收起"
+    "collapse": "收起",
+    "sup": {
+      "stream": "实时流式输出 - 文本、思考、工具调用、工具结果",
+      "multiTurn": "多轮对话以及恢复任何过去的会话",
+      "slash": "用户 / 项目 / 插件斜杠命令(模板展开)",
+      "files": "用 <c>@</c> 引用工作目录中的文件",
+      "meter": "实时 token / 上下文窗口计量",
+      "switcher": "活动运行切换器;完整记录见 <c>/sessions</c>"
+    },
+    "lim": {
+      "builtin": "内置斜杠命令(<c>/help</c>、<c>/model</c>、<c>/clear</c>、<c>/compact</c>) - 它们修改仅 CLI 的状态",
+      "permissions": "会话中途的权限提示 - 请在启动时选择模式",
+      "compaction": "对话中途的压缩提示",
+      "modelChange": "会话中途更改模型或强度(请在启动时设置)"
+    }
   },
   "tokens": {
     "label": "上下文",
@@ -201,10 +234,32 @@
     "duration": "已用时"
   },
   "cursor": {
-    "previewLabel": "Command to run",
-    "previewEmpty": "Type a prompt to preview the command.",
-    "previewHint": "Nothing runs until you press Start.",
-    "trustLabel": "Trust this folder (--trust)",
-    "trustHint": "Headless Cursor refuses untrusted folders. Tick only for folders whose code you trust."
+    "previewLabel": "将运行的命令",
+    "previewEmpty": "输入提示词以预览命令。",
+    "previewHint": "在你点击开始之前不会运行任何内容。",
+    "trustLabel": "信任此文件夹 (--trust)",
+    "trustHint": "无头 Cursor 会拒绝不受信任的文件夹。仅对内容可信的文件夹勾选。"
+  },
+  "slash": {
+    "help": "列出可用命令",
+    "clear": "清空对话",
+    "config": "打开交互式配置菜单",
+    "model": "会话中途更换模型",
+    "compact": "压缩对话上下文",
+    "memory": "编辑 CLAUDE.md",
+    "hooks": "管理钩子",
+    "cost": "显示会话费用",
+    "agents": "列出子代理",
+    "review": "审查当前更改",
+    "release-notes": "显示 CC 发布说明",
+    "permissions": "编辑权限规则",
+    "status": "显示会话状态",
+    "init": "根据代码库初始化 CLAUDE.md",
+    "login": "登录 Claude",
+    "logout": "退出登录",
+    "exit": "退出会话",
+    "mcp": "管理 MCP 服务器",
+    "plugin": "管理插件",
+    "output-style": "更改输出样式"
   }
 }

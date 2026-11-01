@@ -146,9 +146,9 @@
     "bothDescription": "合并 Claude Code、Cursor 和 Codex 数据。",
     "beta": "测试版",
     "gemini": "Gemini",
-    "geminiDescription": "Show only Gemini CLI data.",
+    "geminiDescription": "仅显示 Gemini CLI 数据。",
     "cursor": "Cursor",
-    "cursorDescription": "Cursor sessions only."
+    "cursorDescription": "仅 Cursor 会话。"
   },
   "hooks": {
     "title": "钩子配置",

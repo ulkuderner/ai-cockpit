@@ -3,7 +3,7 @@
   "brandSub": "Claude · Cursor · Codex · Gemini",
   "dashboard": "仪表盘",
   "plan": "Plan",
-  "community": "Community",
+  "community": "社区",
   "agentBoard": "Kanban 看板",
   "sessions": "会话",
   "activityFeed": "活动流",
@@ -14,6 +14,10 @@
   "run": "运行 Agent",
   "settings": "设置",
   "language": "语言",
+  "theme": "主题",
+  "themeSystem": "跟随系统",
+  "themeLight": "浅色",
+  "themeDark": "深色",
   "github": "GitHub",
   "website": "网站",
   "notFound": "未找到页面",
@@ -107,7 +111,7 @@
       "both": "Claude 与 Codex 数据",
       "claude": "仅 Claude 数据",
       "codex": "仅 Codex 数据",
-      "gemini": "Gemini data only"
+      "gemini": "仅 Gemini 数据"
     },
     "on": "开",
     "off": "关",

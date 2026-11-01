@@ -32,6 +32,7 @@
  * ============================================================================= */
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { Mood } from "./brain";
 
 /** Props for {@link DogAvatar}. */
@@ -98,6 +99,7 @@ const TICKS: [number, number, number][] = [
  * cursor (throttled to one update per animation frame) while motion is allowed.
  */
 export function DogAvatar({ mood, reducedMotion, hovered = false, size = 60 }: DogAvatarProps) {
+  const { t } = useTranslation("samba");
   const rootRef = useRef<SVGSVGElement | null>(null);
   const rafRef = useRef<number | undefined>(undefined);
   const [pupil, setPupil] = useState({ x: 0, y: 0 });
@@ -159,7 +161,7 @@ export function DogAvatar({ mood, reducedMotion, hovered = false, size = 60 }: D
       height={size}
       viewBox="0 0 100 100"
       role="img"
-      aria-label={`Samba (${mood})`}
+      aria-label={t("avatar.label", { mood: t(`moods.${mood}`) })}
     >
       <defs>
         {/* Top-lit white coat with a warm shadow so the white reads as plush, not flat. */}

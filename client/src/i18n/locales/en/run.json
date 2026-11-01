@@ -46,7 +46,8 @@
     "cwdGroups": {
       "dashboard": "Dashboard server",
       "home": "Home",
-      "recent": "Recent - used by Claude Code"
+      "recent": "Recent - used by Claude Code",
+      "recentWithProvider": "Recent - used by {{agent}}"
     },
     "cwdNoMatches": "No matches. Type an absolute path to use it directly.",
     "model": "Model",
@@ -71,7 +72,8 @@
     "effort": "Thinking effort",
     "effortHint": "Drives how much the model reasons before answering. Higher = more thinking tokens, slower, deeper. Empty inherits the model's default.",
     "cursorModelPlaceholder": "Empty = CLI default",
-    "cursorModelHint": "Passed as --model. Leave empty for the CLI default."
+    "cursorModelHint": "Passed as --model. Leave empty for the CLI default.",
+    "promptPlaceholderWithProvider": "Ask {{agent}} anything…"
   },
   "actions": {
     "start": "Run",
@@ -95,7 +97,8 @@
   "binary": {
     "missing": "The `claude` CLI isn't on your PATH. Install Claude Code or set PATH so the dashboard can spawn it.",
     "found": "Using {{path}}",
-    "missingCursor": "The `cursor-agent` CLI isn't on your PATH. Install Cursor CLI or set CURSOR_AGENT_BIN so the dashboard can spawn it."
+    "missingCursor": "The `cursor-agent` CLI isn't on your PATH. Install Cursor CLI or set CURSOR_AGENT_BIN so the dashboard can spawn it.",
+    "missingCodex": "The `codex` CLI isn't on your PATH. Install Codex CLI or set PATH so the dashboard can spawn it."
   },
   "concurrency": {
     "active_one": "{{count}} run already in flight",
@@ -106,7 +109,8 @@
   "hint": {
     "shortcut": "Cmd+Enter / Ctrl+Enter to send",
     "permissionWarning": "bypassPermissions allows ALL tool invocations without confirming. Only use for trusted prompts.",
-    "headlessExplain": "Headless mode is best for scripted tasks where you know exactly what you want. The session can't ask follow-up questions and will hang on permission prompts unless you stay in acceptEdits."
+    "headlessExplain": "Headless mode is best for scripted tasks where you know exactly what you want. The session can't ask follow-up questions and will hang on permission prompts unless you stay in acceptEdits.",
+    "slashAndFiles": "/ for slash commands · @ for file references"
   },
   "empty": {
     "title": "Nothing yet",
@@ -133,7 +137,8 @@
     "startFailed": "Couldn't start run: {{message}}",
     "sendFailed": "Couldn't send: {{message}}",
     "killFailed": "Couldn't stop: {{message}}",
-    "attachFailed": "Couldn't attach to run: {{message}}"
+    "attachFailed": "Couldn't attach to run: {{message}}",
+    "sessionRunNotFound": "No active dashboard run is driving this session right now."
   },
   "runs": {
     "switcher": "Dashboard runs",
@@ -144,7 +149,20 @@
     "viewActive_other": "{{count}} dashboard runs",
     "scopeNote": "Only shows runs you started from this dashboard.",
     "allSessionsLink": "See all Claude Code sessions →",
-    "viewLabel": "View"
+    "viewLabel": "View",
+    "clear": "Clear",
+    "modalTitle": "Dashboard runs",
+    "modalSubtitle": "Every run started from this dashboard, regardless of status",
+    "refresh": "Refresh",
+    "searchPlaceholder": "Search prompt, cwd, model, or session id…",
+    "filterStatus": "Status",
+    "allLabel": "All",
+    "filterMode": "Mode",
+    "modalEmpty": "No dashboard runs yet. Start one below to populate this list.",
+    "modalEmptyFiltered": "No runs match these filters.",
+    "liveBadge": "live",
+    "currentBadge": "current",
+    "attachLabel": "Attach"
   },
   "resume": {
     "label": "Source session",
@@ -158,7 +176,8 @@
     "originalCwd": "Original cwd",
     "preview": "Last activity",
     "selectedBadge": "Resuming",
-    "clear": "Clear selection"
+    "clear": "Clear selection",
+    "freshHintWithProvider": "Start a fresh {{agent}} session."
   },
   "limitations": {
     "title": "Running Claude in your browser",
@@ -173,7 +192,21 @@
     "minimize": "Minimize",
     "restore": "Show in-browser run notes",
     "expand": "Read more",
-    "collapse": "Collapse"
+    "collapse": "Collapse",
+    "sup": {
+      "stream": "Live streaming output - text, thinking, tool calls, tool results",
+      "multiTurn": "Multi-turn conversations & resuming any past session",
+      "slash": "User / project / plugin slash commands (template expansion)",
+      "files": "<c>@</c>-references to files in the working directory",
+      "meter": "Live token / context-window meter",
+      "switcher": "Active-runs switcher; full transcripts in <c>/sessions</c>"
+    },
+    "lim": {
+      "builtin": "Built-in slash commands (<c>/help</c>, <c>/model</c>, <c>/clear</c>, <c>/compact</c>) - they mutate CLI-only state",
+      "permissions": "Mid-session permission prompts - pick the mode at spawn time",
+      "compaction": "Compaction prompts mid-conversation",
+      "modelChange": "Mid-session model or effort changes (set them at spawn time)"
+    }
   },
   "tokens": {
     "label": "Context",
@@ -206,5 +239,27 @@
     "previewHint": "Nothing runs until you press Start.",
     "trustLabel": "Trust this folder (--trust)",
     "trustHint": "Headless Cursor refuses untrusted folders. Tick only for folders whose code you trust."
+  },
+  "slash": {
+    "help": "List available commands",
+    "clear": "Clear the conversation",
+    "config": "Open the interactive config menu",
+    "model": "Change model mid-session",
+    "compact": "Compact the conversation context",
+    "memory": "Edit CLAUDE.md",
+    "hooks": "Manage hooks",
+    "cost": "Show session cost",
+    "agents": "List subagents",
+    "review": "Review current changes",
+    "release-notes": "Show CC release notes",
+    "permissions": "Edit permission rules",
+    "status": "Show session status",
+    "init": "Initialise CLAUDE.md from codebase",
+    "login": "Sign in to Claude",
+    "logout": "Sign out",
+    "exit": "Exit the session",
+    "mcp": "Manage MCP servers",
+    "plugin": "Manage plugins",
+    "output-style": "Change output style"
   }
 }

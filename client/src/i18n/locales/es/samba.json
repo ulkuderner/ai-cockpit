@@ -1,0 +1,119 @@
+{
+  "name": "Samba",
+  "quips": {
+    "session_done": [
+      "¡una sesión acaba de terminar! 🐾",
+      "una sesión terminó, ¡buen trabajo! ✨",
+      "esa sesión ya está lista 🐶",
+      "final limpio en esa 💜"
+    ],
+    "session_start": [
+      "¡empezó una sesión nueva! 👀",
+      "acaba de llegar una sesión nueva 🐾",
+      "ooh, una sesión nueva para olfatear 🐕",
+      "algo nuevo se está cocinando 🍲"
+    ],
+    "subagent_spawn": [
+      "¡acaba de nacer un subagente! 🐾",
+      "se unió un pequeño ayudante 🤝",
+      "un subagente está manos a la obra 🚀",
+      "un cachorro nuevo se unió a la manada 🐶"
+    ],
+    "waiting": [
+      "una sesión necesita tu respuesta 👀",
+      "una sesión te está esperando ⏳",
+      "una sesión se detuvo esperando tu respuesta 💬",
+      "tu turno, una sesión espera 🐾"
+    ],
+    "error": [
+      "uy, una sesión tuvo un error 🐕",
+      "¡guau! algo se rompió, ¿echamos un vistazo? 👀",
+      "un hook tropezó con algo ⚠️",
+      "grr… apareció un error 💢"
+    ],
+    "run_done": [
+      "¡tu ejecución terminó! 🐾",
+      "la ejecución ya está lista ✨",
+      "ejecución completa, colas moviéndose por todos lados 🐕",
+      "listo con esa ejecución 💜"
+    ],
+    "disconnected": [
+      "se perdió la conexión… 😴",
+      "no llego al servidor 📡",
+      "sin señal, me echo una siesta 💤"
+    ],
+    "worried": ["eso no pintaba bien 😟", "estoy atento 👀", "mmm, algo no cuadra 🫣"],
+    "stuck": [
+      "una sesión lleva un rato callada… 🤔",
+      "¿se atascó algo? ⏳",
+      "sigo masticándolo… 🦴"
+    ],
+    "happy": ["¡qué buena ejecución! 🐶", "me encanta un final ordenado ✨", "¡guau, qué bien! 💜"],
+    "thinking": ["mmm, déjame mirar… 🤔", "olfateando por ahí… 🐾", "un segundo, reviso 🔍"],
+    "watching": ["con el hocico pegado al suelo 👀", "vigilando tus sesiones 🐕", "ojo avizor 🐾"],
+    "sleeping": ["zzz… 💤", "despiértame si pasa algo 😴", "hecho un ovillo, todo tranquilo 🐕"],
+    "idle": ["todo tranquilo 🐶", "listo cuando quieras 🐾", "disfrutando del momento ✨"]
+  },
+  "panel": {
+    "ariaLabel": "Compañera Samba",
+    "live": "En vivo",
+    "offline": "Sin conexión",
+    "close": "Cerrar Samba",
+    "chipLive": "en vivo",
+    "chipWaiting": "en espera",
+    "chipErrored": "con error",
+    "runClaude": "Ejecutar Claude",
+    "activity": "Actividad",
+    "sessions": "Sesiones",
+    "errored": "Con error",
+    "mute": "Silenciar",
+    "unmute": "Activar sonido",
+    "clearAlerts": "Borrar alertas",
+    "askPlaceholder": "Pregunta a Samba… (p. ej. ¿hay errores?)",
+    "askLabel": "Preguntar a Samba",
+    "send": "Enviar"
+  },
+  "avatar": {
+    "close": "Cerrar Samba",
+    "open": "Abrir la compañera Samba",
+    "title": "Samba - ⌘B · arrastra para mover",
+    "label": "Samba ({{mood}})"
+  },
+  "bubble": {
+    "dismiss": "Descartar"
+  },
+  "intents": {
+    "empty": "pregúntame por tus sesiones: qué se está ejecutando, si hay errores o un resumen rápido.",
+    "help": "Vigilo tus sesiones. Prueba \"qué se está ejecutando\", \"hay errores\" o \"estado\". Lo demás se lo paso a Claude.",
+    "errors_one": "{{count}} sesión con error - abre el panel para ir a ella.",
+    "errors_other": "{{count}} sesiones con error - abre el panel para ir a ellas.",
+    "errorsNone": "sin errores, todo limpio 🐾",
+    "waiting_one": "{{count}} sesión te está esperando 👀",
+    "waiting_other": "{{count}} sesiones te están esperando 👀",
+    "waitingNone": "nada te está esperando ahora mismo 🐾",
+    "live_one": "{{count}} sesión en vivo ahora mismo 🐾",
+    "live_other": "{{count}} sesiones en vivo ahora mismo 🐾",
+    "liveTail": " ({{count}} esperándote 👀)",
+    "liveNone": "no se está ejecutando nada, todo tranquilo.",
+    "status": "{{live}} en vivo · {{waiting}} en espera · {{errored}} con error · {{connection}}.",
+    "connected": "conectado",
+    "disconnected": "sin conexión"
+  },
+  "keywords": {
+    "help": "ayuda,qué puedes hacer,qué haces",
+    "errors": "error,errores,roto,falló,fallo,fallan,problema,caída",
+    "waiting": "esperando,espera,atascado,bloqueado,entrada,mi turno,pausado",
+    "live": "ejecutando,ejecución,activo,en vivo,pasando,en curso",
+    "status": "estado,resumen,panorama,cómo va,cómo están"
+  },
+  "moods": {
+    "disconnected": "sin conexión",
+    "worried": "preocupada",
+    "stuck": "atascada",
+    "happy": "contenta",
+    "thinking": "pensando",
+    "watching": "vigilando",
+    "sleeping": "durmiendo",
+    "idle": "en reposo"
+  }
+}

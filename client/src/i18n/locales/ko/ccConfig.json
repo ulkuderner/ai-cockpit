@@ -82,7 +82,7 @@
       "mcp": "MCP 서버",
       "projects": "프로젝트",
       "skills": "스킬",
-      "hooks": "Hooks",
+      "hooks": "훅",
       "rules": "규칙",
       "plugins": "플러그인",
       "instructions": "지침"
@@ -97,7 +97,7 @@
     "user": "사용자",
     "project": "프로젝트",
     "projectLocal": "프로젝트(로컬)",
-    "home": "Home"
+    "home": "홈"
   },
   "tabs": {
     "overview": "개요",
@@ -108,14 +108,14 @@
     "plugins": "플러그인",
     "marketplaces": "마켓플레이스",
     "mcp": "MCP 서버",
-    "hooks": "Hooks",
+    "hooks": "훅",
     "keybindings": "키바인딩",
     "settings": "설정",
     "memory": "메모리"
   },
   "overview": {
     "rootsTitle": "루트 경로",
-    "claudeHome": "Claude home",
+    "claudeHome": "Claude 홈",
     "projectClaudeDir": "프로젝트 .claude",
     "projectRoot": "프로젝트 루트",
     "claudeJson": "claude.json",

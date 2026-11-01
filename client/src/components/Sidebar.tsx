@@ -84,8 +84,12 @@ import {
   Check,
   ChevronUp,
   ChevronDown,
+  Monitor,
+  Moon,
+  Sun,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { THEME_MODES, useTheme } from "../lib/theme";
 import { api } from "../lib/api";
 import { eventBus } from "../lib/eventBus";
 import type { UpdateStatusPayload, WSMessage } from "../lib/types";
@@ -250,6 +254,44 @@ interface SidebarProps {
   collapsed: boolean;
   /** Toggles the collapsed state. */
   onToggle: () => void;
+}
+
+const THEME_ICONS = { system: Monitor, light: Sun, dark: Moon } as const;
+
+/** Compact three-way theme switch (system / light / dark). */
+function ThemeSwitch({ compact }: { compact: boolean }) {
+  const { t } = useTranslation("nav");
+  const [mode, setMode] = useTheme();
+  return (
+    <div
+      role="radiogroup"
+      aria-label={t("theme")}
+      className={`flex rounded-md bg-surface-3 p-0.5 ${compact ? "flex-col" : ""}`}
+    >
+      {THEME_MODES.map((m) => {
+        const Icon = THEME_ICONS[m];
+        const label = t(`theme${m[0]?.toUpperCase()}${m.slice(1)}`);
+        return (
+          <button
+            key={m}
+            type="button"
+            role="radio"
+            aria-checked={mode === m}
+            aria-label={label}
+            title={label}
+            onClick={() => setMode(m)}
+            className={`flex h-6 flex-1 items-center justify-center rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
+              mode === m
+                ? "bg-surface-1 text-gray-100 shadow-sm"
+                : "text-gray-500 hover:text-gray-200"
+            }`}
+          >
+            <Icon className="h-3.5 w-3.5" aria-hidden />
+          </button>
+        );
+      })}
+    </div>
+  );
 }
 
 /** Props for {@link CollapsedLanguagePicker}. */
@@ -741,12 +783,15 @@ export function Sidebar({ wsConnected, collapsed, onToggle }: SidebarProps) {
       {/* Language controls */}
       <div className="px-2 pb-2 flex-shrink-0">
         {collapsed ? (
-          <CollapsedLanguagePicker
-            value={currentLanguage}
-            options={languageOptions}
-            label={t("nav:language")}
-            onChange={changeLanguage}
-          />
+          <div className="space-y-2">
+            <CollapsedLanguagePicker
+              value={currentLanguage}
+              options={languageOptions}
+              label={t("nav:language")}
+              onChange={changeLanguage}
+            />
+            <ThemeSwitch compact />
+          </div>
         ) : (
           <div className="rounded-lg border border-border bg-surface-2 p-2">
             <p className="px-1 text-[10px] font-semibold uppercase tracking-wider text-gray-500">
@@ -758,6 +803,12 @@ export function Sidebar({ wsConnected, collapsed, onToggle }: SidebarProps) {
                 onChange={changeLanguage}
                 options={languageOptions}
               />
+            </div>
+            <p className="mt-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-gray-500">
+              {t("nav:theme")}
+            </p>
+            <div className="mt-2">
+              <ThemeSwitch compact={false} />
             </div>
           </div>
         )}

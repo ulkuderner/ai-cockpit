@@ -25,10 +25,10 @@
     "beta": "测试版",
     "continue": "进入仪表板",
     "cursor": {
-      "description": "Cursor CLI sessions and Cursor runs started from the cockpit."
+      "description": "Cursor CLI 会话以及从 cockpit 启动的 Cursor 运行。"
     },
     "gemini": {
-      "description": "Gemini CLI sessions, token usage and cache."
+      "description": "Gemini CLI 会话、token 用量和缓存。"
     }
   },
   "hookGate": {

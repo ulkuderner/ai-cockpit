@@ -512,6 +512,8 @@ export async function request<T>(path: string, options?: RequestInit): Promise<T
     ...((options?.headers as Record<string, string>) || {}),
   };
   const res = await fetch(`${BASE}${path}`, { ...options, headers });
+  // AI Cockpit: a missing/wrong access token opens the token gate.
+  if (res.status === 401) window.dispatchEvent(new Event("cockpit:unauthorized"));
   if (!res.ok) {
     // Try to recover a structured error message from the JSON body; if the body
     // isn't JSON (or json() throws), fall back to an empty object so the `?.`

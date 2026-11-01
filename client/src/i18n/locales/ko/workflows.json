@@ -39,7 +39,7 @@
       "failed": "실패"
     },
     "col": {
-      "agent": "Agent",
+      "agent": "에이전트",
       "phase": "단계",
       "state": "상태",
       "tokens": "토큰",

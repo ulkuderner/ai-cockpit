@@ -25,10 +25,10 @@
     "beta": "Beta",
     "continue": "Tiếp tục đến bảng điều khiển",
     "cursor": {
-      "description": "Cursor CLI sessions and Cursor runs started from the cockpit."
+      "description": "Phiên Cursor CLI và các lượt chạy Cursor khởi động từ cockpit."
     },
     "gemini": {
-      "description": "Gemini CLI sessions, token usage and cache."
+      "description": "Phiên Gemini CLI, mức dùng token và cache."
     }
   },
   "hookGate": {

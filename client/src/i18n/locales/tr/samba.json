@@ -1,0 +1,123 @@
+{
+  "name": "Samba",
+  "quips": {
+    "session_done": [
+      "bir oturum bitti, hav! 🐾",
+      "bir oturum tamamlandı, eline sağlık! ✨",
+      "o oturum tamamen bitti 🐶",
+      "tertemiz bir bitiş oldu 💜"
+    ],
+    "session_start": [
+      "yeni bir oturum başladı! 👀",
+      "taptaze bir oturum geldi 🐾",
+      "ooo, koklanacak yeni bir oturum 🐕",
+      "ortalıkta yeni bir şeyler pişiyor 🍲"
+    ],
+    "subagent_spawn": [
+      "bir alt ajan doğdu! 🐾",
+      "küçük bir yardımcı aramıza katıldı 🤝",
+      "bir alt ajan iş başında 🚀",
+      "sürüye yeni bir yavru katıldı 🐶"
+    ],
+    "waiting": [
+      "bir oturum senden yanıt bekliyor 👀",
+      "bir oturum seni bekliyor ⏳",
+      "bir oturum cevabın için durdu 💬",
+      "sıra sende, bir oturum bekliyor 🐾"
+    ],
+    "error": [
+      "eyvah, bir oturumda hata çıktı 🐕",
+      "hav! bir şey bozuldu, bakalım mı? 👀",
+      "bir kanca bir şeye takıldı ⚠️",
+      "grrr… bir hata çıktı 💢"
+    ],
+    "run_done": [
+      "çalıştırman bitti! 🐾",
+      "çalıştırma tamamlandı ✨",
+      "çalıştırma bitti, kuyruklar sallanıyor 🐕",
+      "o çalıştırmayla işimiz bitti 💜"
+    ],
+    "disconnected": [
+      "bağlantı koptu… 😴",
+      "sunucuya ulaşamıyorum 📡",
+      "sinyal yok, biraz uyuyorum 💤"
+    ],
+    "worried": ["bu pek iyi görünmedi 😟", "gözümü açık tutuyorum 👀", "hımm, bir terslik var 🫣"],
+    "stuck": [
+      "bir oturum uzundur sessiz… 🤔",
+      "bir şey mi takıldı? ⏳",
+      "hâlâ üzerinde çiğniyorum… 🦴"
+    ],
+    "happy": [
+      "harika bir çalıştırma! 🐶",
+      "derli toplu bitişe bayılırım ✨",
+      "pati pati çok iyi 💜"
+    ],
+    "thinking": ["hımm, bir bakayım… 🤔", "etrafı kokluyorum… 🐾", "bir saniye, bakıyorum 🔍"],
+    "watching": ["burnum yerde 👀", "oturumlarını izliyorum 🐕", "gözüm üzerinde 🐾"],
+    "sleeping": ["zzz… 💤", "bir şey olursa beni uyandır 😴", "kıvrıldım, her şey sakin 🐕"],
+    "idle": ["etraf sakin 🐶", "hazırım, sen söyle 🐾", "keyfim yerinde ✨"]
+  },
+  "panel": {
+    "ariaLabel": "Samba yardımcısı",
+    "live": "Canlı",
+    "offline": "Çevrimdışı",
+    "close": "Samba'yı kapat",
+    "chipLive": "canlı",
+    "chipWaiting": "bekleyen",
+    "chipErrored": "hatalı",
+    "runClaude": "Claude'u çalıştır",
+    "activity": "Etkinlik",
+    "sessions": "Oturumlar",
+    "errored": "Hatalılar",
+    "mute": "Sessize al",
+    "unmute": "Sesi aç",
+    "clearAlerts": "Uyarıları temizle",
+    "askPlaceholder": "Samba'ya sor… (örn. hata var mı?)",
+    "askLabel": "Samba'ya sor",
+    "send": "Gönder"
+  },
+  "avatar": {
+    "close": "Samba'yı kapat",
+    "open": "Samba yardımcısını aç",
+    "title": "Samba - ⌘B · taşımak için sürükle",
+    "label": "Samba ({{mood}})"
+  },
+  "bubble": {
+    "dismiss": "Kapat"
+  },
+  "intents": {
+    "empty": "bana oturumlarını sor: neler çalışıyor, hata var mı, ya da kısa bir durum özeti.",
+    "help": "Oturumlarını gözetliyorum. \"neler çalışıyor\", \"hata var mı\" ya da \"durum\" diye sorabilirsin. Gerisini Claude'a havale ederim.",
+    "errors_one": "{{count}} oturum hata verdi - ona gitmek için paneli aç.",
+    "errors_other": "{{count}} oturum hata verdi - onlara gitmek için paneli aç.",
+    "errorsNone": "hata yok, her şey tertemiz 🐾",
+    "waiting_one": "{{count}} oturum seni bekliyor 👀",
+    "waiting_other": "{{count}} oturum seni bekliyor 👀",
+    "waitingNone": "şu an seni bekleyen yok 🐾",
+    "live_one": "şu an {{count}} oturum canlı 🐾",
+    "live_other": "şu an {{count}} oturum canlı 🐾",
+    "liveTail": " ({{count}} tanesi seni bekliyor 👀)",
+    "liveNone": "şu an çalışan yok, ortalık sakin.",
+    "status": "{{live}} canlı · {{waiting}} bekleyen · {{errored}} hatalı · {{connection}}.",
+    "connected": "bağlı",
+    "disconnected": "çevrimdışı"
+  },
+  "keywords": {
+    "help": "yardım,ne yapabilirsin,ne yaparsın",
+    "errors": "hata,bozuldu,bozuk,başarısız,çöktü,sorun",
+    "waiting": "bekleyen,bekliyor,takıldı,engellendi,girdi,sıra bende,duraklatıldı",
+    "live": "çalışan,çalışıyor,canlı,aktif,devam eden,neler oluyor,ne oluyor",
+    "status": "durum,özet,genel bakış,nasıl gidiyor,nasıl"
+  },
+  "moods": {
+    "disconnected": "çevrimdışı",
+    "worried": "endişeli",
+    "stuck": "takılmış",
+    "happy": "mutlu",
+    "thinking": "düşünüyor",
+    "watching": "izliyor",
+    "sleeping": "uyuyor",
+    "idle": "boşta"
+  }
+}

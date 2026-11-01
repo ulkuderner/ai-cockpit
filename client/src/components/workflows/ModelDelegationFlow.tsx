@@ -236,7 +236,7 @@ function renderFlow(
     .attr("x", PADDING.left + NODE_W / 2)
     .attr("y", labelY)
     .attr("text-anchor", "middle")
-    .attr("fill", "#6b7280")
+    .attr("fill", "rgb(var(--gray-500))")
     .attr("font-size", 11)
     .attr("font-family", "Inter, sans-serif")
     .attr("letter-spacing", "0.08em")
@@ -246,7 +246,7 @@ function renderFlow(
     .attr("x", PADDING.left + NODE_W + COL_GAP + NODE_W / 2)
     .attr("y", labelY)
     .attr("text-anchor", "middle")
-    .attr("fill", "#6b7280")
+    .attr("fill", "rgb(var(--gray-500))")
     .attr("font-size", 11)
     .attr("font-family", "Inter, sans-serif")
     .attr("letter-spacing", "0.08em")
@@ -270,7 +270,7 @@ function renderFlow(
     g.append("path")
       .attr("d", `M${x1},${y1} C${cx},${y1} ${cx},${y2} ${x2},${y2}`)
       .attr("fill", "none")
-      .attr("stroke", "#2a2a3d")
+      .attr("stroke", "rgb(var(--border))")
       .attr("stroke-width", 1.5)
       .attr("opacity", 0.7);
   });
@@ -342,7 +342,7 @@ function renderFlow(
       ng.append("text")
         .attr("x", 12)
         .attr("y", 66)
-        .attr("fill", "#6b7280")
+        .attr("fill", "rgb(var(--gray-500))")
         .attr("font-size", 9.5)
         .attr("font-family", "Inter, sans-serif")
         .text(t("modelDelegation.tokensCount", { tokens: fmtTokens(node.totalTokens) }));
@@ -354,7 +354,7 @@ function renderFlow(
         .attr("x", NODE_W - 10)
         .attr("y", 66)
         .attr("text-anchor", "end")
-        .attr("fill", "#6b7280")
+        .attr("fill", "rgb(var(--gray-500))")
         .attr("font-size", 9.5)
         .attr("font-family", "Inter, sans-serif")
         .text(t("modelDelegation.sessionsCount", { count: node.sessionCount }));
@@ -499,7 +499,7 @@ export function ModelDelegationFlow({ data }: ModelDelegationFlowProps) {
           opacity: 0,
           left: 0,
           top: 0,
-          background: "#12121f",
+          background: "rgb(var(--surface-2))",
           border: "1px solid #2a2a4a",
           color: "#e2e8f0",
           minWidth: 240,

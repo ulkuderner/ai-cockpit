@@ -97,7 +97,7 @@
     "user": "用户",
     "project": "项目",
     "projectLocal": "项目(本地)",
-    "home": "Home"
+    "home": "主目录"
   },
   "tabs": {
     "overview": "概览",
@@ -108,14 +108,14 @@
     "plugins": "插件",
     "marketplaces": "市场",
     "mcp": "MCP 服务器",
-    "hooks": "Hooks",
+    "hooks": "钩子",
     "keybindings": "快捷键",
     "settings": "设置",
     "memory": "记忆"
   },
   "overview": {
     "rootsTitle": "根目录",
-    "claudeHome": "Claude home",
+    "claudeHome": "Claude 主目录",
     "projectClaudeDir": "项目 .claude",
     "projectRoot": "项目根目录",
     "claudeJson": "claude.json",

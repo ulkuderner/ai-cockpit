@@ -273,5 +273,11 @@
     "notice_other": "{{count}} modelin fiyatı değişmiş.",
     "review": "İncele"
   },
-  "doneAt": "bitti {{date}}"
+  "doneAt": "bitti {{date}}",
+  "tokenGate": {
+    "title": "Erişim anahtarı",
+    "text": "Bu kokpit uzaktan erişime açık ve anahtar istiyor. Kokpitin çalıştığı bilgisayarda ai-cockpit start --remote çıktısındaki bağlantıyı aç ya da anahtarı buraya yapıştır.",
+    "placeholder": "Anahtar",
+    "save": "Kaydet"
+  }
 }

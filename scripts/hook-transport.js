@@ -11,11 +11,33 @@ const https = require("node:https");
 
 const LOOPBACK_HOSTS = new Set(["127.0.0.1", "localhost", "::1", "[::1]"]);
 
+// AI Cockpit: `ai-cockpit connect` / `ai-cockpit start --remote` keep the hook target and
+// token in ~/.ai-cockpit so hooks work without exporting env vars into every agent shell.
+const COCKPIT_HOME =
+  process.env.AI_COCKPIT_HOME ||
+  require("node:path").join(require("node:os").homedir(), ".ai-cockpit");
+
+function readCockpitFile(name) {
+  try {
+    return fs.readFileSync(require("node:path").join(COCKPIT_HOME, name), "utf8").trim() || null;
+  } catch {
+    return null;
+  }
+}
+
+function cockpitRemote() {
+  try {
+    return JSON.parse(readCockpitFile("remote.json") || "null");
+  } catch {
+    return null;
+  }
+}
+
 function readHookToken() {
   const direct = process.env.CCAM_HOOK_TOKEN;
   if (typeof direct === "string" && direct.trim()) return direct.trim();
   const tokenPath = process.env.CCAM_HOOK_TOKEN_FILE;
-  if (typeof tokenPath !== "string" || !tokenPath.trim()) return null;
+  if (typeof tokenPath !== "string" || !tokenPath.trim()) return readCockpitFile("hook-token");
   try {
     return fs.readFileSync(tokenPath.trim(), "utf8").trim() || null;
   } catch {
@@ -24,7 +46,8 @@ function readHookToken() {
 }
 
 function remoteDashboardUrl() {
-  const raw = process.env.CCAM_DASHBOARD_URL;
+  const cockpit = cockpitRemote();
+  const raw = process.env.CCAM_DASHBOARD_URL || cockpit?.url;
   if (typeof raw !== "string" || !raw.trim()) return null;
   const url = new URL(raw.trim());
   if (url.protocol !== "http:" && url.protocol !== "https:") {
@@ -34,6 +57,17 @@ function remoteDashboardUrl() {
     throw new Error("Remote CCAM_DASHBOARD_URL values must use HTTPS");
   }
   return url;
+}
+
+/** AI Cockpit: trust exactly the certificate pinned by `ai-cockpit connect` for its own remote. */
+function pinnedCa(target) {
+  const cockpit = cockpitRemote();
+  if (target.protocol !== "https:" || !cockpit?.ca || process.env.CCAM_DASHBOARD_URL) return {};
+  try {
+    return { ca: fs.readFileSync(cockpit.ca) };
+  } catch {
+    return {};
+  }
 }
 
 function buildTargets(resolvePorts, endpointPath) {
@@ -80,7 +114,7 @@ function sendHook(resolvePorts, endpointPath, payload) {
           const transport = target.protocol === "https:" ? https : http;
           const request = transport.request(
             target,
-            { method: "POST", headers, timeout: 2000 },
+            { method: "POST", headers, timeout: 2000, ...pinnedCa(target) },
             (response) => response.resume()
           );
           request.on("error", done);

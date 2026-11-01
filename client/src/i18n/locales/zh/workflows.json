@@ -39,7 +39,7 @@
       "failed": "失败"
     },
     "col": {
-      "agent": "Agent",
+      "agent": "代理",
       "phase": "阶段",
       "state": "状态",
       "tokens": "Token",

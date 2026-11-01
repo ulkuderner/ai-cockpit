@@ -78,6 +78,7 @@ import {
   type ReactNode,
 } from "react";
 import { useNavigate } from "react-router";
+import { useTranslation } from "react-i18next";
 import { DogAvatar } from "./DogAvatar";
 import { SpeechBubble } from "./SpeechBubble";
 import { TabbyPanel } from "./TabbyPanel";
@@ -190,6 +191,7 @@ function TabbyFlyout({ anchor, children }: { anchor: Anchor; children: ReactNode
  * reduced motion.
  */
 export function Tabby() {
+  const { t } = useTranslation("samba");
   const [enabled, setEnabled] = useState(() => tabbyPrefs.getEnabled());
   const [open, setOpen] = useState(false);
   const [hovered, setHovered] = useState(false);
@@ -303,9 +305,9 @@ export function Tabby() {
           if (place.consumeDrag()) return;
           setOpen((v) => !v);
         }}
-        aria-label={open ? "Close Samba" : "Open Samba companion"}
+        aria-label={open ? t("avatar.close") : t("avatar.open")}
         aria-expanded={open}
-        title="Samba - ⌘B · drag to move"
+        title={t("avatar.title")}
       >
         <DogAvatar mood={brain.mood} reducedMotion={reducedMotion} hovered={hovered} />
         {brain.status.errorCount > 0 && (

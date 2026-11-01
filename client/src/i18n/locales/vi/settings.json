@@ -104,8 +104,8 @@
       "name": "Tên",
       "short": "Chuẩn · Short ≤272K",
       "long": "Chuẩn · Long >272K",
-      "fast": "Fast · Short ≤272K",
-      "fastLong": "Fast · Long >272K",
+      "fast": "Nhanh · Ngắn ≤272K",
+      "fastLong": "Nhanh · Dài >272K",
       "input": "Đầu vào",
       "cached": "Đã cache",
       "write": "Ghi cache",
@@ -146,9 +146,9 @@
     "bothDescription": "Kết hợp dữ liệu Claude Code, Cursor và Codex.",
     "beta": "Beta",
     "gemini": "Gemini",
-    "geminiDescription": "Show only Gemini CLI data.",
+    "geminiDescription": "Chỉ hiện dữ liệu Gemini CLI.",
     "cursor": "Cursor",
-    "cursorDescription": "Cursor sessions only."
+    "cursorDescription": "Chỉ các phiên Cursor."
   },
   "hooks": {
     "title": "Cấu hình hook",
@@ -438,7 +438,7 @@
     "secretHint": "Khi đặt, yêu cầu được ký bằng header X-Webhook-Signature.",
     "fieldHeaders": "Header tùy chỉnh (tùy chọn)",
     "replaceHeaders": "Thay header",
-    "headerKey": "Header",
+    "headerKey": "Tiêu đề",
     "headerValue": "Giá trị",
     "addHeader": "Thêm header",
     "scopeAll": "Nhận cảnh báo từ tất cả quy tắc",

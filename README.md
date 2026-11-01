@@ -68,12 +68,12 @@ Tailscale çalışıyorsa `ai-cockpit start` kokpiti tailnet içine de açar: `h
 
 ## Başka bilgisayardan erişim ve uzak ajanlar
 
-`ai-cockpit start --remote` kokpiti başka cihazlara açar. Yerel taraf `http://127.0.0.1:4820` olarak kalır (dışarıya kapalı); dış ağa **yalnız HTTPS** ile ayrı bir dinleyici açılır (`https://<ip>:4821`).
+`ai-cockpit start` kokpiti varsayılan olarak başka cihazlara da açar. Yerel taraf `http://127.0.0.1:4820` olarak kalır (dışarıya kapalı); dış ağa **yalnız HTTPS** ile ayrı bir dinleyici açılır (`https://<ip>:4821`).
 
 - İlk açılışta bu makinenin adı ve IP'leri için bir TLS sertifikası, bir erişim anahtarı ve bir hook anahtarı üretilir (`~/.ai-cockpit/`, yalnız senin okuyabileceğin izinlerle).
 - Başlatıcı her IP için `https://<ip>:4821/#token=...` bağlantısını ve sertifikanın SHA256 parmak izini yazar. `#token` kısmı sunucuya gönderilmez; tarayıcı anahtarı saklar ve adres çubuğundan siler. Anahtarsız gelen tarayıcıya anahtar soran bir pencere çıkar.
 - Tarayıcı kendi üretilmiş sertifika için bir kez uyarı verir; parmak izi aynıysa kabul et. Tailscale açıksa `https://<makine>.ts.net:8443` gerçek sertifikayla çalışır.
-- `ai-cockpit start --local` yeniden yalnız yerel moda döner.
+- `ai-cockpit start --local` yalnız o çalıştırma için kokpiti yerelde tutar.
 
 **Uzak ajan (Go, tek dosya):** ajanların çalıştığı makinede Node ya da kokpit kurmaya gerek yok.
 

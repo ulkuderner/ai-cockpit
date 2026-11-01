@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 # AI Cockpit launcher: runs the server in the background and opens the browser.
 # Usage:
-#   ai-cockpit [start|stop|restart|status]      local only (127.0.0.1), the default
-#   ai-cockpit start --remote                   also accept other machines over HTTPS (own certificate) with access tokens
-#   ai-cockpit start --local                    back to local only
+#   ai-cockpit [start|stop|restart|status]      remote mode, the default: also accept other machines over HTTPS (own certificate) with access tokens
+#   ai-cockpit start --local                    local only (127.0.0.1) for this run
 #   ai-cockpit connect <https-url> <hook-token> [<sha256-fingerprint>]   on an agent machine: send live hook events to a remote cockpit
 #   ai-cockpit disconnect                       stop sending to the remote cockpit
 #   AI_COCKPIT_PORT=4900 ai-cockpit start
@@ -72,8 +71,8 @@ pid() { [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null && cat "$PI
 
 start() {
   case "${1:-}" in
-    --remote) touch "$REMOTE_FLAG" ;;
     --local) rm -f "$REMOTE_FLAG" ;;
+    *) touch "$REMOTE_FLAG" ;;
   esac
   cd "$ROOT"
   local TS_HOST

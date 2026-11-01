@@ -173,16 +173,14 @@ Telefonda kenar çubuğu ikon şeridine iner, dokununca açılır:
 
 ### Kokpiti başka cihazlardan açmak
 
-```bash
-ai-cockpit restart --remote
-```
+Varsayılan mod budur; `ai-cockpit start` ya da `ai-cockpit restart` yeterli.
 
 - Yerel adres `http://localhost:4820` olarak kalır ve dışarıya kapalıdır.
 - Dış ağa **yalnız HTTPS** ile ayrı bir giriş açılır: `https://<ip>:4821`.
 - İlk açılışta bu bilgisayar için bir sertifika, bir **erişim anahtarı** ve bir **hook anahtarı** üretilir (`~/.ai-cockpit/`, yalnız senin okuyabileceğin izinlerle).
 - Başlatıcı her IP için `https://<ip>:4821/#token=…` bağlantısını ve sertifikanın **SHA256 parmak izini** yazar. Bağlantıyı diğer cihazda aç; tarayıcı bir kez sertifika uyarısı verir, parmak izi aynıysa kabul et. Anahtar tarayıcıda saklanır; anahtarsız gelene anahtar soran pencere çıkar.
 - Tailscale açıksa ayrıca `https://<makine>.ts.net:8443` gerçek sertifikayla çalışır (tailnet'te Serve bir kez açılmış olmalı).
-- Yalnız yerele dönmek için: `ai-cockpit restart --local`.
+- Yalnız yerel çalıştırmak için: `ai-cockpit restart --local` (yalnız o çalıştırma için; sonraki `start` yine uzak modda açılır).
 
 ### Başka makinedeki ajanların olaylarını buraya göndermek
 
@@ -198,7 +196,7 @@ ai-cockpit-agent install       # Claude Code hook'larını ekler, önce yedek al
 ai-cockpit-agent status
 ```
 
-- Hook anahtarı ve parmak izi `ai-cockpit start --remote` çıktısında yazar.
+- Hook anahtarı ve parmak izi `ai-cockpit start` çıktısında yazar.
 - Veri yalnız HTTPS ile ve sabitlenmiş sertifikayla gider; parmak izi tutmazsa bağlanmaz.
 - Kokpite ulaşılamazsa ajan asla beklemez.
 - Kaldırmak için: `ai-cockpit-agent uninstall` ve `ai-cockpit-agent disconnect`.
@@ -221,7 +219,7 @@ Claude Code kalan limitini yalnız durum satırına (statusline) verir. Bir kez 
 | Belirti | Çözüm |
 | --- | --- |
 | Sayfa eski görünüyor | Tarayıcıda bir kez tam yenile (Cmd+Shift+R). |
-| "Erişim anahtarı" penceresi çıkıyor | Uzak mod açık. `ai-cockpit start --remote` çıktısındaki `#token=` bağlantısını aç ya da anahtarı yapıştır (`~/.ai-cockpit/dashboard-token`). |
+| "Erişim anahtarı" penceresi çıkıyor | Uzak mod açık. `ai-cockpit start` çıktısındaki `#token=` bağlantısını aç ya da anahtarı yapıştır (`~/.ai-cockpit/dashboard-token`). |
 | Diğer cihaz LAN IP'siyle bağlanamıyor | macOS: Sistem Ayarları > Gizlilik ve Güvenlik > Yerel Ağ'dan Node'a izin ver. Tailscale adresi bu izne takılmaz. |
 | Tailscale adresi açılmıyor | Tailnet'te Serve kapalı olabilir; `~/.ai-cockpit/server.log` içindeki bağlantıdan bir kez aç. |
 | Claude limitleri "bilinmiyor" | [Bölüm 9](#9-claude-limitlerini-bağlama)'daki durum satırı bağlantısı yapılmamış. |

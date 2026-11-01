@@ -104,6 +104,7 @@ import { useDataScope } from "../lib/dataScope";
 import { StatCard } from "../components/StatCard";
 import { LimitsCard } from "../components/LimitsCard";
 import { TelemetryCard } from "../components/TelemetryCard";
+import { RereadsCard } from "../components/RereadsCard";
 import { PriceChangeNotice } from "../components/PriceSync";
 import { AgentCard } from "../components/AgentCard";
 import { AgentStatusBadge } from "../components/StatusBadge";
@@ -1389,6 +1390,8 @@ export function Dashboard() {
             <TelemetryCard />
             <LimitsCard />
           </div>
+
+          <RereadsCard />
 
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-0 min-w-0 flex-1 min-h-0">
             {/* Active agents */}

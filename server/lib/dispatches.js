@@ -10,29 +10,78 @@ const { db } = require("../db");
 const CLI_RE =
   /(?:^|[;&|(\n]|\$\()\s*(?:(?:sudo|env|exec|nohup|time)\s+)*(?:[A-Za-z_][A-Za-z0-9_]*=\S*\s+)*(?:\S*\/)?(cursor-agent|codex|gemini|claude)(?=\s|$)/m;
 
-function shellSkeleton(cmd) {
-  return cmd
-    .replace(/<<-?\s*['"]?(\w+)['"]?[^\n]*\n[\s\S]*?\n\s*\1\b/g, "<<HEREDOC")
-    .replace(/'(?:[^']|'\\'')*'|"(?:[^"\\]|\\.)*"/g, "''");
+// Commands longer than this are not parsed (keeps the regexes cheap on hostile input).
+const MAX_CMD = 50_000;
+
+/** Linear heredoc scan: { body, start, end } of the first `<<WORD` … `WORD` block, or null. */
+function heredoc(cmd) {
+  const open = /<<-?\s*['"]?(\w+)['"]?[^\n]*\n/.exec(cmd);
+  if (!open) return null;
+  const word = open[1];
+  const bodyStart = open.index + open[0].length;
+  const lines = cmd.slice(bodyStart).split("\n");
+  let offset = bodyStart;
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].trim() === word) {
+      return {
+        body: cmd.slice(bodyStart, offset).replace(/\n$/, ""),
+        start: open.index,
+        end: offset + lines[i].length,
+      };
+    }
+    offset += lines[i].length + 1;
+  }
+  return null;
 }
 
-/** Prompt kept in a file (`"$(cat brief.md)"`, `< brief.md`): show its text when it is on this machine. */
-function fromFile(file) {
-  try {
-    const fs = require("fs");
-    if (fs.statSync(file).size <= 20_000) return fs.readFileSync(file, "utf8").trim();
-  } catch {
-    /* not here (remote agent) or unreadable */
+function shellSkeleton(cmd) {
+  let out = cmd;
+  for (let h = heredoc(out), guard = 0; h && guard < 20; h = heredoc(out), guard++) {
+    out = out.slice(0, h.start) + "<<HEREDOC" + out.slice(h.end);
   }
-  return `(${file} dosyasından)`;
+  return out.replace(/'(?:[^']|'\\'')*'|"(?:[^"\\]|\\.)*"/g, "''");
+}
+
+/**
+ * Prompt kept in a file (`"$(cat brief.md)"`, `< brief.md`). Event content can come from another
+ * machine (remote hooks), so the file is read only when it is a regular, non-hidden file inside the
+ * agent's own working folder on this machine, and only its first 20 KB. Otherwise just its name.
+ */
+function fromFile(file, workdir) {
+  const fs = require("fs");
+  const path = require("path");
+  const label = `(${file} dosyasından)`;
+  if (!workdir) return label;
+  try {
+    const root = fs.realpathSync(workdir);
+    const real = fs.realpathSync(path.resolve(root, file));
+    const rel = path.relative(root, real);
+    if (
+      rel.startsWith("..") ||
+      path.isAbsolute(rel) ||
+      rel.split(path.sep).some((p) => p.startsWith("."))
+    )
+      return label;
+    if (!fs.statSync(real).isFile()) return label;
+    const fd = fs.openSync(real, "r");
+    try {
+      const buf = Buffer.alloc(20_000);
+      const n = fs.readSync(fd, buf, 0, buf.length, 0);
+      return buf.subarray(0, n).toString("utf8").trim() || label;
+    } finally {
+      fs.closeSync(fd);
+    }
+  } catch {
+    return label;
+  }
 }
 
 /** Heredoc body wins, else a prompt file, else the longest quoted string. */
-function extractPrompt(cmd) {
-  const here = /<<-?\s*['"]?(\w+)['"]?[^\n]*\n([\s\S]*?)\n\s*\1\b/.exec(cmd);
-  if (here) return here[2].trim();
+function extractPrompt(cmd, workdir = null) {
+  const here = heredoc(cmd);
+  if (here) return here.body.trim();
   const file = /\$\(\s*cat\s+['"]?([^)'"\s]+)['"]?\s*\)|\s<\s*['"]?([^\s|;&'"]+)/.exec(cmd);
-  if (file) return fromFile(file[1] || file[2]);
+  if (file) return fromFile(file[1] || file[2], workdir);
   const quoted = [];
   const re = /'((?:[^']|'\\'')*)'|"((?:[^"\\]|\\.)*)"/g;
   let m;
@@ -74,22 +123,26 @@ function toDispatch(ev) {
       prompt: String(input.prompt),
     };
   }
-  if (ev.tool_name === "Bash" && typeof input.command === "string") {
+  if (
+    ev.tool_name === "Bash" &&
+    typeof input.command === "string" &&
+    input.command.length <= MAX_CMD
+  ) {
     const m = CLI_RE.exec(shellSkeleton(input.command));
     if (!m) return null;
     const target = m[1];
     // `claude` only counts in non-interactive print mode; `codex` only for exec/one-shot runs.
     if (target === "claude" && !/\s(-p|--print)\b/.test(input.command)) return null;
     if (target === "codex" && !/codex\s+(exec|e)\b|codex\s+-q\b/.test(input.command)) return null;
-    // The prompt is an argument of the CLI: only look at the text after its (last) invocation.
-    const at = input.command.lastIndexOf(target);
-    const prompt = extractPrompt(input.command.slice(at));
-    if (!prompt) return null;
     // Where the CLI actually works: --workspace, else the last `cd` before it, else the session's cwd.
+    const at = input.command.lastIndexOf(target);
     const before = input.command.slice(0, at);
     const cds = [...before.matchAll(/(?:^|[;&|\n(])\s*cd\s+(['"]?)([^'";&|\n]+)\1/g)];
     const workdir =
       flag(input.command, ["--workspace"]) || (cds.length ? cds[cds.length - 1][2].trim() : null);
+    // The prompt is an argument of the CLI: only look at the text after its (last) invocation.
+    const prompt = extractPrompt(input.command.slice(at), workdir || ev.cwd || null);
+    if (!prompt) return null;
     return {
       ...base,
       kind: "cli",

@@ -53,6 +53,7 @@ function Summary({ plan }: { plan: PlanData }) {
   const tot = plan.totals!;
   const pct = tot.tasks ? Math.round((tot.done / tot.tasks) * 100) : 0;
   const dur = (ms: number | null) => formatDuration(ms, t("h"), t("m"));
+  const calendar = tot.estimate_basis === "calendar";
   const finish =
     tot.remaining_ms == null
       ? null
@@ -73,16 +74,40 @@ function Summary({ plan }: { plan: PlanData }) {
     },
     {
       label: t("completedWork"),
-      value: dur(tot.done_spent_ms ?? null),
-      sub: t("completedWorkSub", { count: tot.done }),
+      // No measured agent time: show calendar days from the start instead of "0 min".
+      value:
+        !tot.done_spent_ms && calendar && tot.started_at
+          ? t("daysValue", {
+              count: Math.max(
+                0,
+                Math.round((Date.now() - Date.parse(tot.started_at)) / 86_400_000)
+              ),
+            })
+          : dur(tot.done_spent_ms ?? null),
+      sub:
+        !tot.done_spent_ms && calendar
+          ? t("completedWorkCalendar", { count: tot.done })
+          : t("completedWorkSub", { count: tot.done }),
     },
-    { label: t("remainingWork"), value: dur(tot.remaining_ms), sub: t("estimate") },
+    {
+      label: t("remainingWork"),
+      value: calendar
+        ? t("daysValue", { count: Math.round((tot.remaining_ms ?? 0) / 86_400_000) })
+        : dur(tot.remaining_ms),
+      sub: calendar ? t("estimateCalendar") : t("estimate"),
+    },
     {
       label: t("estimatedFinish"),
       value: finish ?? "—",
       sub: plan.typical_task_ms
         ? t("typicalTask", { d: dur(plan.typical_task_ms) })
-        : t("noHistory"),
+        : calendar && tot.pace_ms
+          ? t("paceDays", {
+              d: (tot.pace_ms / 86_400_000).toLocaleString(i18n.language, {
+                maximumFractionDigits: 1,
+              }),
+            })
+          : t("noHistory"),
     },
     {
       label: t("startedOn"),
@@ -93,9 +118,9 @@ function Summary({ plan }: { plan: PlanData }) {
           })
         : "—",
       sub: tot.started_at
-        ? t("daysAgo", {
+        ? `${t("daysAgo", {
             count: Math.max(0, Math.round((Date.now() - Date.parse(tot.started_at)) / 86_400_000)),
-          })
+          })}${tot.started_basis === "git" ? ` · ${t("fromGit")}` : ""}`
         : " ",
     },
   ];

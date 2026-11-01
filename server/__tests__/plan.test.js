@@ -133,3 +133,31 @@ test("buildPlan ignores sessions from other repos", () => {
   assert.equal(t.spent_ms, 3600_000);
   assert.equal(t.started_at, "2026-11-01T00:00:00.000Z");
 });
+
+test("calendar pace fallback: days since start / done x pending", () => {
+  const day = 86_400_000;
+  const now = Date.parse("2026-11-01T00:00:00Z");
+  const r = plan.calendarPace("2026-10-22T00:00:00Z", 20, 30, now);
+  assert.equal(r.pace_ms, Math.round((10 * day) / 20));
+  assert.equal(r.remaining_ms, Math.round((10 * day) / 20) * 30);
+  assert.equal(plan.calendarPace(null, 5, 5, now).remaining_ms, null);
+  assert.equal(plan.calendarPace("2026-10-22T00:00:00Z", 0, 5, now).remaining_ms, null);
+});
+
+test("buildPlan uses calendar pace and git start when nothing was measured", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "plan-pace-"));
+  const file = path.join(dir, "p.md");
+  fs.writeFileSync(file, "## A\n### Task 1: X\n### Task 2: Y\n### Task 3: Z\n");
+  const now = Date.parse("2026-11-01T00:00:00Z");
+  const out = plan.buildPlan(
+    { id: "p", name: "P", file },
+    { tasks: { p: { 1: { status: "done" } } }, order: {} },
+    [],
+    now,
+    () => "2026-10-30T00:00:00.000Z"
+  );
+  assert.equal(out.totals.estimate_basis, "calendar");
+  assert.equal(out.totals.started_basis, "git");
+  assert.equal(out.totals.started_at, "2026-10-30T00:00:00.000Z");
+  assert.equal(out.totals.remaining_ms, 2 * 2 * 86_400_000);
+});

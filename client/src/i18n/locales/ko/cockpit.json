@@ -292,5 +292,21 @@
     "less": "Collapse",
     "search": "Search prompts",
     "empty": "No outgoing prompts yet."
-  }
+  },
+  "rereads": {
+    "title": "Files read again and again",
+    "summary": "{{files}} files in the last {{days}} days, ~{{tokens}} context tokens",
+    "hint": "Agents keep re-reading the same files. A short summary of big, hot files in the hand-over prompt or CLAUDE.md, and giving subagents line ranges instead of whole files, cuts these tokens. Estimate: file size / 4.",
+    "file": "File",
+    "reads": "Reads",
+    "sessions": "Sessions",
+    "tokens": "Repeat cost"
+  },
+  "daysValue_one": "{{count}} day",
+  "daysValue_other": "{{count}} days",
+  "estimateCalendar": "estimate, calendar pace",
+  "paceDays": "pace: {{d}} days per task",
+  "fromGit": "when the plan entered git",
+  "completedWorkCalendar_one": "{{count}} task, calendar time",
+  "completedWorkCalendar_other": "{{count}} tasks, calendar time"
 }

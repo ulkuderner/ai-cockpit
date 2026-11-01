@@ -88,7 +88,48 @@ function median(nums) {
  * @param {Array<{text:string, started_at:string, ended_at:string|null, live:boolean, label:string}>} work
  *   sessions and agents with the text that may mention a task id
  */
-function buildPlan(planCfg, state, work, now = Date.now()) {
+/** When the plan file first entered git, as ISO; null outside git. Cached for 10 minutes per file. */
+const firstCommitCache = new Map();
+function planFirstCommit(file) {
+  const hit = firstCommitCache.get(file);
+  if (hit && Date.now() - hit.at < 600_000) return hit.value;
+  let value = null;
+  try {
+    const out = require("child_process").execFileSync(
+      "git",
+      [
+        "-C",
+        path.dirname(file),
+        "log",
+        "--diff-filter=A",
+        "--format=%cI",
+        "--",
+        path.basename(file),
+      ],
+      { encoding: "utf8", timeout: 5000, stdio: ["ignore", "pipe", "ignore"] }
+    );
+    const lines = out.trim().split("\n").filter(Boolean);
+    value = lines.length ? new Date(lines[lines.length - 1]).toISOString() : null;
+  } catch {
+    value = null;
+  }
+  firstCommitCache.set(file, { at: Date.now(), value });
+  return value;
+}
+
+/**
+ * Calendar pace fallback when no agent time was measured: days since the plan started / tasks done.
+ * Exported for tests. Returns { remaining_ms, pace_ms } or nulls.
+ */
+function calendarPace(startedAt, done, pending, now = Date.now()) {
+  const start = Date.parse(startedAt || "");
+  if (!Number.isFinite(start) || done <= 0 || now <= start)
+    return { remaining_ms: null, pace_ms: null };
+  const pace = (now - start) / done;
+  return { remaining_ms: Math.round(pace * pending), pace_ms: Math.round(pace) };
+}
+
+function buildPlan(planCfg, state, work, now = Date.now(), firstCommit = planFirstCommit) {
   let markdown;
   try {
     markdown = fs.readFileSync(planCfg.file, "utf8");
@@ -138,7 +179,17 @@ function buildPlan(planCfg, state, work, now = Date.now()) {
 
   const pending = all.filter((t) => t.status !== "done" && t.status !== "blocked");
   const known = pending.every((t) => t.remaining_ms != null);
-  const remaining_ms = known ? pending.reduce((s, t) => s + t.remaining_ms, 0) : null;
+  const measured =
+    known && typical != null ? pending.reduce((s, t) => s + t.remaining_ms, 0) : null;
+  const doneCount = all.filter((t) => t.status === "done").length;
+  const measuredStart =
+    all
+      .map((t) => t.started_at)
+      .filter(Boolean)
+      .sort()[0] || null;
+  const started_at = measuredStart || firstCommit(planCfg.file);
+  const pace = measured == null ? calendarPace(started_at, doneCount, pending.length, now) : null;
+  const remaining_ms = measured ?? pace?.remaining_ms ?? null;
 
   return {
     ...planCfg,
@@ -151,14 +202,23 @@ function buildPlan(planCfg, state, work, now = Date.now()) {
       running: all.filter((t) => t.status === "running").length,
       blocked: all.filter((t) => t.status === "blocked").length,
       remaining_ms,
+      // "agent": measured agent time per task; "calendar": wall-clock pace since the plan started.
+      estimate_basis: measured != null ? "agent" : remaining_ms != null ? "calendar" : null,
+      pace_ms: pace?.pace_ms ?? null,
+      started_basis: measuredStart ? "sessions" : started_at ? "git" : null,
       done_spent_ms: all.filter((t) => t.status === "done").reduce((s, t) => s + t.spent_ms, 0),
-      started_at:
-        all
-          .map((t) => t.started_at)
-          .filter(Boolean)
-          .sort()[0] || null,
+      started_at,
     },
   };
 }
 
-module.exports = { STATUSES, readState, writeState, parsePlan, mentionRegex, buildPlan, stateFile };
+module.exports = {
+  STATUSES,
+  readState,
+  writeState,
+  parsePlan,
+  mentionRegex,
+  buildPlan,
+  calendarPace,
+  stateFile,
+};

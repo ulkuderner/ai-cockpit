@@ -71,8 +71,8 @@
  *
  * ----------------------------------------------------------------------------- */
 
-import { useCallback, useState } from "react";
-import { Outlet } from "react-router";
+import { useCallback, useEffect, useState } from "react";
+import { Outlet, useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Sidebar, SIDEBAR_STORAGE_KEY, loadCollapsed } from "./Sidebar";
 import { UpdateNotifier } from "./UpdateNotifier";
@@ -111,9 +111,28 @@ function LayoutActions({ onToggleSidebar }: { onToggleSidebar: () => void }) {
 export function Layout({ wsConnected }: LayoutProps) {
   const { t } = useTranslation("nav");
   const [collapsed, setCollapsed] = useState(loadCollapsed);
+  // AI Cockpit: on phone-width screens the sidebar is an icon rail that opens over the content.
+  const [narrow, setNarrow] = useState(
+    () => typeof window !== "undefined" && !!window.matchMedia?.("(max-width: 767px)").matches
+  );
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const location = useLocation();
+  useEffect(() => {
+    const mq = window.matchMedia?.("(max-width: 767px)");
+    if (!mq) return;
+    const on = () => setNarrow(mq.matches);
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
+  useEffect(() => setMobileOpen(false), [location.pathname]);
+  const railOnly = narrow ? !mobileOpen : collapsed;
 
   /** Collapse or expand the sidebar and remember the choice in localStorage. */
   const toggle = useCallback(() => {
+    if (narrow) {
+      setMobileOpen((v) => !v);
+      return;
+    }
     setCollapsed((prev) => {
       const next = !prev;
       try {
@@ -121,7 +140,7 @@ export function Layout({ wsConnected }: LayoutProps) {
       } catch {}
       return next;
     });
-  }, []);
+  }, [narrow]);
 
   return (
     <PaletteActionProvider>
@@ -134,20 +153,27 @@ export function Layout({ wsConnected }: LayoutProps) {
         <CommandPalette />
         <ActionToast />
         <Tabby />
-        <Sidebar wsConnected={wsConnected} collapsed={collapsed} onToggle={toggle} />
+        {narrow && mobileOpen && (
+          <div
+            className="fixed inset-0 z-30 bg-black/40"
+            onClick={() => setMobileOpen(false)}
+            aria-hidden
+          />
+        )}
+        <Sidebar wsConnected={wsConnected} collapsed={railOnly} onToggle={toggle} />
         <main
           id="main-content"
           tabIndex={-1}
           className="min-h-screen min-w-0 transition-[margin-left,width] duration-200 outline-none"
           style={{
-            marginLeft: collapsed ? "4.25rem" : "15rem",
-            width: collapsed ? "calc(100% - 4.25rem)" : "calc(100% - 15rem)",
+            marginLeft: narrow || collapsed ? "4.25rem" : "15rem",
+            width: narrow || collapsed ? "calc(100% - 4.25rem)" : "calc(100% - 15rem)",
           }}
         >
           {/* overflow-x-clip (not -hidden) clips horizontal overflow without
             creating a scroll container, so descendant `position: sticky`
             elements (e.g. the Settings page TOC) still pin to the window. */}
-          <div className="p-5 lg:p-6 max-w-full overflow-x-clip">
+          <div className="p-3 sm:p-5 lg:p-6 max-w-full overflow-x-clip">
             <Outlet />
           </div>
         </main>

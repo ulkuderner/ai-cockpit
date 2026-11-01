@@ -292,5 +292,21 @@
     "less": "Kısalt",
     "search": "İstemlerde ara",
     "empty": "Henüz giden istem yok."
-  }
+  },
+  "rereads": {
+    "title": "Tekrar okunan dosyalar",
+    "summary": "son {{days}} günde {{files}} dosya, ~{{tokens}} bağlam tokenı",
+    "hint": "Ajanlar aynı dosyaları tekrar tekrar okuyor. Büyük ve sık okunan dosyalar için kısa bir özet yazıp devir istemine ya da CLAUDE.md'ye koymak, alt ajanlara tam dosya yerine ilgili satır aralığını vermek bu tokenları azaltır. Tahmin: dosya boyutu / 4.",
+    "file": "Dosya",
+    "reads": "Okuma",
+    "sessions": "Oturum",
+    "tokens": "Tekrar maliyeti"
+  },
+  "daysValue_one": "{{count}} gün",
+  "daysValue_other": "{{count}} gün",
+  "estimateCalendar": "tahmin, takvim temposu",
+  "paceDays": "tempo: görev başına {{d}} gün",
+  "fromGit": "plan dosyası git'e girdiğinde",
+  "completedWorkCalendar_one": "{{count}} görev, takvim süresi",
+  "completedWorkCalendar_other": "{{count}} görev, takvim süresi"
 }

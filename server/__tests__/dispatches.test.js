@@ -58,13 +58,37 @@ test("heredoc prompt wins", () => {
   assert.equal(d.toDispatch(ev("Bash", { command: cmd })).prompt, "Uzun görev metni\nikinci satır");
 });
 
-test("prompt from a file: content when local, name otherwise", () => {
+test("prompt files: read only inside the agent's folder, never outside or hidden", () => {
   const fs = require("fs");
   const path = require("path");
-  const f = path.join(require("os").tmpdir(), `brief-${process.pid}.md`);
-  fs.writeFileSync(f, "Dosyadaki görev\n");
-  assert.equal(d.extractPrompt(`cursor-agent -p "$(cat ${f})"`), "Dosyadaki görev");
-  assert.equal(d.extractPrompt("cursor-agent -p < /nope/brief.md"), "(/nope/brief.md dosyasından)");
+  const dir = fs.mkdtempSync(path.join(require("os").tmpdir(), "disp-"));
+  fs.writeFileSync(path.join(dir, "brief.md"), "Dosyadaki görev\n");
+  fs.mkdirSync(path.join(dir, ".secret"));
+  fs.writeFileSync(path.join(dir, ".secret", "key"), "s3cret");
+  assert.equal(d.extractPrompt(`cursor-agent -p "$(cat ${dir}/brief.md)"`, dir), "Dosyadaki görev");
+  assert.equal(d.extractPrompt('cursor-agent -p "$(cat brief.md)"', dir), "Dosyadaki görev");
+  assert.equal(
+    d.extractPrompt('cursor-agent -p "$(cat /etc/hosts)"', dir),
+    "(/etc/hosts dosyasından)"
+  );
+  assert.equal(
+    d.extractPrompt(`cursor-agent -p < ${dir}/.secret/key`, dir),
+    `(${dir}/.secret/key dosyasından)`
+  );
+  assert.equal(
+    d.extractPrompt('cursor-agent -p "$(cat brief.md)"', null),
+    "(brief.md dosyasından)"
+  );
+});
+
+test("huge commands are skipped, unterminated heredocs stay cheap", () => {
+  assert.equal(
+    d.toDispatch(ev("Bash", { command: 'cursor-agent -p "' + "x".repeat(60_000) + '"' })),
+    null
+  );
+  const t0 = Date.now();
+  d.extractPrompt("codex exec - <<EOF\n" + "a\n".repeat(20_000));
+  assert.ok(Date.now() - t0 < 500);
 });
 
 test("ordinary commands are ignored", () => {

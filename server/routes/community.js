@@ -58,6 +58,14 @@ router.put(
 );
 
 router.get(
+  "/members",
+  wrap(() => community.members(config()))
+);
+router.get(
+  "/dirs",
+  wrap(async (req) => community.listDirs(typeof req.query.path === "string" ? req.query.path : ""))
+);
+router.get(
   "/board",
   wrap(() => community.board(config()))
 );

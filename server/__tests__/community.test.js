@@ -94,3 +94,14 @@ test("progress and claim metadata", () => {
 test("estimate can come from a plan title token", () => {
   assert.equal(c.estimateFromLabels([{ name: "Tam metin arama (est:3h)" }]), 3 * 3_600_000);
 });
+
+test("folder picker stays inside home and flags git repos", () => {
+  const os = require("os");
+  const home = require("fs").realpathSync(os.homedir());
+  const r = c.listDirs("");
+  assert.equal(r.path, home);
+  assert.equal(r.parent, null);
+  assert.ok(r.dirs.every((d) => !d.name.startsWith(".")));
+  assert.throws(() => c.listDirs("/etc"), /ev dizini/);
+  assert.throws(() => c.listDirs(home + "/../.."), /ev dizini/);
+});

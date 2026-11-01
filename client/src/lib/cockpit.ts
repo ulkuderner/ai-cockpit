@@ -144,6 +144,24 @@ export const cockpit = {
   communityConfig: () => request<CommunityConfig | null>("/community/config"),
   communitySave: (cfg: CommunityConfig) =>
     request<CommunityConfig>("/community/config", { method: "PUT", ...json(cfg) }),
+  communityMembers: () =>
+    request<{
+      provider: CommunityProvider;
+      members: Array<{
+        login: string;
+        name?: string;
+        role: string | null;
+        url: string | null;
+        commits?: number;
+      }>;
+    }>("/community/members"),
+  communityDirs: (path?: string) =>
+    request<{
+      path: string;
+      parent: string | null;
+      git: boolean;
+      dirs: Array<{ name: string; path: string; git: boolean }>;
+    }>(`/community/dirs${path ? `?path=${encodeURIComponent(path)}` : ""}`),
   communityBoard: () => request<CommunityBoard>("/community/board"),
   communityClaim: (n: number) =>
     request<{ number: number; branch: string; cwd: string; prompt: string }>(

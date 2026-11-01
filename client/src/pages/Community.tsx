@@ -9,12 +9,16 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import {
   CheckCircle2,
+  ChevronLeft,
   CircleHelp,
   ExternalLink,
+  Folder,
+  FolderGit2,
   GitPullRequest,
   Hand,
   Play,
   RotateCcw,
+  UserRound,
   Users,
 } from "lucide-react";
 import {
@@ -126,6 +130,166 @@ function HowTo({
   );
 }
 
+/** Server-side folder browser (a browser file picker cannot reveal absolute paths). Home directory only. */
+function DirPicker({
+  start,
+  onPick,
+  onClose,
+}: {
+  start: string;
+  onPick: (p: string) => void;
+  onClose: () => void;
+}) {
+  const { t } = useTranslation("cockpit");
+  const [view, setView] = useState<Awaited<ReturnType<typeof cockpit.communityDirs>> | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const open = useCallback((p?: string) => {
+    cockpit.communityDirs(p).then(
+      (v) => {
+        setView(v);
+        setErr(null);
+      },
+      (x: Error) => setErr(x.message)
+    );
+  }, []);
+  useEffect(() => open(start || undefined), [open, start]);
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="dir-title"
+    >
+      <div className="card w-full max-w-xl flex flex-col max-h-[80vh]">
+        <div className="px-5 pt-5 pb-3 space-y-2">
+          <h2 id="dir-title" className="text-base font-semibold text-gray-100">
+            {t("community.pickFolder")}
+          </h2>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={!view?.parent}
+              onClick={() => view?.parent && open(view.parent)}
+              aria-label={t("community.up")}
+              className="p-1.5 rounded-md text-gray-400 hover:text-gray-100 hover:bg-surface-5 disabled:opacity-30"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="font-mono text-xs text-gray-300 truncate">{view?.path}</span>
+            {view?.git && (
+              <span className="ml-auto rounded bg-emerald-500/15 px-1.5 py-0.5 text-[10px] text-emerald-300">
+                git
+              </span>
+            )}
+          </div>
+        </div>
+        <ul className="flex-1 overflow-y-auto border-y border-border divide-y divide-border">
+          {view?.dirs.map((d) => (
+            <li key={d.path}>
+              <button
+                type="button"
+                onClick={() => open(d.path)}
+                className="w-full flex items-center gap-2 px-5 py-2 text-left text-sm text-gray-200 hover:bg-surface-4"
+              >
+                {d.git ? (
+                  <FolderGit2 className="w-4 h-4 text-emerald-400" aria-hidden />
+                ) : (
+                  <Folder className="w-4 h-4 text-gray-500" aria-hidden />
+                )}
+                <span className="truncate">{d.name}</span>
+                {d.git && <span className="ml-auto text-[10px] text-emerald-300/80">git</span>}
+              </button>
+            </li>
+          ))}
+          {view && view.dirs.length === 0 && (
+            <li className="px-5 py-3 text-xs text-gray-500">{t("community.noSubfolders")}</li>
+          )}
+        </ul>
+        {err && (
+          <p className="px-5 pt-3 text-xs text-red-400" role="alert">
+            {err}
+          </p>
+        )}
+        <div className="flex items-center justify-end gap-2 p-4">
+          {view && !view.git && (
+            <span className="mr-auto text-xs text-amber-300/80">{t("community.notGit")}</span>
+          )}
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg px-4 py-2 text-sm text-gray-300 hover:bg-surface-4"
+          >
+            {t("community.cancel")}
+          </button>
+          <button
+            type="button"
+            disabled={!view}
+            onClick={() => view && onPick(view.path)}
+            className="rounded-lg bg-accent hover:bg-accent-hover disabled:opacity-40 px-4 py-2 text-sm font-medium text-white"
+          >
+            {t("community.useFolder")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Repo members with their role, plus how many tasks each holds now and has finished recently. */
+function Members({ board }: { board: CommunityBoard }) {
+  const { t } = useTranslation("cockpit");
+  const [data, setData] = useState<Awaited<ReturnType<typeof cockpit.communityMembers>> | null>(
+    null
+  );
+  const [err, setErr] = useState<string | null>(null);
+  useEffect(() => {
+    cockpit.communityMembers().then(setData, (x: Error) => setErr(x.message));
+  }, [board.provider]);
+  const active = (login: string) => board.tasks.filter((x) => x.assignees.includes(login)).length;
+  const finished = (login: string) => board.done.filter((d) => d.by.includes(login)).length;
+  return (
+    <section className="card overflow-hidden" aria-labelledby="members-title">
+      <div className="flex items-center gap-2 px-4 pt-4 pb-3">
+        <Users className="w-4 h-4 text-accent" aria-hidden />
+        <h2 id="members-title" className="text-sm font-semibold text-gray-200">
+          {t("community.members")}
+        </h2>
+        {data && <span className="text-xs text-gray-500 tabular-nums">{data.members.length}</span>}
+      </div>
+      {err && <p className="px-4 pb-4 text-xs text-red-400">{err}</p>}
+      <ul className="divide-y divide-border border-t border-border">
+        {data?.members.map((m) => (
+          <li key={m.login} className="flex items-center gap-2 px-4 py-2.5">
+            <UserRound className="w-4 h-4 text-gray-500 shrink-0" aria-hidden />
+            <div className="min-w-0 flex-1">
+              <div className="text-sm text-gray-200 truncate">
+                {m.url ? (
+                  <a href={m.url} target="_blank" rel="noreferrer" className="hover:underline">
+                    {m.name || m.login}
+                  </a>
+                ) : (
+                  m.name || m.login
+                )}
+                {m.login === board.me && (
+                  <span className="ml-1.5 text-[10px] text-gray-500">({t("community.you")})</span>
+                )}
+              </div>
+              <div className="text-[11px] text-gray-500">
+                {t("community.memberStats", { active: active(m.login), done: finished(m.login) })}
+              </div>
+            </div>
+            {m.role && (
+              <span className="rounded bg-surface-4 px-1.5 py-0.5 text-[10px] text-gray-300">
+                {t(`community.role.${m.role}`, { defaultValue: m.role })}
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 function Setup({
   initial,
   platform,
@@ -144,6 +308,7 @@ function Setup({
   const [host, setHost] = useState(initial?.host ?? "");
   const [planFile, setPlanFile] = useState(initial?.planFile ?? "docs/plan.md");
   const [err, setErr] = useState<string | null>(null);
+  const [picking, setPicking] = useState(false);
   const input =
     "w-full bg-surface-2 border border-border rounded-lg px-3 py-2 text-sm text-gray-100 font-mono focus:outline-none focus:ring-2 focus:ring-accent";
   const field = (
@@ -201,7 +366,25 @@ function Setup({
             setRepo,
             platform === "gitlab" ? "group/project" : "owner/name"
           )}
-        {field(t("community.localPath"), localPath, setLocalPath, "/Users/…/repo")}
+        <label className="block space-y-1.5">
+          <span className="text-xs text-gray-400">{t("community.localPath")}</span>
+          <span className="flex gap-2">
+            <input
+              className={input}
+              value={localPath}
+              onChange={(e) => setLocalPath(e.target.value)}
+              placeholder="/Users/…/repo"
+            />
+            <button
+              type="button"
+              onClick={() => setPicking(true)}
+              className="shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-border px-3 text-xs text-gray-200 hover:bg-surface-4"
+            >
+              <Folder className="w-3.5 h-3.5" aria-hidden />
+              {t("community.browse")}
+            </button>
+          </span>
+        </label>
         {platform === "local"
           ? field(t("community.planFile"), planFile, setPlanFile, "docs/plan.md")
           : field(t("community.label"), label, setLabel)}
@@ -218,6 +401,16 @@ function Setup({
       >
         {t("community.save")}
       </button>
+      {picking && (
+        <DirPicker
+          start={localPath}
+          onClose={() => setPicking(false)}
+          onPick={(p) => {
+            setLocalPath(p);
+            setPicking(false);
+          }}
+        />
+      )}
     </form>
   );
 }
@@ -654,42 +847,45 @@ export default function Community() {
               )}
             </div>
 
-            <aside className="card self-start overflow-hidden" aria-labelledby="done-title">
-              <div className="flex items-center gap-2 px-4 pt-4 pb-3">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" aria-hidden />
-                <h2 id="done-title" className="text-sm font-semibold text-gray-200">
-                  {t("community.recentDone")}
-                </h2>
-              </div>
-              {board.done.length === 0 ? (
-                <p className="px-4 pb-4 text-xs text-gray-500">{t("community.noneDone")}</p>
-              ) : (
-                <ul className="divide-y divide-border border-t border-border">
-                  {board.done.map((d) => (
-                    <li key={d.number} className="px-4 py-2.5">
-                      <div className="text-sm text-gray-200 truncate">
-                        {d.url ? (
-                          <a
-                            href={d.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="hover:underline"
-                          >
-                            #{d.number} {d.title}
-                          </a>
-                        ) : (
-                          `#${d.number} ${d.title}`
-                        )}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {d.by.length ? `@${d.by.join(", @")} · ` : ""}
-                        {rel(d.at)}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </aside>
+            <div className="space-y-6 self-start">
+              <Members board={board} />
+              <aside className="card overflow-hidden" aria-labelledby="done-title">
+                <div className="flex items-center gap-2 px-4 pt-4 pb-3">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" aria-hidden />
+                  <h2 id="done-title" className="text-sm font-semibold text-gray-200">
+                    {t("community.recentDone")}
+                  </h2>
+                </div>
+                {board.done.length === 0 ? (
+                  <p className="px-4 pb-4 text-xs text-gray-500">{t("community.noneDone")}</p>
+                ) : (
+                  <ul className="divide-y divide-border border-t border-border">
+                    {board.done.map((d) => (
+                      <li key={d.number} className="px-4 py-2.5">
+                        <div className="text-sm text-gray-200 truncate">
+                          {d.url ? (
+                            <a
+                              href={d.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="hover:underline"
+                            >
+                              #{d.number} {d.title}
+                            </a>
+                          ) : (
+                            `#${d.number} ${d.title}`
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {d.by.length ? `@${d.by.join(", @")} · ` : ""}
+                          {rel(d.at)}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </aside>
+            </div>
           </div>
         </>
       )}

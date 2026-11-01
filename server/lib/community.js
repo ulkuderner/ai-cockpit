@@ -292,6 +292,23 @@ const github = {
     );
     return { ...i, open: i.state === "OPEN" };
   },
+  async members(cfg) {
+    try {
+      const list = JSON.parse(
+        await gh(["api", `repos/${cfg.repo}/collaborators?affiliation=all&per_page=100`])
+      );
+      return list.map((m) => ({ login: m.login, role: m.role_name || null, url: m.html_url }));
+    } catch {
+      // Listing collaborators needs push access; contributors are public to every reader.
+      const list = JSON.parse(await gh(["api", `repos/${cfg.repo}/contributors?per_page=100`]));
+      return list.map((m) => ({
+        login: m.login,
+        role: "contributor",
+        url: m.html_url,
+        commits: m.contributions,
+      }));
+    }
+  },
   assign: (cfg, n) => gh(["issue", "edit", String(n), "-R", cfg.repo, "--add-assignee", "@me"]),
   unassign: (cfg, n) =>
     gh(["issue", "edit", String(n), "-R", cfg.repo, "--remove-assignee", "@me"]),
@@ -407,6 +424,24 @@ const gitlab = {
       assignees: (i.assignees || []).map((a) => ({ login: a.username, id: a.id })),
     };
   },
+  async members(cfg) {
+    const ROLE = {
+      5: "minimal",
+      10: "guest",
+      15: "planner",
+      20: "reporter",
+      30: "developer",
+      40: "maintainer",
+      50: "owner",
+    };
+    const list = await glab(cfg, "projects/:proj/members/all?per_page=100");
+    return list.map((m) => ({
+      login: m.username,
+      name: m.name,
+      role: ROLE[m.access_level] || String(m.access_level),
+      url: m.web_url,
+    }));
+  },
   async assign(cfg, n) {
     await this.me(cfg);
     const issue = await this.issue(cfg, n);
@@ -506,6 +541,14 @@ const local = {
   },
   async reviews() {
     return [];
+  },
+  async members(cfg) {
+    const out = await git(cfg.localPath, ["shortlog", "-sne", "--all"]).catch(() => "");
+    return out
+      .split("\n")
+      .map((l) => /^\s*(\d+)\s+(.+?)\s+<([^>]*)>$/.exec(l))
+      .filter(Boolean)
+      .map(([, n, name]) => ({ login: name, role: "committer", url: null, commits: Number(n) }));
   },
   async snapshot(cfg) {
     const claims = readConfig()?.claims || {};
@@ -671,6 +714,37 @@ async function claim(cfg, number) {
   return { number: issue.number, branch, cwd: cfg.localPath, prompt };
 }
 
+async function members(cfg) {
+  return { provider: cfg.provider, members: await adapter(cfg).members(cfg) };
+}
+
+/** Folder picker: subdirectories of `dir` (default: home), confined to the home directory. */
+function listDirs(dir) {
+  const home = fs.realpathSync(os.homedir());
+  let target;
+  try {
+    target = fs.realpathSync(path.resolve(dir || home));
+  } catch {
+    throw fail(404, "Klasör bulunamadı");
+  }
+  if (target !== home && !target.startsWith(home + path.sep))
+    throw fail(403, "Yalnız ev dizininin altı gezilebilir");
+  const entries = fs
+    .readdirSync(target, { withFileTypes: true })
+    .filter((e) => e.isDirectory() && !e.name.startsWith("."))
+    .map((e) => {
+      const full = path.join(target, e.name);
+      return { name: e.name, path: full, git: fs.existsSync(path.join(full, ".git")) };
+    })
+    .sort((a, b) => Number(b.git) - Number(a.git) || a.name.localeCompare(b.name));
+  return {
+    path: target,
+    parent: target === home ? null : path.dirname(target),
+    git: fs.existsSync(path.join(target, ".git")),
+    dirs: entries.slice(0, 500),
+  };
+}
+
 const release = async (cfg, number) => {
   await adapter(cfg).unassign(cfg, number);
   return { ok: true };
@@ -718,6 +792,8 @@ module.exports = {
   release,
   prPreview,
   openPr,
+  members,
+  listDirs,
   buildBoard,
   estimateFromLabels,
   closedIssues,

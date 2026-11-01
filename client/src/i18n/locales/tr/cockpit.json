@@ -217,6 +217,31 @@
       "draft": "taslak"
     },
     "recentDone": "Son bitenler",
-    "noneDone": "Henüz biten görev yok."
+    "noneDone": "Henüz biten görev yok.",
+    "members": "Ekip",
+    "you": "sen",
+    "memberStats": "{{active}} aktif görev · {{done}} bitirdi",
+    "role": {
+      "admin": "Yönetici",
+      "maintain": "Bakımcı",
+      "write": "Geliştirici",
+      "triage": "Düzenleyici",
+      "read": "Okuyucu",
+      "contributor": "Katkıcı",
+      "owner": "Sahip",
+      "maintainer": "Bakımcı",
+      "developer": "Geliştirici",
+      "reporter": "Raporlayıcı",
+      "guest": "Misafir",
+      "planner": "Planlayıcı",
+      "minimal": "Asgari",
+      "committer": "Commit sahibi"
+    },
+    "browse": "Gözat",
+    "pickFolder": "Klasör seç",
+    "up": "Üst klasör",
+    "useFolder": "Bu klasörü seç",
+    "notGit": "Bu klasör bir git deposu değil",
+    "noSubfolders": "Alt klasör yok"
   }
 }

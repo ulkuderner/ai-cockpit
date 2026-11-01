@@ -217,6 +217,31 @@
       "draft": "draft"
     },
     "recentDone": "Recently done",
-    "noneDone": "No finished tasks yet."
+    "noneDone": "No finished tasks yet.",
+    "members": "Team",
+    "you": "you",
+    "memberStats": "{{active}} active · {{done}} done",
+    "role": {
+      "admin": "Admin",
+      "maintain": "Maintain",
+      "write": "Developer",
+      "triage": "Triage",
+      "read": "Read",
+      "contributor": "Contributor",
+      "owner": "Owner",
+      "maintainer": "Maintainer",
+      "developer": "Developer",
+      "reporter": "Reporter",
+      "guest": "Guest",
+      "planner": "Planner",
+      "minimal": "Minimal",
+      "committer": "Committer"
+    },
+    "browse": "Browse",
+    "pickFolder": "Choose folder",
+    "up": "Parent folder",
+    "useFolder": "Use this folder",
+    "notGit": "This folder is not a git repo",
+    "noSubfolders": "No subfolders"
   }
 }

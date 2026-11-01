@@ -391,7 +391,6 @@ export function ImportHistory() {
               active={provider === "codex"}
               icon={<Bot className="h-3.5 w-3.5" />}
               label={t("import.providerCodex")}
-              badge={t("display.beta")}
               onClick={() => chooseProvider("codex")}
             />
           </div>

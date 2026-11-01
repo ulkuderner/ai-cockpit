@@ -6,9 +6,23 @@ Yapay zekâ ile kod geliştirirken çalışan ajanları tek ekranda izleme ve y�
 
 [Claude-Code-Agent-Monitor](https://github.com/hoangsonww/Claude-Code-Agent-Monitor) (MIT, Son Nguyen) üzerine kurulu bir çatallamadır; o projenin tüm özellikleri (canlı oturumlar, alt ajan ağacı, Kanban, analiz, token/maliyet, Run) aynen durur. Aşağıdakiler AI Cockpit eklemeleridir.
 
+<p align="center">
+  <a href="images/cockpit/dashboard.png"><img src="images/cockpit/dashboard.png" alt="Panel: canlı telemetri, önbellek isabeti, toplam tasarruf ve model kırılımı" width="100%"></a>
+</p>
+
+| Plan | Ajan Çalıştır (Cursor) |
+| --- | --- |
+| <a href="images/cockpit/plan.png"><img src="images/cockpit/plan.png" alt="Plan: aşamalar, çalışan görevler, sıra ve tahminler"></a> | <a href="images/cockpit/run-cursor.png"><img src="images/cockpit/run-cursor.png" alt="Cursor çalıştırma ve komut önizlemesi"></a> |
+| **Oturumlar** | **Kanban** |
+| <a href="images/cockpit/sessions.png"><img src="images/cockpit/sessions.png" alt="Oturumlar"></a> | <a href="images/cockpit/kanban.png"><img src="images/cockpit/kanban.png" alt="Kanban panosu"></a> |
+
+Ekran görüntüleri örnek veriyle çekildi.
+
 ## Ne ekler
 
 - **Plan**: herhangi bir projenin plan Markdown dosyasını ekle. `#`/`##` başlıkları aşama, `### Task 3a:` / `### Görev 17c:` başlıkları görev olur. Bitti/bekliyor elle işaretlenir; "çalışıyor" otomatik gelir (çalışan bir oturumun ya da alt ajanın isteminde görev kimliği geçiyorsa). Sıradaki işler yukarı/aşağı oklarıyla sıralanır. Tahmini süreler, biten görevlerin gerçek oturum sürelerinin medyanından hesaplanır ve "tahmin" diye etiketlenir.
+- **Canlı telemetri**: dakikada token, önbellek isabeti, önbellek sayesinde toplam tasarruf (API liste fiyatıyla) ve Claude, Codex/GPT, Cursor, Gemini modellerine göre kırılım; son 1 saatin dakikalık grafiği.
+- **Samba**: köşedeki yardımcı, beyaz-kahverengi bir İngiliz Seteri.
 - **Kullanım limitleri**: Codex 5 saatlik/haftalık limit loglardan okunur. Claude Code limitleri yalnız durum satırına bildirir; bağlamak için aşağıya bak.
 - **Gemini CLI** oturumları (`~/.gemini/tmp/*/chats/session-*.json`) salt okunur içe alınır.
 - **Cursor'dan ajan başlatma**: Ajan Çalıştır sayfasında Cursor seçilir; tam `cursor-agent` komutu başlatmadan önce önizlenir, "Bu klasöre güven (--trust)" açıkça işaretlenmeden güvenilmeyen klasörde çalışmaz, durdurma düğmesi vardır.
@@ -32,6 +46,14 @@ Sunucu arka planda çalışır, terminali kapatsan da açık kalır. Log ve pid:
 İlk açılışta Claude Code hook'ları `~/.claude/settings.json`'a eklenir (yalnız `localhost`'a, en geç 2.5 sn içinde biten olay gönderimi). Geliştirme modu: `DASHBOARD_UPDATE_CHECK=0 npm run dev` (http://localhost:5173).
 
 npm kurulum betiklerinden yalnız `better-sqlite3` onaylıdır (`package.json` > `allowScripts`); `@scarf/scarf` analitik betiği çalışmaz.
+
+## Tailscale ile uzaktan erişim
+
+Tailscale çalışıyorsa `ai-cockpit start` kokpiti tailnet içine de açar: `https://<makine-adı>.<tailnet>.ts.net:8443`. Sunucu yine yalnız `127.0.0.1`'e bağlıdır; dışarıya açılmaz, `tailscale serve` yalnız tailnet cihazlarına HTTPS ile yönlendirir. `ai-cockpit stop` paylaşımı da kapatır.
+
+- İlk kullanımda tailnet yönetici panelinde **Serve** (ve HTTPS sertifikaları) bir kez açılmalı; kapalıysa betik 15 sn bekleyip açma bağlantısını `~/.ai-cockpit/server.log`'a yazar.
+- Kapatmak için `AI_COCKPIT_TAILSCALE=0 ai-cockpit start`, port değiştirmek için `AI_COCKPIT_TS_PORT=443`.
+- Kokpitten ajan başlatılabildiği için tailnet'ini başkalarıyla paylaşıyorsan `DASHBOARD_TOKEN` ile bir erişim anahtarı tanımla.
 
 ## Claude limitleri
 

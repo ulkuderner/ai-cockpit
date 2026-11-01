@@ -108,7 +108,7 @@ import { useSyncExternalStore } from "react";
  */
 export type ScopeMode = "all" | "local" | "selected";
 /** Which product's data is shown: Claude-compatible (Claude Code and Cursor), Codex, Gemini, or all. */
-export type ProviderScope = "claude" | "codex" | "gemini" | "both";
+export type ProviderScope = "claude" | "codex" | "cursor" | "gemini" | "both";
 
 /** The global data scope applied to every scoped list and aggregate request. */
 export interface DataScope {
@@ -146,6 +146,7 @@ function load(): DataScope {
     const provider: ProviderScope | undefined =
       parsed.provider === "codex" ||
       parsed.provider === "gemini" ||
+      parsed.provider === "cursor" ||
       parsed.provider === "both" ||
       parsed.provider === "claude"
         ? parsed.provider

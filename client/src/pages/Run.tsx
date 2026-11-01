@@ -2634,9 +2634,6 @@ function RunProviderToggle({
           className={`rounded-full px-2 py-px text-[10px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-55 ${value === option ? "bg-accent/20 text-accent" : "text-gray-400 hover:text-gray-200"}`}
         >
           {t(`provider.${option}.label`)}
-          {option === "codex" && (
-            <span className="ml-1 text-[9px] text-amber-400">{t("provider.beta", "BETA")}</span>
-          )}
         </button>
       ))}
     </div>
@@ -2697,11 +2694,6 @@ function ProviderChooser({
                 <span className="text-base font-semibold text-gray-100">
                   {t(`provider.${option}.label`)}
                 </span>
-                {option === "codex" && (
-                  <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-1.5 py-0.5 text-[9px] font-semibold text-amber-300">
-                    {t("provider.beta", "BETA")}
-                  </span>
-                )}
               </div>
               <p className="mt-2 text-sm leading-relaxed text-gray-500">
                 {t(`provider.${option}.description`)}

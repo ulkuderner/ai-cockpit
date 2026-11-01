@@ -23,7 +23,13 @@
       "description": "所有 Claude Code、Cursor 和 Codex 会话、用量及成本。"
     },
     "beta": "测试版",
-    "continue": "进入仪表板"
+    "continue": "进入仪表板",
+    "cursor": {
+      "description": "Cursor CLI sessions and Cursor runs started from the cockpit."
+    },
+    "gemini": {
+      "description": "Gemini CLI sessions, token usage and cache."
+    }
   },
   "hookGate": {
     "kicker": "实时追踪",

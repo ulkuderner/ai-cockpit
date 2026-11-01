@@ -5,9 +5,9 @@
   "acrossSessions": "跨所有追踪的会话",
   "basedOnUsage": "基于每模型 Token 使用量",
   "tabby": {
-    "title": "Tabby 伙伴",
-    "description": "一只浮动的猫，会对你的实时会话做出反应。",
-    "enable": "显示 Tabby",
+    "title": "Samba 伙伴",
+    "description": "一只浮动的英国塞特犬，会对你的实时会话做出反应。",
+    "enable": "显示 Samba",
     "enableDesc": "在整个仪表板的角落显示伙伴（按 ⌘B 打开）"
   },
   "sound": {
@@ -146,7 +146,9 @@
     "bothDescription": "合并 Claude Code、Cursor 和 Codex 数据。",
     "beta": "测试版",
     "gemini": "Gemini",
-    "geminiDescription": "Show only Gemini CLI data."
+    "geminiDescription": "Show only Gemini CLI data.",
+    "cursor": "Cursor",
+    "cursorDescription": "Cursor sessions only."
   },
   "hooks": {
     "title": "钩子配置",

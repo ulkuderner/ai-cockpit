@@ -98,7 +98,7 @@
     "actionScrollTop": "Scroll to top",
     "actionCopyLink": "Copy link to this page",
     "actionToggleSound": "Sound cues",
-    "actionToggleTabby": "Tabby assistant",
+    "actionToggleTabby": "Samba assistant",
     "actionProviderScope": "Show {{provider}}",
     "actionClearRecents": "Clear recent commands",
     "actionApiDocs": "Open the API reference",
@@ -126,7 +126,7 @@
     "actionScrollBottom": "Scroll to bottom",
     "actionVolumeUp": "Sound volume up",
     "actionVolumeDown": "Sound volume down",
-    "actionMuteTabby": "Mute Tabby",
+    "actionMuteTabby": "Mute Samba",
     "actionReportIssue": "Report an issue on GitHub",
     "actionReleases": "View release notes"
   }

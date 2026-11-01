@@ -3027,11 +3027,6 @@ exports[`screen snapshots > Claude Config 1`] = `
                 class="rounded-full px-2 py-px text-[10px] font-medium transition-colors text-gray-400 hover:text-gray-200"
               >
                 Codex
-                <span
-                  class="ml-1 text-[9px] text-amber-400"
-                >
-                  BETA
-                </span>
               </button>
             </div>
           </div>
@@ -5245,177 +5240,296 @@ exports[`screen snapshots > Dashboard 1`] = `
           </div>
         </div>
       </div>
-      <section
-        aria-labelledby="limits-title"
-        class="card p-5"
+      <div
+        class="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]"
       >
-        <div
-          class="flex items-center gap-2 mb-4"
-        >
-          <svg
-            aria-hidden="true"
-            class="lucide lucide-gauge w-4 h-4 text-accent"
-            fill="none"
-            height="24"
-            stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            viewBox="0 0 24 24"
-            width="24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="m12 14 4-4"
-            />
-            <path
-              d="M3.34 19a10 10 0 1 1 17.32 0"
-            />
-          </svg>
-          <h2
-            class="text-sm font-semibold text-gray-200 tracking-wide"
-            id="limits-title"
-          >
-            Usage limits
-          </h2>
-          <span
-            class="ml-auto text-xs text-red-400"
-          >
-            Could not load
-          </span>
-        </div>
-        <div
-          class="space-y-5"
+        <section
+          aria-labelledby="telemetry-title"
+          class="card p-5"
         >
           <div
-            class="space-y-3"
+            class="flex items-center gap-2 mb-4"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-activity w-4 h-4 text-accent"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"
+              />
+            </svg>
+            <h2
+              class="text-sm font-semibold text-gray-200"
+              id="telemetry-title"
+            >
+              Live telemetry
+            </h2>
+            <span
+              aria-hidden="true"
+              class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"
+            />
+            <span
+              class="ml-auto text-[11px] text-gray-500"
+            />
+          </div>
+          <dl
+            class="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-5"
+          >
+            <div>
+              <dt
+                class="text-xs uppercase tracking-wider text-gray-500"
+              >
+                tokens / min
+              </dt>
+              <dd
+                class="mt-1 text-2xl font-semibold tabular-nums text-gray-100"
+              >
+                —
+              </dd>
+              <dd
+                class="text-xs text-gray-500 mt-0.5 tabular-nums"
+              />
+            </div>
+            <div>
+              <dt
+                class="text-xs uppercase tracking-wider text-gray-500"
+              >
+                Cache hit
+              </dt>
+              <dd
+                class="mt-1 text-2xl font-semibold tabular-nums text-emerald-300"
+              >
+                —
+              </dd>
+              <dd
+                class="text-xs text-gray-500 mt-0.5 tabular-nums"
+              >
+                All time: —
+              </dd>
+            </div>
+            <div>
+              <dt
+                class="text-xs uppercase tracking-wider text-gray-500"
+              >
+                Saved by cache
+              </dt>
+              <dd
+                class="mt-1 text-2xl font-semibold tabular-nums text-emerald-300"
+              >
+                —
+              </dd>
+              <dd
+                class="text-xs text-gray-500 mt-0.5 tabular-nums"
+              />
+            </div>
+            <div>
+              <dt
+                class="text-xs uppercase tracking-wider text-gray-500"
+              >
+                Spent
+              </dt>
+              <dd
+                class="mt-1 text-2xl font-semibold tabular-nums text-gray-100"
+              >
+                —
+              </dd>
+              <dd
+                class="text-xs text-gray-500 mt-0.5 tabular-nums"
+              />
+            </div>
+          </dl>
+          <div
+            class="h-24 flex items-center justify-center text-xs text-gray-500"
+          >
+            No token activity in this window yet
+          </div>
+          <p
+            class="mt-3 text-[11px] text-gray-500"
+          >
+            at API list prices, vs. the same tokens billed as plain input
+          </p>
+        </section>
+        <section
+          aria-labelledby="limits-title"
+          class="card p-5"
+        >
+          <div
+            class="flex items-center gap-2 mb-4"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-gauge w-4 h-4 text-accent"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m12 14 4-4"
+              />
+              <path
+                d="M3.34 19a10 10 0 1 1 17.32 0"
+              />
+            </svg>
+            <h2
+              class="text-sm font-semibold text-gray-200 tracking-wide"
+              id="limits-title"
+            >
+              Usage limits
+            </h2>
+            <span
+              class="ml-auto text-xs text-red-400"
+            >
+              Could not load
+            </span>
+          </div>
+          <div
+            class="space-y-5"
           >
             <div
-              class="text-xs uppercase tracking-wider text-gray-500"
+              class="space-y-3"
             >
-              Claude Code
+              <div
+                class="text-xs uppercase tracking-wider text-gray-500"
+              >
+                Claude Code
+              </div>
+              <div
+                class="grid grid-cols-2 gap-4"
+              >
+                <div>
+                  <div
+                    class="flex items-baseline justify-between gap-2 text-xs"
+                  >
+                    <span
+                      class="text-gray-300"
+                    >
+                      5 hours
+                    </span>
+                    <span
+                      class="text-gray-100 font-medium tabular-nums"
+                    >
+                      unknown
+                    </span>
+                  </div>
+                  <div
+                    aria-label="5 hours"
+                    aria-valuemax="100"
+                    aria-valuemin="0"
+                    aria-valuetext="unknown"
+                    class="mt-1.5 h-1.5 rounded-full bg-surface-5 overflow-hidden"
+                    role="meter"
+                  />
+                </div>
+                <div>
+                  <div
+                    class="flex items-baseline justify-between gap-2 text-xs"
+                  >
+                    <span
+                      class="text-gray-300"
+                    >
+                      Weekly
+                    </span>
+                    <span
+                      class="text-gray-100 font-medium tabular-nums"
+                    >
+                      unknown
+                    </span>
+                  </div>
+                  <div
+                    aria-label="Weekly"
+                    aria-valuemax="100"
+                    aria-valuemin="0"
+                    aria-valuetext="unknown"
+                    class="mt-1.5 h-1.5 rounded-full bg-surface-5 overflow-hidden"
+                    role="meter"
+                  />
+                </div>
+              </div>
             </div>
             <div
-              class="grid grid-cols-2 gap-4"
+              class="space-y-3"
             >
-              <div>
-                <div
-                  class="flex items-baseline justify-between gap-2 text-xs"
-                >
-                  <span
-                    class="text-gray-300"
-                  >
-                    5 hours
-                  </span>
-                  <span
-                    class="text-gray-100 font-medium tabular-nums"
-                  >
-                    unknown
-                  </span>
-                </div>
-                <div
-                  aria-label="5 hours"
-                  aria-valuemax="100"
-                  aria-valuemin="0"
-                  aria-valuetext="unknown"
-                  class="mt-1.5 h-1.5 rounded-full bg-surface-5 overflow-hidden"
-                  role="meter"
-                />
+              <div
+                class="text-xs uppercase tracking-wider text-gray-500"
+              >
+                Codex
               </div>
-              <div>
-                <div
-                  class="flex items-baseline justify-between gap-2 text-xs"
-                >
-                  <span
-                    class="text-gray-300"
+              <div
+                class="grid grid-cols-2 gap-4"
+              >
+                <div>
+                  <div
+                    class="flex items-baseline justify-between gap-2 text-xs"
                   >
-                    Weekly
-                  </span>
-                  <span
-                    class="text-gray-100 font-medium tabular-nums"
-                  >
-                    unknown
-                  </span>
+                    <span
+                      class="text-gray-300"
+                    >
+                      5 hours
+                    </span>
+                    <span
+                      class="text-gray-100 font-medium tabular-nums"
+                    >
+                      unknown
+                    </span>
+                  </div>
+                  <div
+                    aria-label="5 hours"
+                    aria-valuemax="100"
+                    aria-valuemin="0"
+                    aria-valuetext="unknown"
+                    class="mt-1.5 h-1.5 rounded-full bg-surface-5 overflow-hidden"
+                    role="meter"
+                  />
                 </div>
-                <div
-                  aria-label="Weekly"
-                  aria-valuemax="100"
-                  aria-valuemin="0"
-                  aria-valuetext="unknown"
-                  class="mt-1.5 h-1.5 rounded-full bg-surface-5 overflow-hidden"
-                  role="meter"
-                />
+                <div>
+                  <div
+                    class="flex items-baseline justify-between gap-2 text-xs"
+                  >
+                    <span
+                      class="text-gray-300"
+                    >
+                      Weekly
+                    </span>
+                    <span
+                      class="text-gray-100 font-medium tabular-nums"
+                    >
+                      unknown
+                    </span>
+                  </div>
+                  <div
+                    aria-label="Weekly"
+                    aria-valuemax="100"
+                    aria-valuemin="0"
+                    aria-valuetext="unknown"
+                    class="mt-1.5 h-1.5 rounded-full bg-surface-5 overflow-hidden"
+                    role="meter"
+                  />
+                </div>
               </div>
             </div>
           </div>
-          <div
-            class="space-y-3"
+          <p
+            class="mt-4 text-xs text-gray-500"
           >
-            <div
-              class="text-xs uppercase tracking-wider text-gray-500"
-            >
-              Codex
-            </div>
-            <div
-              class="grid grid-cols-2 gap-4"
-            >
-              <div>
-                <div
-                  class="flex items-baseline justify-between gap-2 text-xs"
-                >
-                  <span
-                    class="text-gray-300"
-                  >
-                    5 hours
-                  </span>
-                  <span
-                    class="text-gray-100 font-medium tabular-nums"
-                  >
-                    unknown
-                  </span>
-                </div>
-                <div
-                  aria-label="5 hours"
-                  aria-valuemax="100"
-                  aria-valuemin="0"
-                  aria-valuetext="unknown"
-                  class="mt-1.5 h-1.5 rounded-full bg-surface-5 overflow-hidden"
-                  role="meter"
-                />
-              </div>
-              <div>
-                <div
-                  class="flex items-baseline justify-between gap-2 text-xs"
-                >
-                  <span
-                    class="text-gray-300"
-                  >
-                    Weekly
-                  </span>
-                  <span
-                    class="text-gray-100 font-medium tabular-nums"
-                  >
-                    unknown
-                  </span>
-                </div>
-                <div
-                  aria-label="Weekly"
-                  aria-valuemax="100"
-                  aria-valuemin="0"
-                  aria-valuetext="unknown"
-                  class="mt-1.5 h-1.5 rounded-full bg-surface-5 overflow-hidden"
-                  role="meter"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-        <p
-          class="mt-4 text-xs text-gray-500"
-        >
-          Claude Code reports limits only to its status line. See README, "Claude limits" to connect it.
-        </p>
-      </section>
+            Claude Code reports limits only to its status line. See README, "Claude limits" to connect it.
+          </p>
+        </section>
+      </div>
       <div
         class="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-0 min-w-0 flex-1 min-h-0"
       >
@@ -5966,11 +6080,6 @@ exports[`screen snapshots > Run 1`] = `
               class="rounded-full px-2 py-px text-[10px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-55 text-gray-400 hover:text-gray-200"
             >
               Codex
-              <span
-                class="ml-1 text-[9px] text-amber-400"
-              >
-                BETA
-              </span>
             </button>
             <button
               class="rounded-full px-2 py-px text-[10px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-55 text-gray-400 hover:text-gray-200"
@@ -6085,11 +6194,6 @@ exports[`screen snapshots > Run 1`] = `
                 class="text-base font-semibold text-gray-100"
               >
                 Codex
-              </span>
-              <span
-                class="rounded-full border border-amber-400/30 bg-amber-400/10 px-1.5 py-0.5 text-[9px] font-semibold text-amber-300"
-              >
-                BETA
               </span>
             </div>
             <p
@@ -7724,7 +7828,7 @@ exports[`screen snapshots > Settings 1`] = `
           type="button"
         >
           <svg
-            class="lucide lucide-cat w-3.5 h-3.5"
+            class="lucide lucide-dog w-3.5 h-3.5"
             fill="none"
             height="24"
             stroke="currentColor"
@@ -7736,19 +7840,22 @@ exports[`screen snapshots > Settings 1`] = `
             xmlns="http://www.w3.org/2000/svg"
           >
             <path
-              d="M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.44C21 17.9 16.97 21 12 21s-9-3-9-7.56c0-1.25.5-2.4 1-3.44 0 0-1.89-6.42-.5-7 1.39-.58 4.72.23 6.5 2.23A9.04 9.04 0 0 1 12 5Z"
-            />
-            <path
-              d="M8 14v.5"
+              d="M11.25 16.25h1.5L12 17z"
             />
             <path
               d="M16 14v.5"
             />
             <path
-              d="M11.25 16.25h1.5L12 17l-.75-.75Z"
+              d="M4.42 11.247A13.152 13.152 0 0 0 4 14.556C4 18.728 7.582 21 12 21s8-2.272 8-6.444a11.702 11.702 0 0 0-.493-3.309"
+            />
+            <path
+              d="M8 14v.5"
+            />
+            <path
+              d="M8.5 8.5c-.384 1.05-1.083 2.028-2.344 2.5-1.931.722-3.576-.297-3.656-1-.113-.994 1.177-6.53 4-7 1.923-.321 3.651.845 3.651 2.235A7.497 7.497 0 0 1 14 5.277c0-1.39 1.844-2.598 3.767-2.277 2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.656 1-1.261-.472-1.855-1.45-2.239-2.5"
             />
           </svg>
-          Tabby companion
+          Samba, your pup
         </button>
         <button
           class="inline-flex items-center gap-1.5 text-xs whitespace-nowrap px-2.5 py-1.5 rounded-lg border transition-colors flex-shrink-0 border-border text-gray-400 hover:text-gray-200 hover:bg-surface-3"
@@ -8089,17 +8196,37 @@ exports[`screen snapshots > Settings 1`] = `
                 >
                   Codex
                 </span>
-                <span
-                  class="rounded bg-amber-400/10 px-1.5 py-0.5 text-[10px] text-amber-300"
-                >
-                  Beta
-                </span>
               </span>
             </span>
             <span
               class="mt-1 block text-xs leading-relaxed text-gray-500"
             >
               Show only Codex data.
+            </span>
+          </button>
+          <button
+            aria-checked="false"
+            class="rounded-lg border p-3 text-left transition-colors border-border bg-surface-2 hover:border-gray-600"
+            role="radio"
+            type="button"
+          >
+            <span
+              class="flex items-center justify-between gap-2"
+            >
+              <span
+                class="flex min-w-0 items-center gap-1.5"
+              >
+                <span
+                  class="text-sm font-medium text-gray-200"
+                >
+                  Cursor
+                </span>
+              </span>
+            </span>
+            <span
+              class="mt-1 block text-xs leading-relaxed text-gray-500"
+            >
+              Cursor sessions only.
             </span>
           </button>
           <button
@@ -9282,11 +9409,6 @@ exports[`screen snapshots > Settings 1`] = `
                 <span>
                   Codex
                 </span>
-                <span
-                  class="rounded bg-amber-400/10 px-1 py-0.5 text-[8px] font-bold tracking-wider text-amber-300"
-                >
-                  Beta
-                </span>
               </button>
             </div>
           </div>
@@ -10176,12 +10298,12 @@ exports[`screen snapshots > Settings 1`] = `
         >
           🐾
         </span>
-        Tabby companion
+        Samba, your pup
       </h3>
       <p
         class="text-xs text-gray-500 mb-4"
       >
-        A floating cat that reacts to your live sessions.
+        A floating English Setter who reacts to your live sessions.
       </p>
       <div
         class="card p-5"
@@ -10208,7 +10330,7 @@ exports[`screen snapshots > Settings 1`] = `
               <p
                 class="text-sm text-gray-300 group-hover:text-gray-200 transition-colors"
               >
-                Show Tabby
+                Show Samba
               </p>
               <p
                 class="text-xs text-gray-500 mt-0.5"

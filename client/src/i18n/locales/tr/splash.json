@@ -23,7 +23,13 @@
       "description": "Tüm Claude Code, Cursor ve Codex oturumları, kullanımı ve maliyetleri."
     },
     "beta": "Beta",
-    "continue": "Panele devam et"
+    "continue": "Panele devam et",
+    "cursor": {
+      "description": "Cursor CLI oturumları ve kokpitten başlatılan Cursor çalıştırmaları."
+    },
+    "gemini": {
+      "description": "Gemini CLI oturumları, token kullanımı ve önbellek."
+    }
   },
   "hookGate": {
     "kicker": "Canlı izleme",

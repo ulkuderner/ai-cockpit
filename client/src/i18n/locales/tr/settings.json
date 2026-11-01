@@ -5,9 +5,9 @@
   "acrossSessions": "İzlenen tüm oturumlarda",
   "basedOnUsage": "Model başına token kullanımına göre",
   "tabby": {
-    "title": "Tabby arkadaşı",
-    "description": "Canlı oturumlarınıza tepki veren yüzen bir kedi.",
-    "enable": "Tabby'yi göster",
+    "title": "Can dostun Samba",
+    "description": "Canlı oturumlarına tepki veren, köşede bekleyen bir İngiliz Seteri köpek.",
+    "enable": "Samba'yı göster",
     "enableDesc": "Köşe arkadaşını panel genelinde göster (açmak için ⌘B)"
   },
   "sound": {
@@ -146,7 +146,9 @@
     "bothDescription": "Claude Code, Cursor ve Codex verilerini birleştir.",
     "beta": "Beta",
     "gemini": "Gemini",
-    "geminiDescription": "Yalnızca Gemini CLI verilerini göster."
+    "geminiDescription": "Yalnızca Gemini CLI verilerini göster.",
+    "cursor": "Cursor",
+    "cursorDescription": "Yalnız Cursor oturumları."
   },
   "hooks": {
     "title": "Kanca Yapılandırması",

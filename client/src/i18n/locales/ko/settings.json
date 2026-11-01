@@ -5,9 +5,9 @@
   "acrossSessions": "추적된 모든 세션 기준",
   "basedOnUsage": "모델별 토큰 사용량 기준",
   "tabby": {
-    "title": "Tabby 도우미",
-    "description": "실시간 세션에 반응하는 떠다니는 고양이입니다.",
-    "enable": "Tabby 표시",
+    "title": "Samba 도우미",
+    "description": "실시간 세션에 반응하는 떠다니는 잉글리시 세터 강아지입니다.",
+    "enable": "Samba 표시",
     "enableDesc": "대시보드 전반에 코너 도우미를 표시합니다(⌘B로 열기)"
   },
   "sound": {
@@ -146,7 +146,9 @@
     "bothDescription": "Claude Code, Cursor 및 Codex 데이터를 함께 표시합니다.",
     "beta": "베타",
     "gemini": "Gemini",
-    "geminiDescription": "Show only Gemini CLI data."
+    "geminiDescription": "Show only Gemini CLI data.",
+    "cursor": "Cursor",
+    "cursorDescription": "Cursor sessions only."
   },
   "hooks": {
     "title": "Hook 설정",

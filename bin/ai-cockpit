@@ -9,7 +9,18 @@ URL="http://localhost:$PORT"
 STATE="${AI_COCKPIT_HOME:-$HOME/.ai-cockpit}"
 PIDFILE="$STATE/server.pid"
 LOG="$STATE/server.log"
+TS_PORT="${AI_COCKPIT_TS_PORT:-8443}"
 mkdir -p "$STATE"
+
+# Tailscale: share the loopback server inside the tailnet over HTTPS (tailscale serve),
+# so the server itself never binds a public interface. Opt out with AI_COCKPIT_TAILSCALE=0.
+ts_name() {
+  [ "${AI_COCKPIT_TAILSCALE:-1}" != "0" ] && command -v tailscale >/dev/null || return 1
+  tailscale status --json 2>/dev/null | node -e '
+    let s = ""; process.stdin.on("data", (d) => (s += d)).on("end", () => {
+      try { const j = JSON.parse(s); if (j.BackendState === "Running") process.stdout.write(j.Self.DNSName.replace(/\.$/, "")); } catch {}
+    });'
+}
 
 healthy() { curl -fs "$URL/api/health" >/dev/null 2>&1; }
 pid() { [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null && cat "$PIDFILE"; }
@@ -26,8 +37,10 @@ start() {
       echo "Arayüz derleniyor..."
       npm run build >>"$LOG" 2>&1
     fi
+    TS_HOST="$(ts_name || true)"
     # No GitHub update polling: nothing leaves this machine.
-    DASHBOARD_UPDATE_CHECK=0 DASHBOARD_PORT="$PORT" nohup node server/index.js >>"$LOG" 2>&1 &
+    DASHBOARD_UPDATE_CHECK=0 DASHBOARD_PORT="$PORT" DASHBOARD_ALLOWED_HOSTS="$TS_HOST" \
+      nohup node server/index.js >>"$LOG" 2>&1 &
     echo $! >"$PIDFILE"
     for _ in $(seq 1 60); do healthy && break; sleep 0.25; done
     if ! healthy; then
@@ -38,10 +51,20 @@ start() {
     echo "AI Cockpit açıldı: $URL"
     echo "Log: $LOG"
   fi
+  TS_HOST="$(ts_name || true)"
+  if [ -n "$TS_HOST" ]; then
+    # serve blocks waiting for admin approval when Serve is off on the tailnet; cap it (macOS has no timeout(1)).
+    if (perl -e 'alarm 15; exec @ARGV' tailscale serve --bg --https="$TS_PORT" "http://127.0.0.1:$PORT" >>"$LOG" 2>&1) 2>/dev/null; then
+      echo "Tailscale ile uzaktan: https://$TS_HOST:$TS_PORT (yalnız tailnet cihazların)"
+    else
+      echo "Tailscale paylaşımı açılamadı. Tailnet'te Serve kapalı olabilir; açma bağlantısı: $LOG" >&2
+    fi
+  fi
   command -v open >/dev/null && open "$URL" || true
 }
 
 stop() {
+  [ -n "$(ts_name || true)" ] && tailscale serve --https="$TS_PORT" off >/dev/null 2>&1 || true
   local p
   p="$(pid || true)"
   if [ -n "$p" ]; then
@@ -62,6 +85,9 @@ stop() {
 status() {
   if healthy; then
     echo "Çalışıyor: $URL (pid $(pid || echo '?'))"
+    local h
+    h="$(ts_name || true)"
+    [ -n "$h" ] && tailscale serve status 2>/dev/null | grep -q ":$TS_PORT" && echo "Tailscale: https://$h:$TS_PORT" || true
   else
     echo "Çalışmıyor."
     return 1

@@ -104,7 +104,7 @@ import {
   Settings as SettingsIcon,
   FolderOpen,
   Info,
-  Cat,
+  Dog,
   History,
   ChevronLeft,
   ChevronRight,
@@ -162,7 +162,7 @@ const SETTINGS_SECTIONS: {
     fallback: "Remote Data Sources",
     Icon: Cloud,
   },
-  { id: "tabby", labelKey: "tabby.title", fallback: "Tabby", Icon: Cat },
+  { id: "tabby", labelKey: "tabby.title", fallback: "Samba", Icon: Dog },
   { id: "sound", labelKey: "sound.title", fallback: "Sound", Icon: Volume2 },
   { id: "notifications", labelKey: "notifications.title", Icon: Bell },
   { id: "alerts", labelKey: "alertsHub.title", Icon: BellRing },
@@ -2331,46 +2331,45 @@ export function Settings() {
             role="radiogroup"
             aria-label={t("display.title")}
           >
-            {(["claude", "codex", "gemini", "both"] as ProviderScope[]).map((provider) => {
-              const selected = (dataScope.provider || "claude") === provider;
-              const title =
-                provider === "claude"
-                  ? "Claude Code"
-                  : provider === "codex"
-                    ? "Codex"
-                    : provider === "gemini"
-                      ? "Gemini"
-                      : t("display.both");
-              return (
-                <button
-                  key={provider}
-                  type="button"
-                  role="radio"
-                  aria-checked={selected}
-                  onClick={() => setDataScope({ ...dataScope, provider })}
-                  className={`rounded-lg border p-3 text-left transition-colors ${
-                    selected
-                      ? "border-accent bg-accent/10 shadow-[0_0_0_1px_rgba(129,140,248,0.14)]"
-                      : "border-border bg-surface-2 hover:border-gray-600"
-                  }`}
-                >
-                  <span className="flex items-center justify-between gap-2">
-                    <span className="flex min-w-0 items-center gap-1.5">
-                      <span className="text-sm font-medium text-gray-200">{title}</span>
-                      {provider === "codex" && (
-                        <span className="rounded bg-amber-400/10 px-1.5 py-0.5 text-[10px] text-amber-300">
-                          {t("display.beta")}
-                        </span>
-                      )}
+            {(["claude", "codex", "cursor", "gemini", "both"] as ProviderScope[]).map(
+              (provider) => {
+                const selected = (dataScope.provider || "claude") === provider;
+                const title =
+                  provider === "claude"
+                    ? "Claude Code"
+                    : provider === "codex"
+                      ? "Codex"
+                      : provider === "cursor"
+                        ? "Cursor"
+                        : provider === "gemini"
+                          ? "Gemini"
+                          : t("display.both");
+                return (
+                  <button
+                    key={provider}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    onClick={() => setDataScope({ ...dataScope, provider })}
+                    className={`rounded-lg border p-3 text-left transition-colors ${
+                      selected
+                        ? "border-accent bg-accent/10 shadow-[0_0_0_1px_rgba(129,140,248,0.14)]"
+                        : "border-border bg-surface-2 hover:border-gray-600"
+                    }`}
+                  >
+                    <span className="flex items-center justify-between gap-2">
+                      <span className="flex min-w-0 items-center gap-1.5">
+                        <span className="text-sm font-medium text-gray-200">{title}</span>
+                      </span>
+                      {selected && <Check className="h-4 w-4 flex-none text-accent" />}
                     </span>
-                    {selected && <Check className="h-4 w-4 flex-none text-accent" />}
-                  </span>
-                  <span className="mt-1 block text-xs leading-relaxed text-gray-500">
-                    {t(`display.${provider}Description`)}
-                  </span>
-                </button>
-              );
-            })}
+                    <span className="mt-1 block text-xs leading-relaxed text-gray-500">
+                      {t(`display.${provider}Description`)}
+                    </span>
+                  </button>
+                );
+              }
+            )}
           </div>
         </div>
       </section>
@@ -2764,10 +2763,10 @@ export function Settings() {
           <span className="text-base leading-none" aria-hidden>
             🐾
           </span>
-          {t("tabby.title", "Tabby companion")}
+          {t("tabby.title", "Samba, your pup")}
         </h3>
         <p className="text-xs text-gray-500 mb-4">
-          {t("tabby.description", "A floating cat that reacts to your live sessions.")}
+          {t("tabby.description", "A floating English Setter who reacts to your live sessions.")}
         </p>
 
         <div className="card p-5">
@@ -2786,7 +2785,7 @@ export function Settings() {
             <Toggle
               checked={tabbyEnabled}
               onChange={setTabby}
-              label={t("tabby.enable", "Show Tabby")}
+              label={t("tabby.enable", "Show Samba")}
               description={t(
                 "tabby.enableDesc",
                 "Display the corner companion across the dashboard (⌘B to open)"

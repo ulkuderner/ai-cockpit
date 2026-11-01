@@ -23,7 +23,13 @@
       "description": "All Claude Code, Cursor, and Codex sessions, usage, and costs."
     },
     "beta": "Beta",
-    "continue": "Continue to dashboard"
+    "continue": "Continue to dashboard",
+    "cursor": {
+      "description": "Cursor CLI sessions and Cursor runs started from the cockpit."
+    },
+    "gemini": {
+      "description": "Gemini CLI sessions, token usage and cache."
+    }
   },
   "hookGate": {
     "kicker": "Live tracking",

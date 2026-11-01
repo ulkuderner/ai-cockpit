@@ -103,6 +103,7 @@ import { mergeFreshestById } from "../lib/merge-by-id";
 import { useDataScope } from "../lib/dataScope";
 import { StatCard } from "../components/StatCard";
 import { LimitsCard } from "../components/LimitsCard";
+import { TelemetryCard } from "../components/TelemetryCard";
 import { AgentCard } from "../components/AgentCard";
 import { AgentStatusBadge } from "../components/StatusBadge";
 import { EmptyState } from "../components/EmptyState";
@@ -1368,7 +1369,10 @@ export function Dashboard() {
             />
           </div>
 
-          <LimitsCard />
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+            <TelemetryCard />
+            <LimitsCard />
+          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-0 min-w-0 flex-1 min-h-0">
             {/* Active agents */}

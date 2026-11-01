@@ -23,7 +23,13 @@
       "description": "모든 Claude Code, Cursor 및 Codex 세션, 사용량 및 비용을 표시합니다."
     },
     "beta": "베타",
-    "continue": "대시보드로 계속"
+    "continue": "대시보드로 계속",
+    "cursor": {
+      "description": "Cursor CLI sessions and Cursor runs started from the cockpit."
+    },
+    "gemini": {
+      "description": "Gemini CLI sessions, token usage and cache."
+    }
   },
   "hookGate": {
     "kicker": "실시간 추적",

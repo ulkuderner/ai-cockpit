@@ -5,9 +5,9 @@
   "acrossSessions": "Across all tracked sessions",
   "basedOnUsage": "Based on per-model token usage",
   "tabby": {
-    "title": "Tabby companion",
-    "description": "A floating cat that reacts to your live sessions.",
-    "enable": "Show Tabby",
+    "title": "Samba, your pup",
+    "description": "A floating English Setter who reacts to your live sessions.",
+    "enable": "Show Samba",
     "enableDesc": "Display the corner companion across the dashboard (⌘B to open)"
   },
   "sound": {
@@ -146,7 +146,9 @@
     "bothDescription": "Combine Claude Code, Cursor, and Codex data.",
     "beta": "Beta",
     "gemini": "Gemini",
-    "geminiDescription": "Show only Gemini CLI data."
+    "geminiDescription": "Show only Gemini CLI data.",
+    "cursor": "Cursor",
+    "cursorDescription": "Cursor sessions only."
   },
   "hooks": {
     "title": "Hook Configuration",

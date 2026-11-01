@@ -1,13 +1,13 @@
 /**
  * @file Tabby.tsx
- * @description Floating cat companion shell. Mounts once (next to UpdateNotifier
+ * @description Floating dog companion shell (Samba). Mounts once (next to UpdateNotifier
  *   in Layout) so it persists across routes and shares the single WebSocket.
  *   Owns the open/closed panel state, the ⌘B / Esc shortcuts, reduced-motion
  *   detection, and route navigation. Reactive personality + status/Ask come
  *   from useTabbyBrain; the avatar is draggable (AssistiveTouch-style) via
  *   useTabbyPosition, a compact hover greeting, and the bubble/panel render in
  *   a self-clamping flyout so they never spill off any screen edge regardless
- *   of where the cat is docked.
+ *   of where the dog is docked.
  *
  *   The "do the job" path reuses the existing Run page: unmatched Ask queries
  *   deep-link to /run?prompt=…&autostart=1 - no new LLM backend.
@@ -17,7 +17,7 @@
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
  * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/Tabby/Tabby.tsx`
- * **Purpose:** Tabby is the optional on-screen cat assistant — quips, intents, and lightweight event reactions layered above the dashboard chrome.
+ * **Purpose:** Tabby (shown to users as Samba, an English Setter) is the optional on-screen dog assistant — quips, intents, and lightweight event reactions layered above the dashboard chrome.
  *
  * ## Design constraints
  * - Local-first: no telemetry leaves the machine unless the user configures webhooks.
@@ -37,7 +37,7 @@
  * Docker Compose profiles are documented in `monitoring/README.md`.
  *
  * ## Internal dependencies
- * - `./CatAvatar`
+ * - `./DogAvatar`
  * - `./SpeechBubble`
  * - `./TabbyPanel`
  * - `./useTabbyBrain`
@@ -78,7 +78,7 @@ import {
   type ReactNode,
 } from "react";
 import { useNavigate } from "react-router";
-import { CatAvatar } from "./CatAvatar";
+import { DogAvatar } from "./DogAvatar";
 import { SpeechBubble } from "./SpeechBubble";
 import { TabbyPanel } from "./TabbyPanel";
 import { useTabbyBrain } from "./useTabbyBrain";
@@ -153,8 +153,8 @@ function TabbyFlyout({ anchor, children }: { anchor: Anchor; children: ReactNode
     let left = anchor.side === "left" ? anchor.left : anchor.left + anchor.size - w;
     left = Math.min(vw - w - VIEWPORT_MARGIN, Math.max(VIEWPORT_MARGIN, left));
 
-    // Vertical: prefer above the cat (feels natural). Only drop below when
-    // there isn't room above - i.e. the cat is near the top edge.
+    // Vertical: prefer above the dog (feels natural). Only drop below when
+    // there isn't room above - i.e. the dog is near the top edge.
     const above = anchor.top - h - FLYOUT_GAP;
     const below = anchor.top + anchor.size + FLYOUT_GAP;
     let top = above >= VIEWPORT_MARGIN ? above : below;
@@ -184,7 +184,7 @@ function TabbyFlyout({ anchor, children }: { anchor: Anchor; children: ReactNode
 }
 
 /**
- * Tabby, the floating cat companion pinned to a screen edge. Renders the draggable avatar with a
+ * Tabby, the floating dog companion (Samba) pinned to a screen edge. Renders the draggable avatar with a
  * mood-driven animation, its speech bubble, and the expandable panel. Cmd/Ctrl+B toggles the panel
  * and Escape closes it. Hidden entirely when disabled in Settings, and calmer when the user prefers
  * reduced motion.
@@ -259,7 +259,7 @@ export function Tabby() {
 
   return (
     <>
-      {/* Flyouts are hidden while dragging so they don't chase the cat. */}
+      {/* Flyouts are hidden while dragging so they don't chase the dog. */}
       {!place.dragging && open && (
         <TabbyFlyout anchor={anchor}>
           <TabbyPanel
@@ -303,11 +303,11 @@ export function Tabby() {
           if (place.consumeDrag()) return;
           setOpen((v) => !v);
         }}
-        aria-label={open ? "Close Tabby" : "Open Tabby companion"}
+        aria-label={open ? "Close Samba" : "Open Samba companion"}
         aria-expanded={open}
-        title="Tabby - ⌘B · drag to move"
+        title="Samba - ⌘B · drag to move"
       >
-        <CatAvatar mood={brain.mood} reducedMotion={reducedMotion} hovered={hovered} />
+        <DogAvatar mood={brain.mood} reducedMotion={reducedMotion} hovered={hovered} />
         {brain.status.errorCount > 0 && (
           <span className="tabby-error-dot" aria-hidden>
             {brain.status.errorCount > 9 ? "9+" : brain.status.errorCount}

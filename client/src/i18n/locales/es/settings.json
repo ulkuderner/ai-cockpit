@@ -5,9 +5,9 @@
   "acrossSessions": "En todas las sesiones rastreadas",
   "basedOnUsage": "Basado en el uso de tokens por modelo",
   "tabby": {
-    "title": "Compañero Tabby",
-    "description": "Un gato flotante que reacciona a tus sesiones en vivo.",
-    "enable": "Mostrar Tabby",
+    "title": "Compañera Samba",
+    "description": "Una perrita setter inglés flotante que reacciona a tus sesiones en vivo.",
+    "enable": "Mostrar a Samba",
     "enableDesc": "Mostrar el compañero de esquina en todo el panel (⌘B para abrir)"
   },
   "sound": {
@@ -146,7 +146,9 @@
     "bothDescription": "Combinar datos de Claude Code, Cursor y Codex.",
     "beta": "Beta",
     "gemini": "Gemini",
-    "geminiDescription": "Show only Gemini CLI data."
+    "geminiDescription": "Show only Gemini CLI data.",
+    "cursor": "Cursor",
+    "cursorDescription": "Cursor sessions only."
   },
   "hooks": {
     "title": "Configuración de ganchos",

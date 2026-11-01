@@ -23,7 +23,13 @@
       "description": "Tất cả phiên Claude Code, Cursor và Codex, mức sử dụng và chi phí."
     },
     "beta": "Beta",
-    "continue": "Tiếp tục đến bảng điều khiển"
+    "continue": "Tiếp tục đến bảng điều khiển",
+    "cursor": {
+      "description": "Cursor CLI sessions and Cursor runs started from the cockpit."
+    },
+    "gemini": {
+      "description": "Gemini CLI sessions, token usage and cache."
+    }
   },
   "hookGate": {
     "kicker": "Theo dõi trực tiếp",

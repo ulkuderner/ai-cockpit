@@ -10,7 +10,7 @@
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
  * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/Tabby/intents.ts`
- * **Purpose:** Tabby is the optional on-screen cat assistant — quips, intents, and lightweight event reactions layered above the dashboard chrome.
+ * **Purpose:** Tabby (shown to users as Samba, an English Setter) is the optional on-screen dog assistant — quips, intents, and lightweight event reactions layered above the dashboard chrome.
  *
  * ## Design constraints
  * - Local-first: no telemetry leaves the machine unless the user configures webhooks.

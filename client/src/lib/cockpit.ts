@@ -50,6 +50,33 @@ export interface LimitsPayload {
   codex: ProviderLimits | null;
 }
 
+export interface TelemetryTotals {
+  input: number;
+  output: number;
+  cache_read: number;
+  cache_write: number;
+  tokens: number;
+  cost: number;
+  no_cache_cost: number;
+  cache_hit: number | null;
+  /** null when the model has no rate card, so savings are unknown. */
+  saved: number | null;
+}
+
+export interface TelemetryPayload {
+  sample_ms: number;
+  window_started_at: number;
+  all_time: TelemetryTotals;
+  window: TelemetryTotals;
+  series: Array<TelemetryTotals & { t: number }>;
+  models: Array<{
+    provider: string;
+    model: string;
+    all_time: TelemetryTotals;
+    window: TelemetryTotals;
+  }>;
+}
+
 const json = (body: unknown) => ({ body: JSON.stringify(body) });
 
 export const cockpit = {
@@ -64,6 +91,7 @@ export const cockpit = {
   setOrder: (planId: string, order: string[]) =>
     request(`/plan/${encodeURIComponent(planId)}/order`, { method: "PUT", ...json({ order }) }),
   limits: () => request<LimitsPayload>("/limits"),
+  telemetry: () => request<TelemetryPayload>("/telemetry"),
 };
 
 /** "3 sa 20 dk" style duration; null → "—". */

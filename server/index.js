@@ -119,6 +119,7 @@ function createApp() {
   app.use("/api/run", runRouter);
   app.use("/api/limits", require("./routes/limits"));
   app.use("/api/plan", require("./routes/plan"));
+  app.use("/api/telemetry", require("./routes/telemetry"));
   app.use("/api/alerts", alertsRouter);
   app.use("/api/webhooks", webhooksRouter);
   app.use("/api/remote-sources", remoteSourcesRouter);
@@ -530,6 +531,11 @@ function startBackgroundServices() {
     require("./lib/gemini-sync").startGeminiSessionSync(broadcast);
   } catch (err) {
     console.warn("Gemini session sync failed to start:", err.message);
+  }
+  try {
+    require("./lib/telemetry").start();
+  } catch (err) {
+    console.warn("Telemetry sampler failed to start:", err.message);
   }
   // Codex rollouts are append-only JSONL files under ~/.codex/sessions. Hooks
   // nudge this path immediately; this watcher + short poll closes the gap when

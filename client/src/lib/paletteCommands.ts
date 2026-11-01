@@ -133,7 +133,7 @@ import {
   BellRing,
   BookOpen,
   Boxes,
-  Cat,
+  Dog,
   ClipboardCopy,
   Clock,
   Cloud,
@@ -246,9 +246,9 @@ export interface PaletteContext {
   soundEnabled: boolean;
   /** Turn sound cues on or off. */
   setSoundEnabled: (enabled: boolean) => void;
-  /** Whether Tabby is shown. */
+  /** Whether Samba is shown. */
   tabbyEnabled: boolean;
-  /** Show or hide Tabby. */
+  /** Show or hide Samba. */
   setTabbyEnabled: (enabled: boolean) => void;
   /** Current product scope (Claude-compatible, Codex, or both). */
   providerScope: ProviderScope;
@@ -285,9 +285,9 @@ export interface PaletteContext {
   soundVolume: number;
   /** Set the sound volume. */
   setSoundVolume: (volume: number) => void;
-  /** Whether Tabby is muted. */
+  /** Whether Samba is muted. */
   tabbyMuted: boolean;
-  /** Mute or unmute Tabby. */
+  /** Mute or unmute Samba. */
   setTabbyMuted: (muted: boolean) => void;
   /** Go back in browser history. */
   goBack: () => void;
@@ -430,7 +430,7 @@ export const SETTINGS_SECTION_COMMANDS: { id: string; labelKey: string; icon: Lu
   { id: "session-homes", labelKey: "settings:homes.title", icon: FolderOpen },
   { id: "import", labelKey: "settings:import.title", icon: History },
   { id: "remote-sources", labelKey: "settings:remoteSources.title", icon: Cloud },
-  { id: "tabby", labelKey: "settings:tabby.title", icon: Cat },
+  { id: "tabby", labelKey: "settings:tabby.title", icon: Dog },
   { id: "sound", labelKey: "settings:sound.title", icon: Volume2 },
   { id: "notifications", labelKey: "settings:notifications.title", icon: Bell },
   { id: "alerts", labelKey: "settings:alertsHub.title", icon: BellRing },
@@ -537,7 +537,7 @@ const SESSION_FILTER_COMMANDS: { status: string; labelKey: string }[] = [
 const LANGUAGES = ["en", "zh", "vi", "ko", "es", "tr"] as const;
 
 /** Product scopes the palette offers, in display order. */
-const PROVIDER_SCOPES: ProviderScope[] = ["both", "claude", "codex", "gemini"];
+const PROVIDER_SCOPES: ProviderScope[] = ["both", "claude", "codex", "cursor", "gemini"];
 
 /**
  * Build every non-session command. Session results are appended by the palette
@@ -636,16 +636,16 @@ export function buildPaletteCommands(ctx: PaletteContext): PaletteCommand[] {
       id: "action:tabby",
       label: t("nav:palette.actionToggleTabby"),
       state: onOff(ctx.tabbyEnabled),
-      keywords: ["assistant", "cat", "helper"],
+      keywords: ["assistant", "dog", "samba", "helper"],
       group: "actions",
-      icon: Cat,
+      icon: Dog,
       run: () => ctx.setTabbyEnabled(!ctx.tabbyEnabled),
     },
     ...PROVIDER_SCOPES.map((scope) => ({
       id: `action:provider:${scope}`,
       label: t("nav:palette.actionProviderScope", { provider: t(`nav:palette.provider.${scope}`) }),
       state: ctx.providerScope === scope ? t("nav:palette.active") : undefined,
-      keywords: ["scope", "filter", "claude", "codex", "gemini", scope],
+      keywords: ["scope", "filter", "claude", "codex", "cursor", "gemini", scope],
       group: "actions" as const,
       icon: Layers,
       run: () => ctx.setProviderScope(scope),
@@ -708,7 +708,7 @@ export function buildPaletteCommands(ctx: PaletteContext): PaletteCommand[] {
       id: "action:tabby-mute",
       label: t("nav:palette.actionMuteTabby"),
       state: onOff(ctx.tabbyMuted),
-      keywords: ["tabby", "quiet", "silence"],
+      keywords: ["samba", "tabby", "quiet", "silence"],
       group: "actions",
       icon: VolumeX,
       run: () => ctx.setTabbyMuted(!ctx.tabbyMuted),

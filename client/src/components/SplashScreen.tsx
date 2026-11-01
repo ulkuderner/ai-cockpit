@@ -75,7 +75,7 @@ import { setProviderScope, type ProviderScope } from "../lib/dataScope";
 const ONBOARDING_KEY = "provider-onboarding-shown-v2";
 
 /** A provider whose hooks the setup checks: Claude Code or Codex. */
-type HookProvider = Exclude<ProviderScope, "both" | "gemini">;
+type HookProvider = Exclude<ProviderScope, "both" | "gemini" | "cursor">;
 
 /** Hook installation status from `/api/settings/info`, per provider. */
 type HookStatus = {
@@ -102,7 +102,8 @@ type HookStatus = {
  * @returns The providers whose hooks are needed.
  */
 export function hookProvidersForScope(provider: ProviderScope): HookProvider[] {
-  if (provider === "gemini") return []; // Gemini sessions are imported, no hooks
+  // Gemini and Cursor sessions are imported from their own stores, no hooks needed.
+  if (provider === "gemini" || provider === "cursor") return [];
   return provider === "both" ? ["claude", "codex"] : [provider];
 }
 
@@ -322,6 +323,8 @@ export function SplashScreen() {
               [
                 ["claude", "Claude Code", "provider.claude"],
                 ["codex", "Codex", "provider.codex"],
+                ["cursor", "Cursor", "provider.cursor"],
+                ["gemini", "Gemini", "provider.gemini"],
                 ["both", t("provider.both.label"), "provider.both"],
               ] as const
             ).map(([value, label, key]) => (
@@ -334,9 +337,7 @@ export function SplashScreen() {
                 disabled={checkingHooks}
                 className={`splash-provider-card ${provider === value ? "is-selected" : ""}`}
               >
-                <span className="splash-provider-card-name">
-                  {label} {value === "codex" && <em>{t("provider.beta")}</em>}
-                </span>
+                <span className="splash-provider-card-name">{label}</span>
                 <span>{t(`${key}.description`)}</span>
               </button>
             ))}
@@ -394,7 +395,6 @@ export function SplashScreen() {
                   {hookProvidersToInstall.map((hookProvider) => (
                     <span key={hookProvider} className="splash-hook-gate-provider">
                       {hookProvider === "claude" ? "Claude Code" : "Codex"}
-                      {hookProvider === "codex" && <em>{t("provider.beta")}</em>}
                     </span>
                   ))}
                 </div>

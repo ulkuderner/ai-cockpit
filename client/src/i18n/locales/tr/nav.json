@@ -98,7 +98,7 @@
     "actionScrollTop": "En üste kaydır",
     "actionCopyLink": "Bu sayfanın bağlantısını kopyala",
     "actionToggleSound": "Ses ipuçları",
-    "actionToggleTabby": "Tabby asistanı",
+    "actionToggleTabby": "Samba asistanı",
     "actionProviderScope": "{{provider}} göster",
     "actionClearRecents": "Son komutları temizle",
     "actionApiDocs": "API başvurusunu aç",
@@ -126,7 +126,7 @@
     "actionScrollBottom": "En alta kaydır",
     "actionVolumeUp": "Sesi yükselt",
     "actionVolumeDown": "Sesi kıs",
-    "actionMuteTabby": "Tabby'yi sustur",
+    "actionMuteTabby": "Samba'yı sustur",
     "actionReportIssue": "GitHub'da sorun bildir",
     "actionReleases": "Sürüm notlarını gör"
   }

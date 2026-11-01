@@ -844,9 +844,6 @@ function ProviderToggle({
           className={`rounded-full px-2 py-px text-[10px] font-medium transition-colors ${value === option ? "bg-accent/20 text-accent" : "text-gray-400 hover:text-gray-200"}`}
         >
           {t(`provider.${option}.label`)}
-          {option === "codex" && (
-            <span className="ml-1 text-[9px] text-amber-400">{t("provider.beta", "BETA")}</span>
-          )}
         </button>
       ))}
     </div>

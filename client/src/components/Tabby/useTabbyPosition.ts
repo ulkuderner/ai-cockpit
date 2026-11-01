@@ -12,7 +12,7 @@
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
  * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/Tabby/useTabbyPosition.ts`
- * **Purpose:** Tabby is the optional on-screen cat assistant — quips, intents, and lightweight event reactions layered above the dashboard chrome. React hook: isolates side effects and subscription wiring so presentational components stay declarative.
+ * **Purpose:** Tabby (shown to users as Samba, an English Setter) is the optional on-screen dog assistant — quips, intents, and lightweight event reactions layered above the dashboard chrome. React hook: isolates side effects and subscription wiring so presentational components stay declarative.
  *
  * ## Design constraints
  * - Local-first: no telemetry leaves the machine unless the user configures webhooks.
@@ -79,7 +79,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { tabbyPrefs, type TabbyPos } from "./prefs";
 import type { PointerEvent as ReactPointerEvent } from "react";
 
-/** Avatar width and height in pixels. Matches `CatAvatar`'s default size. */
+/** Avatar width and height in pixels. Matches `DogAvatar`'s default size. */
 export const TABBY_SIZE = 60;
 /** Gap kept between the avatar and the viewport edges, in pixels. */
 export const TABBY_MARGIN = 16;

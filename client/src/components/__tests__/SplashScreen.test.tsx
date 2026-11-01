@@ -133,7 +133,7 @@ describe("SplashScreen", () => {
     info.mockResolvedValue(hookInfo(false, true));
 
     render(<SplashScreen />);
-    await user.click(screen.getByRole("radio", { name: /codex beta/i }));
+    await user.click(screen.getByRole("radio", { name: /^codex/i }));
     await user.click(screen.getByRole("button", { name: "Continue to dashboard" }));
 
     expect(info).toHaveBeenCalledTimes(1);
@@ -216,7 +216,7 @@ describe("SplashScreen", () => {
     info.mockResolvedValue(hookInfo(true, false));
 
     render(<SplashScreen />);
-    await user.click(screen.getByRole("radio", { name: /codex beta/i }));
+    await user.click(screen.getByRole("radio", { name: /^codex/i }));
     await user.click(screen.getByRole("button", { name: "Continue to dashboard" }));
 
     const hookDialog = await screen.findByRole("dialog", { name: "Set up live monitoring" });

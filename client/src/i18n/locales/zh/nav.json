@@ -98,7 +98,7 @@
     "actionScrollTop": "回到顶部",
     "actionCopyLink": "复制本页链接",
     "actionToggleSound": "声音提示",
-    "actionToggleTabby": "Tabby 助手",
+    "actionToggleTabby": "Samba 助手",
     "actionProviderScope": "显示{{provider}}",
     "actionClearRecents": "清除最近命令",
     "actionApiDocs": "打开 API 参考",
@@ -126,7 +126,7 @@
     "actionScrollBottom": "滚动到底部",
     "actionVolumeUp": "调高音量",
     "actionVolumeDown": "调低音量",
-    "actionMuteTabby": "静音 Tabby",
+    "actionMuteTabby": "静音 Samba",
     "actionReportIssue": "在 GitHub 上报告问题",
     "actionReleases": "查看发布说明"
   }

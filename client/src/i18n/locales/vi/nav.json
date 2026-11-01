@@ -98,7 +98,7 @@
     "actionScrollTop": "Lên đầu trang",
     "actionCopyLink": "Sao chép liên kết trang này",
     "actionToggleSound": "Âm báo",
-    "actionToggleTabby": "Trợ lý Tabby",
+    "actionToggleTabby": "Trợ lý Samba",
     "actionProviderScope": "Hiện {{provider}}",
     "actionClearRecents": "Xóa các lệnh gần đây",
     "actionApiDocs": "Mở tài liệu API",
@@ -126,7 +126,7 @@
     "actionScrollBottom": "Cuộn xuống cuối",
     "actionVolumeUp": "Tăng âm lượng",
     "actionVolumeDown": "Giảm âm lượng",
-    "actionMuteTabby": "Tắt tiếng Tabby",
+    "actionMuteTabby": "Tắt tiếng Samba",
     "actionReportIssue": "Báo lỗi trên GitHub",
     "actionReleases": "Xem ghi chú phát hành"
   }

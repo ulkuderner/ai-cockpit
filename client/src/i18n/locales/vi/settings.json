@@ -5,9 +5,9 @@
   "acrossSessions": "Trên toàn bộ phiên đang được theo dõi",
   "basedOnUsage": "Dựa trên mức dùng token theo mô hình",
   "tabby": {
-    "title": "Bạn đồng hành Tabby",
-    "description": "Chú mèo nổi phản ứng với các phiên trực tiếp của bạn.",
-    "enable": "Hiện Tabby",
+    "title": "Bạn đồng hành Samba",
+    "description": "Chú chó English Setter nổi phản ứng với các phiên trực tiếp của bạn.",
+    "enable": "Hiện Samba",
     "enableDesc": "Hiển thị bạn đồng hành ở góc trên toàn bảng điều khiển (⌘B để mở)"
   },
   "sound": {
@@ -146,7 +146,9 @@
     "bothDescription": "Kết hợp dữ liệu Claude Code, Cursor và Codex.",
     "beta": "Beta",
     "gemini": "Gemini",
-    "geminiDescription": "Show only Gemini CLI data."
+    "geminiDescription": "Show only Gemini CLI data.",
+    "cursor": "Cursor",
+    "cursorDescription": "Cursor sessions only."
   },
   "hooks": {
     "title": "Cấu hình hook",

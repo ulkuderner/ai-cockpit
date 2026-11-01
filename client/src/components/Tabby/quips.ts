@@ -9,7 +9,7 @@
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
  * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/Tabby/quips.ts`
- * **Purpose:** Tabby is the optional on-screen cat assistant — quips, intents, and lightweight event reactions layered above the dashboard chrome.
+ * **Purpose:** Tabby (shown to users as Samba, an English Setter) is the optional on-screen dog assistant — quips, intents, and lightweight event reactions layered above the dashboard chrome.
  *
  * ## Design constraints
  * - Local-first: no telemetry leaves the machine unless the user configures webhooks.
@@ -77,20 +77,20 @@ const QUIPS: Record<QuipKey, string[]> = {
   session_done: [
     "a session just wrapped up! 🐾",
     "a session finished - nice work! ✨",
-    "that session's all done 😺",
+    "that session's all done 🐶",
     "clean finish on that one 💜",
   ],
   session_start: [
     "a new session started! 👀",
     "a fresh session just landed 🐾",
-    "ooh, a new session to watch 😻",
+    "ooh, a new session to sniff out 🐕",
     "something new is cooking 🍲",
   ],
   subagent_spawn: [
     "a subagent just spawned! 🐾",
     "a little helper joined in 🤝",
     "a subagent's on the job 🚀",
-    "reinforcements - new subagent! 😺",
+    "a new pup joined the pack 🐶",
   ],
   waiting: [
     "a session needs your input 👀",
@@ -99,15 +99,15 @@ const QUIPS: Record<QuipKey, string[]> = {
     "your turn - a session's waiting 🐾",
   ],
   error: [
-    "uh oh, a session hit an error 😿",
-    "something broke - wanna peek? 🙀",
+    "uh oh, a session hit an error 🐕",
+    "woof! something broke - wanna peek? 👀",
     "a hook tripped on something ⚠️",
-    "hiss… an error popped up 💢",
+    "grr… an error popped up 💢",
   ],
   run_done: [
     "your run just finished! 🐾",
     "the run's all wrapped up ✨",
-    "run complete - that's a wrap 😸",
+    "run complete - tail wags all round 🐕",
     "all done with that run 💜",
   ],
   // Moods (steady-state flavor, used by the panel / idle bubbles)
@@ -120,13 +120,13 @@ const QUIPS: Record<QuipKey, string[]> = {
   stuck: [
     "a session's been quiet a while… 🤔",
     "is something stuck? ⏳",
-    "still chewing on it… 😾",
+    "still chewing on it… 🦴",
   ],
-  happy: ["great run! 😻", "love a tidy finish ✨", "purrfect 💜"],
+  happy: ["great run! 🐶", "love a tidy finish ✨", "pawsome 💜"],
   thinking: ["hmm, let me look… 🤔", "sniffing around… 🐾", "one sec, checking 🔍"],
-  watching: ["on the prowl 👀", "watching your sessions 😼", "eyes peeled 🐾"],
-  sleeping: ["zzz… 💤", "wake me if something happens 😴", "curled up, all calm 🐈"],
-  idle: ["all quiet 😺", "ready when you are 🐾", "just vibing ✨"],
+  watching: ["nose to the ground 👀", "watching your sessions 🐕", "eyes peeled 🐾"],
+  sleeping: ["zzz… 💤", "wake me if something happens 😴", "curled up, all calm 🐕"],
+  idle: ["all quiet 🐶", "ready when you are 🐾", "just vibing ✨"],
 };
 
 /**

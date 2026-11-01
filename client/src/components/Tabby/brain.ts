@@ -2,7 +2,7 @@
  * @file brain.ts
  * @description Pure, framework-free core of the Tabby companion. Reduces the
  *   dashboard's live WebSocket stream into a small mood model and derives the
- *   current cat mood from that model plus the wall clock. Kept side-effect free
+ *   current dog mood from that model plus the wall clock. Kept side-effect free
  *   so it can be unit-tested without React, timers, or the DOM. The React hook
  *   (`useTabbyBrain`) wires this to the event bus and to real timers.
  * @author Son Nguyen <hoangson091104@gmail.com>
@@ -11,7 +11,7 @@
  * MODULE_GUIDE — extended in-file reference (comments only; safe to read, never executed)
  * =============================================================================
  * **Path:** `/Users/davidnguyen/WebstormProjects/Claude-Code-Agent-Monitor/client/src/components/Tabby/brain.ts`
- * **Purpose:** Tabby is the optional on-screen cat assistant — quips, intents, and lightweight event reactions layered above the dashboard chrome.
+ * **Purpose:** Tabby (shown to users as Samba, an English Setter) is the optional on-screen dog assistant — quips, intents, and lightweight event reactions layered above the dashboard chrome.
  *
  * ## Design constraints
  * - Local-first: no telemetry leaves the machine unless the user configures webhooks.

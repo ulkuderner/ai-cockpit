@@ -197,6 +197,12 @@ function Queue({ plan, onMove }: { plan: PlanData; onMove: (order: string[]) => 
         <h2 id="queue-title" className="text-sm font-semibold text-gray-200">
           {t("queue")}
         </h2>
+        <span className="ml-auto text-xs text-gray-400 tabular-nums">
+          {t("queueTotal", {
+            count: q.length,
+            d: formatDuration(plan.totals?.remaining_ms ?? null, t("h"), t("m")),
+          })}
+        </span>
       </div>
       <ol className="divide-y divide-border">
         {q.slice(0, 12).map((id, i) => {

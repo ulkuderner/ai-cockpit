@@ -43,23 +43,60 @@ function shellSkeleton(cmd) {
 }
 
 /**
- * Prompt kept in a file (`"$(cat brief.md)"`, `< brief.md`). Event content can come from another
- * machine (remote hooks), so the file is read only when it is a regular, non-hidden file inside the
- * agent's own working folder on this machine, and only its first 20 KB. Otherwise just its name.
+ * Project folders the user configured in the cockpit (plan repos, community clone). Only these are
+ * trusted for reading prompt files: event content may come from another machine, so a `cd` in the
+ * command must never decide what is readable.
  */
-function fromFile(file, workdir) {
+function trustedRoots() {
+  const fs = require("fs");
+  const path = require("path");
+  const roots = [];
+  const add = (dir) => {
+    try {
+      const real = fs.realpathSync(dir);
+      if (!real.split(path.sep).some((p) => p.startsWith("."))) roots.push(real);
+    } catch {
+      /* gone */
+    }
+  };
+  try {
+    const plan = require("./plan");
+    for (const p of plan.readState().plans) {
+      let dir = path.dirname(p.file);
+      while (dir !== path.dirname(dir) && !fs.existsSync(path.join(dir, ".git")))
+        dir = path.dirname(dir);
+      add(fs.existsSync(path.join(dir, ".git")) ? dir : path.dirname(p.file));
+    }
+  } catch {
+    /* no plans */
+  }
+  try {
+    const c = require("./community").readConfig();
+    if (c?.localPath) add(c.localPath);
+  } catch {
+    /* no community config */
+  }
+  return roots;
+}
+
+/**
+ * Prompt kept in a file (`"$(cat brief.md)"`, `< brief.md`). Read only when the resolved file is a
+ * regular, non-hidden file inside a trusted project folder, and only its first 20 KB; otherwise
+ * just its name. `workdir` only resolves relative paths.
+ */
+function fromFile(file, workdir, roots = trustedRoots()) {
   const fs = require("fs");
   const path = require("path");
   const label = `(${file} dosyasından)`;
-  if (!workdir) return label;
   try {
-    const root = fs.realpathSync(workdir);
-    const real = fs.realpathSync(path.resolve(root, file));
-    const rel = path.relative(root, real);
+    const real = fs.realpathSync(path.resolve(workdir || "/", file));
+    const root = roots.find((r) => real.startsWith(r + path.sep));
+    if (!root) return label;
     if (
-      rel.startsWith("..") ||
-      path.isAbsolute(rel) ||
-      rel.split(path.sep).some((p) => p.startsWith("."))
+      path
+        .relative(root, real)
+        .split(path.sep)
+        .some((p) => p.startsWith("."))
     )
       return label;
     if (!fs.statSync(real).isFile()) return label;
@@ -77,11 +114,11 @@ function fromFile(file, workdir) {
 }
 
 /** Heredoc body wins, else a prompt file, else the longest quoted string. */
-function extractPrompt(cmd, workdir = null) {
+function extractPrompt(cmd, workdir = null, roots) {
   const here = heredoc(cmd);
   if (here) return here.body.trim();
   const file = /\$\(\s*cat\s+['"]?([^)'"\s]+)['"]?\s*\)|\s<\s*['"]?([^\s|;&'"]+)/.exec(cmd);
-  if (file) return fromFile(file[1] || file[2], workdir);
+  if (file) return fromFile(file[1] || file[2], workdir, roots);
   const quoted = [];
   const re = /'((?:[^']|'\\'')*)'|"((?:[^"\\]|\\.)*)"/g;
   let m;

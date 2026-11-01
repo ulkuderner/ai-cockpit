@@ -58,26 +58,35 @@ test("heredoc prompt wins", () => {
   assert.equal(d.toDispatch(ev("Bash", { command: cmd })).prompt, "Uzun görev metni\nikinci satır");
 });
 
-test("prompt files: read only inside the agent's folder, never outside or hidden", () => {
+test("prompt files: read only inside configured project folders", () => {
   const fs = require("fs");
   const path = require("path");
-  const dir = fs.mkdtempSync(path.join(require("os").tmpdir(), "disp-"));
+  const dir = fs.realpathSync(fs.mkdtempSync(path.join(require("os").tmpdir(), "disp-")));
   fs.writeFileSync(path.join(dir, "brief.md"), "Dosyadaki görev\n");
   fs.mkdirSync(path.join(dir, ".secret"));
   fs.writeFileSync(path.join(dir, ".secret", "key"), "s3cret");
-  assert.equal(d.extractPrompt(`cursor-agent -p "$(cat ${dir}/brief.md)"`, dir), "Dosyadaki görev");
-  assert.equal(d.extractPrompt('cursor-agent -p "$(cat brief.md)"', dir), "Dosyadaki görev");
+  const roots = [dir];
   assert.equal(
-    d.extractPrompt('cursor-agent -p "$(cat /etc/hosts)"', dir),
-    "(/etc/hosts dosyasından)"
+    d.extractPrompt(`cursor-agent -p "$(cat ${dir}/brief.md)"`, null, roots),
+    "Dosyadaki görev"
+  );
+  assert.equal(d.extractPrompt('cursor-agent -p "$(cat brief.md)"', dir, roots), "Dosyadaki görev");
+  // a `cd` in the command cannot make other folders trusted
+  assert.equal(
+    d.extractPrompt('cursor-agent -p "$(cat hosts)"', "/etc", roots),
+    "(hosts dosyasından)"
   );
   assert.equal(
-    d.extractPrompt(`cursor-agent -p < ${dir}/.secret/key`, dir),
+    d.extractPrompt(`cursor-agent -p "$(cat ${dir}/../x)"`, null, roots),
+    `(${dir}/../x dosyasından)`
+  );
+  assert.equal(
+    d.extractPrompt(`cursor-agent -p < ${dir}/.secret/key`, null, roots),
     `(${dir}/.secret/key dosyasından)`
   );
   assert.equal(
-    d.extractPrompt('cursor-agent -p "$(cat brief.md)"', null),
-    "(brief.md dosyasından)"
+    d.extractPrompt(`cursor-agent -p "$(cat ${dir}/brief.md)"`, null, []),
+    `(${dir}/brief.md dosyasından)`
   );
 });
 

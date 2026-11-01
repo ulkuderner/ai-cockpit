@@ -279,5 +279,18 @@
     "text": "Bu kokpit uzaktan erişime açık ve anahtar istiyor. Kokpitin çalıştığı bilgisayarda ai-cockpit start --remote çıktısındaki bağlantıyı aç ya da anahtarı buraya yapıştır.",
     "placeholder": "Anahtar",
     "save": "Kaydet"
+  },
+  "prompts": {
+    "title": "Giden istemler",
+    "subtitle": "Ajanların alt ajanlara ve Cursor, Codex, Gemini gibi diğer ajanlara gönderdiği istemler",
+    "oneSession": "Bu oturumdan giden istemler",
+    "subagent": "Claude alt ajanı",
+    "subagents": "Claude alt ajanları",
+    "all": "Tümü",
+    "background": "arka planda",
+    "more": "Tamamını göster",
+    "less": "Kısalt",
+    "search": "İstemlerde ara",
+    "empty": "Henüz giden istem yok."
   }
 }

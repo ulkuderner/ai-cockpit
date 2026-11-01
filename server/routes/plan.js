@@ -50,7 +50,19 @@ function loadWork() {
     .all();
   const byId = new Map(prompts.map((p) => [p.id, p.text]));
   for (const s of sessions) if (byId.has(s.id)) s.text += `\n${byId.get(s.id)}`;
-  return [...sessions, ...agents];
+  // Prompts sent to subagents / Cursor / Codex name the task ("Task 17a: ..."): they date the task's start.
+  // Zero length on purpose: the orchestrating session spans many tasks, so its time is not this task's.
+  const sent = require("../lib/dispatches")
+    .list({ limit: 500 })
+    .items.map((d) => ({
+      text: d.prompt,
+      started_at: d.at,
+      ended_at: d.at,
+      live: false,
+      label: d.target,
+      cwd: d.cwd,
+    }));
+  return [...sessions, ...agents, ...sent];
 }
 
 router.get("/", (_req, res) => {

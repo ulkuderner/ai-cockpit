@@ -86,6 +86,7 @@ import { CcConfig } from "./pages/CcConfig";
 import { Run } from "./pages/Run";
 import Plan from "./pages/Plan";
 import Community from "./pages/Community";
+import Prompts from "./pages/Prompts";
 import { TokenGate } from "./components/TokenGate";
 import { NotFound } from "./pages/NotFound";
 import { useWebSocket } from "./hooks/useWebSocket";
@@ -136,6 +137,7 @@ export default function App() {
           <Route index element={<Dashboard />} />
           <Route path="plan" element={<Plan />} />
           <Route path="community" element={<Community />} />
+          <Route path="prompts" element={<Prompts />} />
           <Route path="kanban" element={<KanbanBoard />} />
           <Route path="sessions" element={<Sessions />} />
           <Route path="sessions/:id" element={<SessionDetail />} />

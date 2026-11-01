@@ -122,6 +122,7 @@ function createApp() {
   app.use("/api/telemetry", require("./routes/telemetry"));
   app.use("/api/community", require("./routes/community"));
   app.use("/api/prices", require("./routes/prices"));
+  app.use("/api/dispatches", require("./routes/dispatches"));
   app.use("/api/alerts", alertsRouter);
   app.use("/api/webhooks", webhooksRouter);
   app.use("/api/remote-sources", remoteSourcesRouter);

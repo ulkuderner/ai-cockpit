@@ -279,5 +279,18 @@
     "text": "此 cockpit 接受远程连接,需要令牌。请打开主机上 ai-cockpit start --remote 输出的链接,或在此粘贴令牌。",
     "placeholder": "令牌",
     "save": "保存"
+  },
+  "prompts": {
+    "title": "Outgoing prompts",
+    "subtitle": "Prompts agents sent to subagents and to other agents such as Cursor, Codex and Gemini",
+    "oneSession": "Prompts sent from this session",
+    "subagent": "Claude subagent",
+    "subagents": "Claude subagents",
+    "all": "All",
+    "background": "background",
+    "more": "Show all",
+    "less": "Collapse",
+    "search": "Search prompts",
+    "empty": "No outgoing prompts yet."
   }
 }

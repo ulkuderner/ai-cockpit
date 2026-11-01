@@ -76,6 +76,8 @@ export function DocumentTitle() {
     title = t("plan");
   } else if (path.startsWith("/community")) {
     title = t("community");
+  } else if (path.startsWith("/prompts")) {
+    title = t("prompts");
   } else if (path.startsWith("/kanban")) {
     title = t("agentBoard");
   } else if (path.startsWith("/activity")) {

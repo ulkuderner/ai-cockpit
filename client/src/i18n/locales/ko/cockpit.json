@@ -279,5 +279,18 @@
     "text": "이 cockpit은 원격 연결을 허용하며 토큰이 필요합니다. 호스트에서 ai-cockpit start --remote가 출력한 링크를 열거나, 여기에 토큰을 붙여넣으세요.",
     "placeholder": "토큰",
     "save": "저장"
+  },
+  "prompts": {
+    "title": "Outgoing prompts",
+    "subtitle": "Prompts agents sent to subagents and to other agents such as Cursor, Codex and Gemini",
+    "oneSession": "Prompts sent from this session",
+    "subagent": "Claude subagent",
+    "subagents": "Claude subagents",
+    "all": "All",
+    "background": "background",
+    "more": "Show all",
+    "less": "Collapse",
+    "search": "Search prompts",
+    "empty": "No outgoing prompts yet."
   }
 }

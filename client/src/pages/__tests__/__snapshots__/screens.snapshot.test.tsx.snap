@@ -6966,6 +6966,14 @@ exports[`screen snapshots > Session detail 1`] = `
           </div>
         </div>
       </div>
+      <a
+        class="inline-flex items-center gap-1.5 text-xs text-accent hover:underline"
+        data-discover="true"
+        href="/prompts?session=sess-1"
+      >
+        Prompts sent from this session
+         →
+      </a>
       <div
         class="mb-4"
       >

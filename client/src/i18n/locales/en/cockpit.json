@@ -279,5 +279,18 @@
     "text": "This cockpit accepts remote connections and needs a token. Open the link printed by ai-cockpit start --remote on the host, or paste the token here.",
     "placeholder": "Token",
     "save": "Save"
+  },
+  "prompts": {
+    "title": "Outgoing prompts",
+    "subtitle": "Prompts agents sent to subagents and to other agents such as Cursor, Codex and Gemini",
+    "oneSession": "Prompts sent from this session",
+    "subagent": "Claude subagent",
+    "subagents": "Claude subagents",
+    "all": "All",
+    "background": "background",
+    "more": "Show all",
+    "less": "Collapse",
+    "search": "Search prompts",
+    "empty": "No outgoing prompts yet."
   }
 }

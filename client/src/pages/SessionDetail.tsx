@@ -907,6 +907,12 @@ export function SessionDetail() {
       {visitedTabs.has("agents") && (
         <div hidden={activeTab !== "agents"}>
           <SessionOverview session={session} agents={agents} />
+          <Link
+            to={`/prompts?session=${encodeURIComponent(session.id)}`}
+            className="inline-flex items-center gap-1.5 text-xs text-accent hover:underline"
+          >
+            {t("cockpit:prompts.oneSession")} →
+          </Link>
           {session.todo_snapshot && <TodoProgressPanel snapshot={session.todo_snapshot} />}
 
           {workflows.length > 0 && (

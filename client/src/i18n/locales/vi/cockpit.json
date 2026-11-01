@@ -279,5 +279,18 @@
     "text": "cockpit này chấp nhận kết nối từ xa và cần token. Hãy mở liên kết do ai-cockpit start --remote in ra trên máy chủ, hoặc dán token vào đây.",
     "placeholder": "Token",
     "save": "Lưu"
+  },
+  "prompts": {
+    "title": "Outgoing prompts",
+    "subtitle": "Prompts agents sent to subagents and to other agents such as Cursor, Codex and Gemini",
+    "oneSession": "Prompts sent from this session",
+    "subagent": "Claude subagent",
+    "subagents": "Claude subagents",
+    "all": "All",
+    "background": "background",
+    "more": "Show all",
+    "less": "Collapse",
+    "search": "Search prompts",
+    "empty": "No outgoing prompts yet."
   }
 }

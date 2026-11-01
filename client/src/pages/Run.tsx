@@ -1361,9 +1361,16 @@ export function Run() {
     promptPrefilledRef.current = true;
     if (searchParams.get("autostart") === "1") pendingAutostartRef.current = true;
     setPrompt(p);
+    // AI Cockpit community tasks also hand over the clone folder and the provider.
+    const c = searchParams.get("cwd");
+    if (c) setCwd(c);
+    const prov = searchParams.get("provider");
+    if (prov === "claude" || prov === "codex" || prov === "cursor") setProvider(prov);
     const next = new URLSearchParams(searchParams);
     next.delete("prompt");
     next.delete("autostart");
+    next.delete("cwd");
+    next.delete("provider");
     setSearchParams(next, { replace: true });
   }, [searchParams, setSearchParams]);
 

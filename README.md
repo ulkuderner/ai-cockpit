@@ -13,8 +13,10 @@ Yapay zekâ ile kod geliştirirken çalışan ajanları tek ekranda izleme ve y�
 | Plan | Ajan Çalıştır (Cursor) |
 | --- | --- |
 | <a href="images/cockpit/plan.png"><img src="images/cockpit/plan.png" alt="Plan: aşamalar, çalışan görevler, sıra ve tahminler"></a> | <a href="images/cockpit/run-cursor.png"><img src="images/cockpit/run-cursor.png" alt="Cursor çalıştırma ve komut önizlemesi"></a> |
-| **Oturumlar** | **Kanban** |
-| <a href="images/cockpit/sessions.png"><img src="images/cockpit/sessions.png" alt="Oturumlar"></a> | <a href="images/cockpit/kanban.png"><img src="images/cockpit/kanban.png" alt="Kanban panosu"></a> |
+| **Topluluk** | **Oturumlar** |
+| <a href="images/cockpit/community.png"><img src="images/cockpit/community.png" alt="Topluluk: ortak iş kuyruğu"></a> | <a href="images/cockpit/sessions.png"><img src="images/cockpit/sessions.png" alt="Oturumlar"></a> |
+| **Kanban** | |
+| <a href="images/cockpit/kanban.png"><img src="images/cockpit/kanban.png" alt="Kanban panosu"></a> | |
 
 Ekran görüntüleri örnek veriyle çekildi.
 
@@ -22,6 +24,7 @@ Ekran görüntüleri örnek veriyle çekildi.
 
 - **Plan**: herhangi bir projenin plan Markdown dosyasını ekle. `#`/`##` başlıkları aşama, `### Task 3a:` / `### Görev 17c:` başlıkları görev olur. Bitti/bekliyor elle işaretlenir; "çalışıyor" otomatik gelir (çalışan bir oturumun ya da alt ajanın isteminde görev kimliği geçiyorsa). Sıradaki işler yukarı/aşağı oklarıyla sıralanır. Tahmini süreler, biten görevlerin gerçek oturum sürelerinin medyanından hesaplanır ve "tahmin" diye etiketlenir.
 - **Canlı telemetri**: dakikada token, önbellek isabeti, önbellek sayesinde toplam tasarruf (API liste fiyatıyla) ve Claude, Codex/GPT, Cursor, Gemini modellerine göre kırılım; son 1 saatin dakikalık grafiği.
+- **Topluluk**: GitHub Issues üzerinde ortak iş kuyruğu. `cockpit-task` etiketli açık issue'lar görevdir, `est:3h` gibi etiketler tahmini süredir. "Al ve başlat" issue'yu sana atar (başkası aldıysa reddeder), yerel klonunda `task/<no>-...` dalını açar ve Ajan Çalıştır'ı görev metniyle doldurur; ajanı sen başlatırsın. "PR gönder" önce `git push` ve `gh pr create` komutlarını ve gidecek commit'leri gösterir, onayınla `Closes #<no>` içeren PR'ı açar. Herkes kendi `gh` oturumu ve kendi AI aboneliğiyle çalışır; hesap ya da limit paylaşılmaz, dökümler hiçbir yere gitmez.
 - **Samba**: köşedeki yardımcı, beyaz-kahverengi bir İngiliz Seteri.
 - **Kullanım limitleri**: Codex 5 saatlik/haftalık limit loglardan okunur. Claude Code limitleri yalnız durum satırına bildirir; bağlamak için aşağıya bak.
 - **Gemini CLI** oturumları (`~/.gemini/tmp/*/chats/session-*.json`) salt okunur içe alınır.

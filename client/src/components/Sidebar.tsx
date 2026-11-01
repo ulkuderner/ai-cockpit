@@ -68,6 +68,7 @@ import {
   Boxes,
   Play,
   Target,
+  Users,
   Settings,
   Wifi,
   WifiOff,
@@ -105,6 +106,7 @@ function isUpdatePayload(x: unknown): x is UpdateStatusPayload {
 const NAV_KEYS = [
   { to: "/", icon: LayoutDashboard, key: "nav:dashboard" },
   { to: "/plan", icon: Target, key: "nav:plan" },
+  { to: "/community", icon: Users, key: "nav:community" },
   { to: "/kanban", icon: Columns3, key: "nav:agentBoard" },
   { to: "/sessions", icon: FolderOpen, key: "nav:sessions" },
   { to: "/activity", icon: Activity, key: "nav:activityFeed" },

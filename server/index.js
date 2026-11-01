@@ -120,6 +120,7 @@ function createApp() {
   app.use("/api/limits", require("./routes/limits"));
   app.use("/api/plan", require("./routes/plan"));
   app.use("/api/telemetry", require("./routes/telemetry"));
+  app.use("/api/community", require("./routes/community"));
   app.use("/api/alerts", alertsRouter);
   app.use("/api/webhooks", webhooksRouter);
   app.use("/api/remote-sources", remoteSourcesRouter);

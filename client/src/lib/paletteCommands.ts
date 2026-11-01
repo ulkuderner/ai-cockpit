@@ -160,6 +160,7 @@ import {
   PanelLeftClose,
   Play,
   Target,
+  Users,
   PlugZap,
   RefreshCw,
   Server,
@@ -405,6 +406,7 @@ export const PAGE_COMMANDS: {
 }[] = [
   { to: "/", icon: LayoutDashboard, navKey: "nav:dashboard" },
   { to: "/plan", icon: Target, navKey: "nav:plan" },
+  { to: "/community", icon: Users, navKey: "nav:community" },
   { to: "/kanban", icon: Columns3, navKey: "nav:agentBoard" },
   { to: "/sessions", icon: FolderOpen, navKey: "nav:sessions" },
   { to: "/activity", icon: Activity, navKey: "nav:activityFeed" },

@@ -77,6 +77,33 @@ export interface TelemetryPayload {
   }>;
 }
 
+export interface CommunityTask {
+  number: number;
+  title: string;
+  url: string;
+  body: string;
+  assignees: string[];
+  estimate_ms: number | null;
+  branch: string;
+  state: "open" | "mine" | "taken" | "review";
+  pr: { number: number; url: string; author: string | null } | null;
+}
+
+export interface CommunityBoard {
+  me: string;
+  tasks: CommunityTask[];
+  totals: {
+    open: number;
+    mine: number;
+    taken: number;
+    review: number;
+    open_estimate_ms: number;
+    open_unestimated: number;
+  };
+}
+
+type CommunityConfig = { repo: string; localPath: string; label: string };
+
 const json = (body: unknown) => ({ body: JSON.stringify(body) });
 
 export const cockpit = {
@@ -92,6 +119,26 @@ export const cockpit = {
     request(`/plan/${encodeURIComponent(planId)}/order`, { method: "PUT", ...json({ order }) }),
   limits: () => request<LimitsPayload>("/limits"),
   telemetry: () => request<TelemetryPayload>("/telemetry"),
+  communityConfig: () => request<CommunityConfig | null>("/community/config"),
+  communitySave: (cfg: CommunityConfig) =>
+    request<CommunityConfig>("/community/config", { method: "PUT", ...json(cfg) }),
+  communityBoard: () => request<CommunityBoard>("/community/board"),
+  communityClaim: (n: number) =>
+    request<{ number: number; branch: string; cwd: string; prompt: string }>(
+      `/community/tasks/${n}/claim`,
+      { method: "POST" }
+    ),
+  communityRelease: (n: number) => request(`/community/tasks/${n}/release`, { method: "POST" }),
+  communityPrPreview: (n: number) =>
+    request<{
+      branch: string;
+      title: string;
+      body: string;
+      commands: string[][];
+      commits: string[];
+    }>(`/community/tasks/${n}/pr`),
+  communityOpenPr: (n: number) =>
+    request<{ url: string }>(`/community/tasks/${n}/pr`, { method: "POST" }),
 };
 
 /** "3 sa 20 dk" style duration; null → "—". */

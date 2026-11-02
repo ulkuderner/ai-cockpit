@@ -68,7 +68,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, fireEvent, act, cleanup, within } from "@testing-library/react";
-import { MemoryRouter } from "react-router";
+import { MemoryRouter, useLocation } from "react-router";
 import { Tabby } from "../Tabby";
 import { eventBus } from "../../../lib/eventBus";
 import type { WSMessage, Session } from "../../../lib/types";
@@ -162,8 +162,32 @@ describe("Tabby widget", () => {
     fireEvent.click(screen.getByRole("button", { name: /open samba companion/i }));
     const panel = screen.getByRole("dialog", { name: /samba companion/i });
     // The "live" stat chip shows value 2 next to its label.
-    const liveChip = within(panel).getByText("live").closest("div")!;
+    const liveChip = within(panel).getByText("live").closest("button")!;
     expect(within(liveChip).getByText("2")).toBeInTheDocument();
+  });
+
+  it("opens the sessions list filtered by status from each stat chip", () => {
+    function Where() {
+      const loc = useLocation();
+      return <output data-testid="where">{loc.pathname + loc.search}</output>;
+    }
+    for (const [label, status] of [
+      ["live", "active"],
+      ["waiting", "waiting"],
+      ["errored", "error"],
+    ] as const) {
+      render(
+        <MemoryRouter>
+          <Tabby />
+          <Where />
+        </MemoryRouter>
+      );
+      fireEvent.click(screen.getByRole("button", { name: /open samba companion/i }));
+      const panel = screen.getByRole("dialog", { name: /samba companion/i });
+      fireEvent.click(within(panel).getByText(label).closest("button")!);
+      expect(screen.getByTestId("where").textContent).toBe(`/sessions?status=${status}`);
+      cleanup();
+    }
   });
 
   it("respects the enabled preference", () => {

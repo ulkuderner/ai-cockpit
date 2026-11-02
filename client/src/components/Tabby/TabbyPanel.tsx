@@ -162,18 +162,21 @@ export function TabbyPanel({
           <StatChip
             icon={Radio}
             label={t("panel.chipLive")}
+            onClick={() => onNavigate("/sessions?status=active")}
             value={status.liveCount}
             tone={status.liveCount > 0 ? "accent" : "muted"}
           />
           <StatChip
             icon={Hourglass}
             label={t("panel.chipWaiting")}
+            onClick={() => onNavigate("/sessions?status=waiting")}
             value={status.waitingCount}
             tone={status.waitingCount > 0 ? "amber" : "muted"}
           />
           <StatChip
             icon={AlertTriangle}
             label={t("panel.chipErrored")}
+            onClick={() => onNavigate("/sessions?status=error")}
             value={status.errorCount}
             tone={status.errorCount > 0 ? "red" : "muted"}
           />
@@ -200,7 +203,7 @@ export function TabbyPanel({
             icon={AlertTriangle}
             label={t("panel.errored")}
             disabled={status.errorCount === 0}
-            onClick={() => onNavigate("/sessions")}
+            onClick={() => onNavigate("/sessions?status=error")}
           />
           <ActionButton
             icon={muted ? BellOff : Bell}
@@ -280,6 +283,7 @@ function StatChip({
   label,
   value,
   tone,
+  onClick,
 }: {
   /** Icon component. */
   icon: LucideIcon;
@@ -289,16 +293,23 @@ function StatChip({
   value: number;
   /** Tone name; `muted` for zero counts. */
   tone: string;
+  /** Opens the sessions list filtered to this status. */
+  onClick: () => void;
 }): ReactNode {
   const t = TONES[tone] ?? TONE_MUTED;
   return (
-    <div className={`flex flex-col items-center gap-0.5 rounded-xl border py-1.5 ${t.wrap}`}>
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={`${value} ${label}`}
+      className={`flex flex-col items-center gap-0.5 rounded-xl border py-1.5 transition-colors hover:brightness-125 focus-visible:outline focus-visible:outline-2 focus-visible:outline-violet-400 ${t.wrap}`}
+    >
       <Icon size={13} className={t.icon} aria-hidden />
       <span className={`text-base font-semibold leading-none tabular-nums ${t.value}`}>
         {value}
       </span>
       <span className="text-[9px] uppercase tracking-wider text-gray-500">{label}</span>
-    </div>
+    </button>
   );
 }
 

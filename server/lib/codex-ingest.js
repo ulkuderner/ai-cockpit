@@ -76,8 +76,12 @@ function asNumber(value) {
   return Number.isFinite(number) && number >= 0 ? number : 0;
 }
 
+// Codex Desktop continues a long session in segment files named
+// `rollout-<ts>-<sessionId>_<segmentId>.jsonl`; the session id comes first.
 function sessionIdFromPath(transcriptPath) {
-  const match = path.basename(transcriptPath).match(/([0-9a-f]{8}-[0-9a-f-]{27,})\.jsonl$/i);
+  const match = path
+    .basename(transcriptPath)
+    .match(/([0-9a-f]{8}-[0-9a-f-]{27,})(?:_[0-9a-f-]+)?\.jsonl$/i);
   return match ? match[1] : null;
 }
 
@@ -1269,7 +1273,10 @@ function ingestCodexTranscriptWindow(transcriptPath, options, carry) {
     return ingestCodexTranscript(transcriptPath, options);
   }
   const liveTranscripts = options.liveTranscripts instanceof Set ? options.liveTranscripts : null;
-  const confirmedLive = liveTranscripts ? liveTranscripts.has(path.resolve(transcriptPath)) : null;
+  const confirmedLive = liveTranscripts
+    ? liveTranscripts.has(path.resolve(transcriptPath)) ||
+      [...liveTranscripts].some((p) => sessionIdFromPath(p) === resolvedSessionId)
+    : null;
   const created = !knownSession;
   const createOptions = {
     confirmedLive,
@@ -1807,5 +1814,6 @@ module.exports = {
   syncCodexStateSessions,
   readRecentCodexThreads,
   isCodexTranscript,
+  sessionIdFromPath,
   setReadWindowBytesForTests,
 };

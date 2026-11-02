@@ -1969,6 +1969,9 @@ function livenessReap({
       continue;
     if (rolloutProbe?.available && sess.transcript_path) {
       if (rolloutProbe.paths.has(path.resolve(sess.transcript_path))) continue;
+      // The live process may hold a later segment of the same session.
+      const { sessionIdFromPath } = require("../lib/codex-ingest");
+      if ([...rolloutProbe.paths].some((p) => sessionIdFromPath(p) === sess.id)) continue;
     } else {
       if (!probe.available || !sess.cwd) continue;
       // Household-hook-forwarded sessions report cwd in the ORIGIN machine's own

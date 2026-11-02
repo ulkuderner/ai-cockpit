@@ -354,6 +354,24 @@ describe("watchdog liveness reap", () => {
     assert.equal(stmts.getSession.get(deadId).status, "completed");
   });
 
+  it("keeps a Codex session alive when its process holds a later segment rollout", () => {
+    const id = "0a19c8e0-0000-4000-8000-000000000021";
+    const firstPath = seedCodexSession(id, "/tmp/liveness-codex-segment");
+    const segmentPath = path.join(
+      path.dirname(firstPath),
+      `rollout-2026-11-02T17-02-49-${id}_0a19c910-0000-4000-8000-000000000022.jsonl`
+    );
+
+    liveness.probeLiveCwds = () => ({ available: true, cwds: new Set() });
+    liveness.probeLiveCodexRollouts = () => ({
+      available: true,
+      paths: new Set([path.resolve(segmentPath)]),
+    });
+    hooksRouter.livenessReap({ provider: "codex" });
+
+    assert.equal(stmts.getSession.get(id).status, "active");
+  });
+
   it("does nothing when the probe is unavailable", async () => {
     const sid = "unav0000-0000-0000-0000-000000000003";
     const cwd = "/tmp/liveness-unavailable";

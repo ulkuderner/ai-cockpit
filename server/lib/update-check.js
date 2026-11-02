@@ -14,9 +14,9 @@ const { gitSafeEnv } = require("./git-env");
 
 const DEFAULT_ROOT = path.join(__dirname, "..", "..");
 
-// Standard convention for fork workflows: "upstream" points at the canonical
-// repo, "origin" points at the user's fork. Prefer upstream when both exist.
-const REMOTE_PRIORITY = ["upstream", "origin"];
+// AI Cockpit is a fork: "origin" is the cockpit repo and is the one users update
+// from; "upstream" is the original project, merged by hand. Prefer origin.
+const REMOTE_PRIORITY = ["origin", "upstream"];
 
 // `env: gitSafeEnv()` is load-bearing, not hygiene. If this process was started
 // from a git hook (or anything else mid-git-operation), GIT_DIR / GIT_INDEX_FILE

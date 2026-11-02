@@ -147,36 +147,26 @@ describe("getUpdatesStatus — local on a feature branch", () => {
   });
 });
 
-describe("getUpdatesStatus — fork layout (origin = fork, upstream = canonical)", () => {
-  it("prefers upstream and emits a fetch+merge command, not git pull", async () => {
+describe("getUpdatesStatus — fork layout (origin = cockpit repo, upstream = original project)", () => {
+  it("prefers origin, so the original project's commits never show as an update", async () => {
     const execGit = fakeGit({
-      // Both remotes present; the module prefers "upstream" as canonical.
       remote: "origin\nupstream",
-      "rev-parse --verify upstream/master": "ok",
-      "symbolic-ref --short HEAD": "master",
-      // Local master still tracks origin/master (the fork), not upstream/master.
-      "rev-parse --abbrev-ref --symbolic-full-name @{u}": "origin/master",
+      "rev-parse --verify origin/main": "ok",
+      "symbolic-ref --short HEAD": "cockpit",
+      "rev-parse --abbrev-ref --symbolic-full-name @{u}": "origin/main",
       "rev-parse HEAD": "aaaa111",
-      "rev-parse upstream/master": "bbbb222",
-      "rev-list --count HEAD..upstream/master": "5",
+      "rev-parse origin/main": "bbbb222",
+      "rev-list --count HEAD..origin/main": "2",
     });
 
     const result = await getUpdatesStatus(repoRoot, { skipFetch: true, execGit });
 
-    assert.equal(result.canonical_remote, "upstream");
-    assert.equal(result.remote_ref, "upstream/master");
-    assert.equal(result.current_branch, "master");
-    assert.equal(result.tracking_upstream, "origin/master");
-    assert.equal(result.tracks_canonical, false);
-    assert.equal(result.situation, "fork_or_diverged_tracking");
-    assert.ok(result.situation_note);
-    assert.match(result.manual_command, /git fetch upstream/);
-    assert.match(result.manual_command, /git merge --ff-only upstream\/master/);
-    assert.doesNotMatch(
-      result.manual_command,
-      /git pull --ff-only(?! upstream)/,
-      "plain git pull would pull origin/master (the fork), not canonical"
-    );
+    assert.equal(result.canonical_remote, "origin");
+    assert.equal(result.remote_ref, "origin/main");
+    assert.equal(result.tracks_canonical, true);
+    assert.equal(result.situation, "tracking_canonical");
+    assert.match(result.manual_command, /git pull --ff-only/);
+    assert.doesNotMatch(result.manual_command, /upstream/);
   });
 });
 

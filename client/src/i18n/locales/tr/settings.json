@@ -635,7 +635,8 @@
     "purgeData": "Bu kaynaktan içe aktarılan oturumları da sil (geri alınamaz)",
     "deleteAndPurge": "Kaldır + verileri sil",
     "removeKeep": "Kaldır (verileri koru)",
-    "remoteSourceBadgeTitle": "Uzak bir makineden toplandı"
+    "remoteSourceBadgeTitle": "Uzak bir makineden toplandı",
+    "retryLastError": "Yeniden deneniyor. Son hata:"
   },
   "cursorPathsNote": "Cursor, Claude Code panel kapsamına dahildir. Yerel geçmiş ~/.cursor dizininden otomatik bulunur ve anlık görüntüsü alınır; uzak Cursor klasörleri yalnızca Claude'a özgü SSH içe aktarmalarıyla eşitlenmez."
 }

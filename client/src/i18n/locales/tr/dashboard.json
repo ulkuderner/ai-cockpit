@@ -22,5 +22,9 @@
   "tabs": {
     "monitor": "İzleme",
     "health": "Sağlık"
-  }
+  },
+  "costEstimate": "API karşılığı tahmin, abonelik ücreti değil.",
+  "costScope": "Kaynaklar: {{sources}} · Ürünler: {{providers}}",
+  "costIncomplete": "Eksik tahmin: bazı kullanımlar için geçerli fiyat yok ({{models}}).",
+  "reviewRates": "Fiyatları gözden geçir"
 }

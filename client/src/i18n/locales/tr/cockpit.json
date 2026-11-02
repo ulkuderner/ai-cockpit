@@ -39,7 +39,7 @@
   "weekly": "Haftalık",
   "resetsAt": "sıfırlanma {{time}}",
   "unknown": "bilinmiyor",
-  "claudeLimitsHint": "Claude Code limitleri yalnız durum satırına bildiriyor. Bağlamak için README, \"Claude limitleri\" bölümüne bak.",
+  "claudeLimitsHint": "Claude Code kullanım verisi alınamadı. Claude Code'a giriş yapılmış olmalı; veri 5 dakikada bir yenilenir.",
   "telemetryTitle": "Canlı telemetri",
   "lastHour": "Son 1 saat",
   "allTime": "Tüm zamanlar",

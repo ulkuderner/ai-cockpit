@@ -569,6 +569,7 @@ function startBackgroundServices() {
   try {
     require("./lib/telemetry").start();
     require("./lib/price-sync").startWeekly();
+    require("./lib/usage-limits").startClaudeUsagePoll();
   } catch (err) {
     console.warn("Telemetry sampler failed to start:", err.message);
   }

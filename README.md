@@ -90,7 +90,9 @@ ai-cockpit-agent status
 
 ## Claude limitleri
 
-Claude Code `rate_limits` bilgisini yalnız statusline komutuna verir. `statusline/cockpit-tee.js` girdiyi `~/.ai-cockpit/claude-limits.json`'a yazar ve mevcut statusline komutuna aynen aktarır. `~/.claude/settings.json` içinde:
+Kokpit, Claude Code'un `/usage` komutunun kullandığı uç noktaya (`api.anthropic.com/api/oauth/usage`) 5 dakikada bir sorar ve sonucu `~/.ai-cockpit/claude-limits.json`'a yazar. Token Claude Code'un kendi oturumundan okunur: Linux/Windows'ta `~/.claude/.credentials.json`, macOS'ta Anahtar Zinciri'ndeki "Claude Code-credentials". Token yalnız Anthropic'e gider ve kokpit onu hiç yenilemez. Kapatmak için `AI_COCKPIT_CLAUDE_USAGE=0`.
+
+İsteğe bağlı: `statusline/cockpit-tee.js` statusline girdisini aynı dosyaya yazar ve önceki statusline komutunu aynen çalıştırır:
 
 ```json
 "statusLine": {

@@ -1,5 +1,5 @@
 /**
- * @file AI Cockpit subscriptions: which AI coding subscriptions are set up on this machine and what each one reports locally. Plans come from each tool's own local files (Claude ~/.claude.json, Codex ~/.codex/auth.json id_token claims decoded locally, Cursor `cursor-agent about`, Gemini ~/.gemini/settings.json); usage windows reuse usage-limits.js; tools that keep no quota locally get today's local activity instead. No network calls.
+ * @file AI Cockpit subscriptions: which AI coding subscriptions are set up on this machine and what each one reports locally. Plans come from each tool's own local files (Claude ~/.claude.json, Codex ~/.codex/auth.json id_token claims decoded locally, Cursor `cursor-agent about`, Gemini ~/.gemini/settings.json); usage windows reuse usage-limits.js; Claude limits are fetched by usage-limits.js; tools that keep no quota locally get today's local activity instead.
  * @author Caglar Ulkuderner
  */
 

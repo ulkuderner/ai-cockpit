@@ -1,17 +1,19 @@
 /**
  * @file usage-limits.js
- * @description Reads local provider usage-limit windows without any network
- * access. Codex: the last `rate_limits` record in the tail of the newest
- * rollout under the Codex sessions dir. Claude: the file written by
- * statusline/cockpit-tee.js (~/.ai-cockpit/claude-limits.json), because Claude
- * Code only exposes limits on the statusline stdin JSON. Windows whose reset
- * time has passed are dropped.
+ * @description Reads provider usage-limit windows. Codex: the last
+ * `rate_limits` record in the tail of the newest rollout under the Codex
+ * sessions dir. Claude: ~/.ai-cockpit/claude-limits.json, written both by
+ * statusline/cockpit-tee.js and by pollClaudeUsage(), which asks Anthropic's
+ * usage endpoint (the one Claude Code's /usage uses) every 5 minutes with
+ * Claude Code's own OAuth token. Windows whose reset time has passed are
+ * dropped.
  * @author Son Nguyen <hoangson091104@gmail.com>
  */
 
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
+const { execFile } = require("child_process");
 const { getCodexSessionsDir } = require("./codex-home");
 
 const TAIL_BYTES = 512 * 1024;
@@ -145,4 +147,73 @@ function getLimits(now = Math.floor(Date.now() / 1000)) {
   return { claude: claudeLimits(now), codex: codexLimits(now) };
 }
 
-module.exports = { getLimits };
+const CLAUDE_USAGE_URL = "https://api.anthropic.com/api/oauth/usage";
+const CLAUDE_POLL_MS = 5 * 60 * 1000;
+
+/**
+ * Claude Code's OAuth access token: ~/.claude/.credentials.json on Linux and
+ * Windows, the "Claude Code-credentials" Keychain item on macOS. Never
+ * refreshed here: rotating the refresh token would sign Claude Code out.
+ */
+async function claudeToken() {
+  const dir = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), ".claude");
+  const sources = [() => fs.promises.readFile(path.join(dir, ".credentials.json"), "utf8")];
+  if (process.platform === "darwin") {
+    sources.push(
+      () =>
+        new Promise((resolve, reject) =>
+          execFile(
+            "security",
+            ["find-generic-password", "-s", "Claude Code-credentials", "-w"],
+            { timeout: 10_000 },
+            (err, out) => (err ? reject(err) : resolve(out))
+          )
+        )
+    );
+  }
+  for (const read of sources) {
+    try {
+      const oauth = JSON.parse(await read()).claudeAiOauth;
+      if (oauth?.accessToken && !(oauth.expiresAt <= Date.now())) return oauth.accessToken;
+    } catch {
+      /* try the next source */
+    }
+  }
+  return null;
+}
+
+/** Map the usage response to the claude-limits.json shape. */
+function claudeUsageToLimits(body, nowSec) {
+  const win = (w) =>
+    w && Number.isFinite(Number(w.utilization))
+      ? { used_percent: Number(w.utilization), resets_at: w.resets_at }
+      : null;
+  return { five_hour: win(body?.five_hour), seven_day: win(body?.seven_day), updated_at: nowSec };
+}
+
+async function pollClaudeUsage() {
+  const token = await claudeToken();
+  if (!token) return false;
+  const res = await fetch(CLAUDE_USAGE_URL, {
+    headers: { Authorization: `Bearer ${token}`, "anthropic-beta": "oauth-2025-04-20" },
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (!res.ok) return false;
+  const out = claudeUsageToLimits(await res.json(), Math.floor(Date.now() / 1000));
+  const file = path.join(cockpitDir(), "claude-limits.json");
+  fs.mkdirSync(cockpitDir(), { recursive: true });
+  fs.writeFileSync(`${file}.tmp`, JSON.stringify(out));
+  fs.renameSync(`${file}.tmp`, file);
+  return true;
+}
+
+let claudeTimer = null;
+function startClaudeUsagePoll() {
+  if (claudeTimer || process.env.AI_COCKPIT_CLAUDE_USAGE === "0") return;
+  const tick = () => pollClaudeUsage().catch(() => {});
+  setTimeout(tick, 5_000).unref();
+  claudeTimer = setInterval(tick, CLAUDE_POLL_MS);
+  claudeTimer.unref();
+}
+
+module.exports = { getLimits, claudeUsageToLimits, startClaudeUsagePoll };

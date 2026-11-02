@@ -18,7 +18,7 @@ process.env.HOME = HOME;
 delete process.env.CODEX_HOME;
 delete process.env.DASHBOARD_CODEX_HOME;
 delete process.env.AI_COCKPIT_DIR;
-const { getLimits } = require("../lib/usage-limits");
+const { getLimits, claudeUsageToLimits } = require("../lib/usage-limits");
 
 const NOW = 1_793_000_000;
 const rollout = path.join(HOME, ".codex/sessions/2026/10/28/rollout-2026-10-28T11-59-04-abc.jsonl");
@@ -74,5 +74,19 @@ describe("usage limits", () => {
     });
     assert.equal(r.status, 0);
     assert.equal(r.stdout, "");
+  });
+});
+
+describe("claude usage endpoint mapping", () => {
+  it("maps utilization windows and leaves empty ones null", () => {
+    const out = claudeUsageToLimits(
+      { five_hour: null, seven_day: { utilization: 15, resets_at: "2026-11-07T23:00:00+00:00" } },
+      NOW
+    );
+    assert.deepEqual(out, {
+      five_hour: null,
+      seven_day: { used_percent: 15, resets_at: "2026-11-07T23:00:00+00:00" },
+      updated_at: NOW,
+    });
   });
 });

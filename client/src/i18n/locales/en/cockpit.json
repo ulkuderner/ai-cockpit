@@ -39,7 +39,7 @@
   "weekly": "Weekly",
   "resetsAt": "resets {{time}}",
   "unknown": "unknown",
-  "claudeLimitsHint": "Claude Code reports limits only to its status line. See README, \"Claude limits\" to connect it.",
+  "claudeLimitsHint": "Could not read Claude Code usage. Claude Code must be signed in; data refreshes every 5 minutes.",
   "telemetryTitle": "Live telemetry",
   "lastHour": "Last hour",
   "allTime": "All time",

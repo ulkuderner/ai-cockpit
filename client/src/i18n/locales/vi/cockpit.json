@@ -1,4 +1,7 @@
 {
+  "planActive": "In progress · {{sessions}}",
+  "planLastStep": "Last step: {{step}}",
+  "planActiveShort": "Active",
   "planTitle": "Kế hoạch",
   "planSubtitle": "Giai đoạn, tác vụ trực tiếp, hàng đợi và ước tính",
   "tasks": "Tác vụ",

@@ -181,3 +181,83 @@ test("(est:Nh) in headings: stripped from title, used when nothing was measured"
   assert.equal(out.totals.remaining_ms, 2 * 3_600_000 + 30 * 60_000);
   assert.equal(t2.remaining_ms, 30 * 60_000);
 });
+
+function sddRepo(progress) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "plan-sdd-"));
+  fs.mkdirSync(path.join(dir, ".git"));
+  fs.mkdirSync(path.join(dir, "docs"));
+  const file = path.join(dir, "docs", "p.md");
+  fs.writeFileSync(file, "## A\n### Task 1: X\n### Task 2: Y\n### Task 3: Z\n");
+  const sdd = path.join(dir, ".superpowers", "sdd", "run-1");
+  fs.mkdirSync(sdd, { recursive: true });
+  fs.writeFileSync(path.join(sdd, "plan-path"), "docs/p.md\n");
+  fs.writeFileSync(path.join(sdd, "progress.md"), progress);
+  return { dir, cfg: { id: "p", name: "P", file } };
+}
+
+test("buildPlan takes done and in-progress tasks from the SDD ledger", () => {
+  const { dir, cfg } = sddRepo(
+    "Task 1: dispatched\nTask 1: complete (a..b)\nTask 2: dispatched (BASE b)\nTask 1-fidelity: complete.\n"
+  );
+  const live = [
+    {
+      text: "",
+      started_at: "2026-11-03T00:00:00Z",
+      ended_at: null,
+      live: true,
+      label: "Acurovet",
+      cwd: dir,
+    },
+  ];
+  const out = plan.buildPlan(cfg, { tasks: {}, order: {} }, live);
+  const t = Object.fromEntries(out.phases[0].tasks.map((x) => [x.id, x]));
+  assert.equal(t["1"].status, "done");
+  assert.equal(t["2"].status, "running");
+  assert.deepEqual(t["2"].running, ["Acurovet"]);
+  assert.equal(t["3"].status, "todo");
+  assert.equal(out.active, true);
+  assert.deepEqual(out.active_sessions, ["Acurovet"]);
+  assert.equal(out.last_step, "Task 1-fidelity: complete.");
+});
+
+test("buildPlan with a ledger ignores task mentions in live sessions", () => {
+  const { dir, cfg } = sddRepo("Task 1: complete\n");
+  const live = [
+    {
+      text: "Task 3 later",
+      started_at: "2026-11-03T00:00:00Z",
+      ended_at: null,
+      live: true,
+      label: "s",
+      cwd: dir,
+    },
+  ];
+  const t3 = plan.buildPlan(cfg, { tasks: {}, order: {} }, live).phases[0].tasks[2];
+  assert.equal(t3.status, "todo");
+  assert.ok(t3.spent_ms > 0, "mentions still count toward time");
+});
+
+test("buildPlan: ledger's open task is not running and the plan not active without a live session", () => {
+  const { cfg } = sddRepo("Task 1: complete\nTask 2: dispatched\n");
+  const out = plan.buildPlan(cfg, { tasks: {}, order: {} }, []);
+  const t = Object.fromEntries(out.phases[0].tasks.map((x) => [x.id, x]));
+  assert.equal(t["1"].status, "done");
+  assert.equal(t["2"].status, "todo");
+  assert.equal(out.active, false);
+});
+
+test("buildPlan counts a session launched in the repo even after it cd'd away", () => {
+  const { dir, cfg } = sddRepo("");
+  const work = [
+    {
+      text: "",
+      started_at: "2026-11-03T00:00:00Z",
+      ended_at: null,
+      live: true,
+      label: "s",
+      cwd: "/tmp/scratch",
+      project: dir.replace(/[^a-zA-Z0-9]/g, "-"),
+    },
+  ];
+  assert.equal(plan.buildPlan(cfg, { tasks: {}, order: {} }, work).active, true);
+});

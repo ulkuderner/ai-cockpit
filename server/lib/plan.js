@@ -84,6 +84,46 @@ function repoRoot(file) {
   }
 }
 
+/**
+ * Superpowers SDD ledger for this plan: `<repo>/.superpowers/sdd/<run>/plan-path` names the plan,
+ * `progress.md` beside it logs "Task 3a: dispatched" / "Task 3a: complete". Returns finished ids and
+ * the last dispatched-but-unfinished id, and the ledger's last line; `found` is false when no ledger points at this plan.
+ */
+function readLedger(root, planFile) {
+  const done = new Set();
+  let open = null;
+  let found = false;
+  let last = null;
+  const base = path.join(root, ".superpowers", "sdd");
+  let runs = [];
+  try {
+    runs = fs.readdirSync(base);
+  } catch {
+    return { done, open, found, last };
+  }
+  for (const run of runs) {
+    let text;
+    try {
+      const target = fs.readFileSync(path.join(base, run, "plan-path"), "utf8").trim();
+      if (path.resolve(root, target) !== path.resolve(planFile)) continue;
+      text = fs.readFileSync(path.join(base, run, "progress.md"), "utf8");
+    } catch {
+      continue;
+    }
+    found = true;
+    const lines = text.split(/\r?\n/).filter((l) => l.trim());
+    if (lines.length) last = lines[lines.length - 1].replace(/^[-*]\s*/, "").slice(0, 200);
+    for (const m of text.matchAll(/^Task ([0-9]+[a-z]?): (complete|dispatched)\b/gim)) {
+      const id = m[1].toLowerCase();
+      if (m[2].toLowerCase() === "complete") {
+        done.add(id);
+        if (open === id) open = null;
+      } else if (!done.has(id)) open = id;
+    }
+  }
+  return { done, open, found, last };
+}
+
 function median(nums) {
   if (nums.length === 0) return null;
   const s = [...nums].sort((a, b) => a - b);
@@ -147,9 +187,16 @@ function buildPlan(planCfg, state, work, now = Date.now(), firstCommit = planFir
   const manual = state.tasks[planCfg.id] || {};
   // Only sessions run inside the plan's own repo count; "Task 1" appears in many unrelated projects.
   const root = repoRoot(planCfg.file);
-  work = work.filter((w) => w.cwd && (w.cwd === root || w.cwd.startsWith(root + path.sep)));
+  // `project` is the Claude transcript dir: the launch cwd, kept even after the session cd's away.
+  const rootProject = root.replace(/[^a-zA-Z0-9]/g, "-");
+  work = work.filter(
+    (w) =>
+      (w.cwd && (w.cwd === root || w.cwd.startsWith(root + path.sep))) || w.project === rootProject
+  );
   const phases = parsePlan(markdown);
   const all = phases.flatMap((p) => p.tasks);
+  const ledger = readLedger(root, planCfg.file);
+  const activeSessions = [...new Set(work.filter((w) => w.live).map((w) => w.label))];
 
   for (const task of all) {
     const re = mentionRegex(task.id);
@@ -159,11 +206,23 @@ function buildPlan(planCfg, state, work, now = Date.now(), firstCommit = planFir
       const end = w.ended_at ? Date.parse(w.ended_at) : now;
       return Number.isFinite(start) && end > start ? sum + (end - start) : sum;
     }, 0);
-    task.running = hits.filter((w) => w.live).map((w) => w.label);
+    // A ledger names the one open task; mentions in a long orchestrating session would flag many.
+    task.running = ledger.found
+      ? ledger.open === task.id
+        ? activeSessions
+        : []
+      : hits.filter((w) => w.live).map((w) => w.label);
     const starts = hits.map((w) => Date.parse(w.started_at)).filter(Number.isFinite);
     task.started_at = starts.length ? new Date(Math.min(...starts)).toISOString() : null;
     const m = manual[task.id]?.status;
-    task.status = m === "done" || m === "blocked" ? m : task.running.length ? "running" : "todo";
+    task.status =
+      m === "done" || m === "blocked"
+        ? m
+        : ledger.done.has(task.id)
+          ? "done"
+          : task.running.length
+            ? "running"
+            : "todo";
     task.done_at = m === "done" ? manual[task.id].at || null : null;
   }
 
@@ -205,6 +264,9 @@ function buildPlan(planCfg, state, work, now = Date.now(), firstCommit = planFir
 
   return {
     ...planCfg,
+    active: activeSessions.length > 0,
+    active_sessions: activeSessions,
+    last_step: ledger.last,
     phases,
     queue,
     typical_task_ms: typical,

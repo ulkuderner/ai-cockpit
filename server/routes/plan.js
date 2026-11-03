@@ -15,7 +15,7 @@ const router = Router();
 function loadWork() {
   const sessions = db
     .prepare(
-      "SELECT id, name, card_prompt_preview, status, started_at, ended_at, cwd FROM sessions"
+      "SELECT id, name, card_prompt_preview, status, started_at, ended_at, cwd, transcript_path FROM sessions"
     )
     .all()
     .map((s) => ({
@@ -26,6 +26,7 @@ function loadWork() {
       live: s.status === "active",
       label: s.name || "Oturum",
       cwd: s.cwd,
+      project: s.transcript_path ? path.basename(path.dirname(s.transcript_path)) : null,
     }));
   const agents = db
     .prepare(

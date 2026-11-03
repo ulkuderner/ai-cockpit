@@ -24,6 +24,11 @@ export interface Plan {
   name: string;
   file: string;
   error?: string;
+  /** A live session works in the plan's repo. */
+  active?: boolean;
+  active_sessions?: string[];
+  /** Last line of the plan's SDD progress ledger. */
+  last_step?: string | null;
   phases: Array<{ title: string; tasks: PlanTask[] }>;
   queue: string[];
   typical_task_ms: number | null;

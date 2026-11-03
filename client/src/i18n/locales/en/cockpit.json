@@ -1,5 +1,8 @@
 {
   "planTitle": "Plan",
+  "planActive": "In progress · {{sessions}}",
+  "planLastStep": "Last step: {{step}}",
+  "planActiveShort": "Active",
   "planSubtitle": "Phases, live tasks, queue and estimates",
   "tasks": "Tasks",
   "status": {

@@ -1,4 +1,7 @@
 {
+  "planActive": "In progress · {{sessions}}",
+  "planLastStep": "Last step: {{step}}",
+  "planActiveShort": "Active",
   "planTitle": "계획",
   "planSubtitle": "단계, 실시간 작업, 대기열, 예상 시간",
   "tasks": "작업",

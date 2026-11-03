@@ -1,5 +1,8 @@
 {
   "planTitle": "Plan",
+  "planActive": "Üzerinde çalışılıyor · {{sessions}}",
+  "planLastStep": "Son adım: {{step}}",
+  "planActiveShort": "Aktif",
   "planSubtitle": "Aşamalar, çalışan görevler, sıra ve tahminler",
   "tasks": "Görevler",
   "status": {

@@ -443,6 +443,20 @@ export default function Plan() {
             <p className="text-sm text-gray-500">{t("planSubtitle")}</p>
           </div>
         </div>
+        {plan?.active && (
+          <span
+            className="inline-flex max-w-full items-center gap-2 rounded-full bg-emerald-500/15 px-3 py-1 text-xs text-emerald-300 ring-1 ring-emerald-400/30"
+            title={plan.active_sessions?.join(" · ")}
+          >
+            <span
+              className="h-2 w-2 shrink-0 rounded-full bg-emerald-400 animate-pulse"
+              aria-hidden
+            />
+            <span className="truncate">
+              {t("planActive", { sessions: plan.active_sessions?.join(" · ") })}
+            </span>
+          </span>
+        )}
         {plans && plans.length > 1 && (
           <div className="ml-auto flex rounded-lg bg-surface-2 p-1" role="tablist">
             {plans.map((p) => (
@@ -453,12 +467,24 @@ export default function Plan() {
                 onClick={() => setActive(p.id)}
                 className={`px-3 py-1.5 rounded-md text-sm ${p.id === plan?.id ? "bg-surface-4 text-gray-100" : "text-gray-400 hover:text-gray-200"}`}
               >
+                {p.active && (
+                  <span
+                    className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 align-middle"
+                    aria-label={t("planActiveShort")}
+                  />
+                )}
                 {p.name}
               </button>
             ))}
           </div>
         )}
       </header>
+
+      {plan?.last_step && (
+        <p className="text-xs text-gray-500 truncate" title={plan.last_step}>
+          {t("planLastStep", { step: plan.last_step })}
+        </p>
+      )}
 
       {plans && plans.length === 0 && <AddPlan existing={[]} onSaved={load} />}
 

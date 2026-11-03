@@ -198,6 +198,16 @@ describe("isClaudeCommand — claude CLI process matcher", () => {
   }
 });
 
+describe("isClaudeCommand — binary path containing spaces", () => {
+  it("matches the Desktop app's claude under 'Application Support'", () => {
+    const dir = fs.mkdtempSync(path.join(require("os").tmpdir(), "App Support-"));
+    const bin = path.join(dir, "claude");
+    fs.writeFileSync(bin, "");
+    assert.equal(liveness.isClaudeCommand(`${bin} --output-format stream-json`), true);
+    assert.equal(liveness.isClaudeCommand(`/usr/bin/vim ${dir}/notclaude`), false);
+  });
+});
+
 describe("isCodexCommand — Codex CLI process matcher", () => {
   for (const cmd of [
     "codex",
@@ -304,6 +314,25 @@ describe("watchdog liveness reap", () => {
     await seedSession(sid, cwd);
 
     liveness.probeLiveCwds = () => ({ available: true, cwds: new Set([path.resolve(cwd)]) });
+    hooksRouter.livenessReap();
+
+    assert.equal(stmts.getSession.get(sid).status, "active");
+  });
+
+  it("keeps a session alive when its cwd moved but the process runs in the launch dir", async () => {
+    const sid = "live0000-0000-0000-0000-000000000003";
+    const launch = "/tmp/liveness-launch";
+    const tpath = writeTranscript(launch, sid, [
+      { type: "user", message: { role: "user", content: "hello" } },
+    ]);
+    const res = await req("POST", "/api/hooks/event", {
+      hook_type: "Stop",
+      data: { session_id: sid, cwd: "/tmp/liveness-launch/sub dir", transcript_path: tpath },
+    });
+    assert.equal(res.status, 200);
+    backdate(sid, tpath);
+
+    liveness.probeLiveCwds = () => ({ available: true, cwds: new Set([path.resolve(launch)]) });
     hooksRouter.livenessReap();
 
     assert.equal(stmts.getSession.get(sid).status, "active");

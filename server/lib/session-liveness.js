@@ -33,6 +33,15 @@ function isAgentCommand(args, binary) {
   const tokens = args.trim().split(/\s+/);
   if (tokens.length === 0 || !tokens[0]) return false;
   if (path.basename(tokens[0]) === binary) return true;
+  // `ps` does not quote args, so an absolute binary path with spaces (the
+  // Desktop app's ".../Application Support/.../claude") spans several tokens.
+  if (tokens[0].startsWith("/")) {
+    let exe = tokens[0];
+    for (let i = 1; i < tokens.length && !tokens[i].startsWith("-"); i++) {
+      exe += ` ${tokens[i]}`;
+      if (path.basename(exe) === binary && fs.existsSync(exe)) return true;
+    }
+  }
   const interpreter = path.basename(tokens[0]);
   if ((interpreter === "node" || interpreter === "bun") && tokens[1]) {
     return path.basename(tokens[1]) === binary;

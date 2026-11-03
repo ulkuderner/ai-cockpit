@@ -293,6 +293,7 @@ function writeEnvFile(key, value) {
 
 module.exports = {
   getClaudeHome,
+  encodeCwd,
   getProjectsDir,
   getDataDir,
   getTranscriptSnapshotDir,

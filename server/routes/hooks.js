@@ -27,7 +27,7 @@ const { getRemotePushToken, extractHeaderOnlyToken, tokensMatch } = require("../
 const { REMOTE_PROVIDERS, assertProvider } = require("../lib/remote-sync");
 const { normalizeSpeed, normalizeGeo, normalizeTier } = require("../lib/token-usage");
 const { isCursorTranscriptPath } = require("../lib/cursor-home");
-const { getProjectsDir } = require("../lib/claude-home");
+const { getProjectsDir, encodeCwd } = require("../lib/claude-home");
 const {
   TranscriptPathError,
   decodeBase64Strict,
@@ -2000,6 +2000,12 @@ function livenessReap({
         continue;
       }
       if (probe.cwds.has(resolvedCwd)) continue;
+      // sess.cwd follows the latest hook (the session may have cd'd away);
+      // the transcript's project dir still encodes the launch cwd.
+      if (sess.transcript_path) {
+        const launchDir = path.basename(path.dirname(sess.transcript_path));
+        if ([...probe.cwds].some((c) => encodeCwd(c) === launchDir)) continue;
+      }
     }
 
     // Idle gate (watchdog ticks only — boot passes skip it, see above): the

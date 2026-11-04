@@ -32,6 +32,7 @@ Bugünkü kokpitte çekirdek zaten var: `server/lib/plan.js` plan dosyasını g�
 - İlk tercih, kişinin kendi aboneliğiyle resmi CLI'dır (Claude Code, Codex CLI, Gemini CLI). Gerekçe: abonelikler CLI ve masaüstü uygulamasından API'ye göre daha yüksek kullanım veriyor. (4 Kasım 2026)
 - Küçük görevlerde otomatik birleştirme ilk sürümde vardır; bir görevin otomatik birleşip birleşmeyeceğine ekip lideri işi verirken (iş isteğinde ya da görevi tahtaya açarken) karar verir. (4 Kasım 2026, ilk karar güncellendi)
 - Nevo'nun Hermes pilot makinesi ilk havuz ajanıdır; Mattermost ekip bildirim kanalıdır. (4 Kasım 2026)
+- Ekip hafızası mcp-memory-service (doobidoo) ile kurulur: merkezde şirket içinde çalışan tek sunucu; kişisel hafıza claude-mem'de kalır. (4 Kasım 2026)
 - Önceki merkezi plan kararları sürer: 50+ kişi, ekip görünürlüğü, maskeleme, cihaz eşleştirme, PostgreSQL, Docker, yalnız HTTPS, GPL-3.0, "Developed by Caglar Ulkuderner".
 
 ## Fable'ın kararları
@@ -111,7 +112,10 @@ Bugünkü kokpitte çekirdek zaten var: `server/lib/plan.js` plan dosyasını g�
 ### Bağlam
 
 - Yerel: claude-mem gözlemleri (SQLite + yerel HTTP API) kokpitte görünür; brief üretici aynı repo/alan için son gözlemleri çeker.
-- Ekip: TeamBrain kullanılmaz (cmem.ai bulutu). Merkez bağlam deposu = PostgreSQL tablosu; içerik: görev başına maskelenmiş brief ve kapanış özeti. M5 maskeleme kuralları aynen uygulanır: maskeleme çalışmazsa gönderilmez.
+- Ekip: TeamBrain kullanılmaz (cmem.ai bulutu). Ekip hafızası = merkezde çalışan mcp-memory-service (kullanıcının kararı). Depolama yalnız yerel SQLite (sqlite-vec) ya da şirket içi Milvus; Cloudflare ve Hybrid'in bulut eşitlemesi kapalı. Embedding yerel ONNX; özet ve kalite puanlama gibi LLM isteyen özellikler kapalı ya da yalnız merkezin LiteLLM/yerel Qwen uç noktasına bağlı. Yalnız HTTPS ve OAuth; 0.0.0.0'a açılmaz, merkez ters vekil arkasında durur.
+- İçerik: görev başına maskelenmiş brief, kapanış özeti ve kişinin "ekiple paylaş" dediği claude-mem gözlemleri. Her kayıt `repo:<ad>`, `task:<n>`, `area:<kök>` etiketleri ve `X-Agent-ID` (kişi/cihaz) ile yazılır. Her okuma `repo:` etiketiyle süzülür; servisin bootstrap profilleri projeye göre ayrılmadığı için kullanılmaz. Kim neyi okudu M5 okuma kaydına merkezden düşer. M5 maskeleme kuralları aynen uygulanır: maskeleme çalışmazsa gönderilmez. "Yalnız yerel model" etiketli repo (karar 14) da ekip hafızasına yazar, çünkü sunucu şirket içinde; dışarı çıkan tek yol yok.
+- Brief üretici (D1 Task 5) M5 sonrası iki kaynaktan okur: kişisel anılar claude-mem'den, ekip anıları mcp-memory-service `POST /api/search` (etiket süzgeçli) üzerinden. Merkez kapalıysa brief yalnız claude-mem ile yazılır, alma işlemi beklemez.
+- Merkezdeki PostgreSQL bağlam içeriğini tutmaz; yalnız ekip/kişi yetkisi, okuma kaydı ve denetimi tutar.
 - Kişi kendi reposunu "bağlam gönderme" olarak dışlayabilir (önceki spec'in dışlama kuralı).
 
 ### Öneri motoru
@@ -150,7 +154,7 @@ Merkez gerektirmeyenler bugünkü kokpitte hemen başlar.
 | M2 | Gönderim | Merkez | önceki plan + görev/istek olayları kuyruğa eklenir; Mattermost bildirim bağlayıcısı (iş isteği, onay kartı, sahipsiz görev, otomatik birleştirme, bütçe uyarısı) |
 | M3 | Ekip ekranları | Merkez | önceki plan + tahta aynası, sahipsiz görevler |
 | M4 | İş paketleri ve dağıtım | Merkez | tahta aynası, iş isteği kuyruğu, onay/kill switch kanalı, havuz ajanı kaydı (ilk makine: Nevo'nun Hermes pilotu), denetim kaydı, görev maliyeti toplamı |
-| M5 | İçerik ve bağlam | Merkez | önceki plan (maskeleme, arama, okuma kaydı) + bağlam deposu ve ekip arası brief |
+| M5 | İçerik ve bağlam | Merkez | önceki plan (maskeleme, arama, okuma kaydı) + ekip hafızası (mcp-memory-service kurulumu, etiket şeması, maskelenmiş yazma, ekip arası brief) |
 | Y6 | Merkezi geçit | Merkez | LiteLLM, şirket API anahtarları, kişi başı sanal anahtar ve bütçe |
 | M6 | Kurulum paketi | Merkez | Docker, yedekleme, pilot ekip |
 
@@ -164,11 +168,12 @@ Merkez gerektirmeyenler bugünkü kokpitte hemen başlar.
 | LiteLLM (BerriAI) | MIT (enterprise/ klasörü ayrı lisans) | aktif | Kullan (Y6): şirket API anahtarlarını kişi başı sanal anahtar ve bütçeyle dağıtan merkezi geçit |
 | Ollama / LM Studio / mlx-lm | MIT / kapalı istemci, açık SDK / MIT | aktif | Kullan: yerel model (Ollama kurulu, `qwen3.6:latest` hazır); Mac Studio sunucularda Ollama veya LM Studio ya da `mlx_lm.server`. vLLM Mac'te yalnız CPU, kullanılmaz (inceleme notu sonrası) |
 | claude-mem (thedotmack) | Apache-2.0 | aktif, kurulu | Kullan yerelde (SQLite + yerel HTTP API); TeamBrain kullanılmaz (cmem.ai bulutu) |
+| mcp-memory-service (doobidoo) | Apache-2.0 | aktif, ~2.1k yıldız, tek bakımcı | Kullan (M5): ekip hafızası; REST + MCP + OAuth + panel, yerel ONNX embedding, SQLite. Bulut backend'leri kapalı |
 | Hermes Agent (NousResearch) | MIT | aktif | Kullan: havuz makinesinde yürütücü ajan, CLI üzerinden (Codex gibi); A2A sunucusu yok, kendi mesaj geçidi var |
 | A2A (a2aproject) | Apache-2.0 | aktif | İlk sürümde değil; iş isteği durum adları A2A ile uyumlu tutulur, köprü sonra |
 | RouteLLM (lm-sys) | Apache-2.0 | son push Ağustos 2024, durağan | Bağımlılık değil; eşik fikirleri için kaynak |
 | Langfuse | MIT çekirdek, ee/ ayrı lisans | aktif | Gerekmez: ccr kayıtları + kokpit hook verisi istek izini zaten verir |
-| mem0 | Apache-2.0 | aktif | Gerekmez: claude-mem kurulu; merkez bağlam deposu PostgreSQL tablosu |
+| mem0 | Apache-2.0 | aktif | Gerekmez: kişisel hafıza claude-mem, ekip hafızası mcp-memory-service |
 | Vibe Kanban (BloopAI) | Apache-2.0 | aktif | Kullanılmaz: tek makine odaklı orkestratör, kokpitin Ajan Çalıştır'ı ile çakışır; "görev başına worktree" deseni alınır |
 | Beads (gastownhall) | MIT | aktif | Kullanılmaz (v1): Dolt tabanlı dağıtık issue grafı, `bd ready`/`--claim` modeli iyi ama GitHub Issues kaynağıyla çakışır ve Dolt bağımlılığı getirir; yalnız yerel repolar için ileride seçenek |
 | Backlog.md (MrLesk) | MIT | aktif | Kullanılmaz: repo içi Markdown görevler; plan.js aynı işi görüyor, biçimi ileride uyumlu hale getirilebilir |
@@ -184,6 +189,8 @@ Merkez gerektirmeyenler bugünkü kokpitte hemen başlar.
 - Uzaktan başlatılan ajanın yerel makinede kaynak tüketmesi; süre ve bütçe tavanı zorunlu, varsayılanlar builder kararı.
 - Gözden geçiren ajanın yerel modelle zayıf kalması; insan kapısı bu yüzden zorunlu.
 - Merkez kapalıyken iş isteği yalnız issue ataması yoluyla gider; bildirim gecikir ama kaybolmaz.
+- mcp-memory-service tek bakımcılı ve Python bağımlılığı getirir; merkez ona yalnız REST ile konuşur (tek modül), Docker imajı sürüm sabitlenir. Proje durursa içerik dışa aktarılıp PostgreSQL tablosuna (pgvector) taşınabilir; brief biçimi değişmez.
+- Ekip hafızasında repo sızıntısı: süzgeç etiketle yapılır, etiketsiz okuma merkez kodunda reddedilir.
 - claude-mem iç API'sinin sürümle değişmesi; okuma tek modülde toplanır, kırılırsa brief claude-mem'siz üretilir.
 - İstem enjeksiyonu: issue yazabilen herkes görev metnine gizli talimat koyabilir; brief ve PR açıklaması da öyle. Karşılık: metin veridir kuralı sistem isteminde, onaysız iş konteynerde, gözden geçiren ajan "ajana talimat" bulgusu çıkarır. Sıfır risk değildir; insan kapısı bu yüzden kalır.
 - Lisans: GPL-3.0 şirket içi kullanım için uygundur. Kokpit ileride ürün veya servis olarak satılırsa lisans seçimi yeniden gözden geçirilir (inceleme notu). LiteLLM `enterprise/` ve AGPL projeler dışarıda kalır.
@@ -195,6 +202,7 @@ Merkez gerektirmeyenler bugünkü kokpitte hemen başlar.
 - Yalnız yerel repo tahta dosya biçimi (`.ai-cockpit/board/*.md`).
 - ccr config üretim şablonu ve kayıt dosyası ayrıştırıcısı.
 - claude-mem yerel HTTP API uç noktaları ve brief boyut sınırı.
+- mcp-memory-service sürümü, kullanıcılar arası yetki ayrımının ayrıntısı (OAuth kapsamları yetmezse yetki merkezde, servis yalnız merkezin servis hesabıyla çağrılır), MCP araç listesi ve konsolidasyon/unutma ayarları; kurulmadan önce dokümandan doğrulanır.
 - Worktree konumu, temizleme süresi, kalp atışı eşiği varsayılanı (4 saat önerilir).
 - İş isteği kanalının mesaj şeması (A2A durum adlarıyla), bütçe/süre tavanı varsayılanları.
 - Gözden geçiren ajan istemi ve hangi CLI ile çalışacağı (claude -p, codex exec, ollama).

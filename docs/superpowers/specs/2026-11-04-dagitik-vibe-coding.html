@@ -927,8 +927,9 @@
     <h2>Görevi kim alırsa alsın aynı brief ile başlar</h2>
     <p>
       Görev alınınca kokpit worktree içine <code class="mono">.ai-cockpit/brief.md</code> yazar.
-      Ajan hangisi olursa olsun önce bunu okur. Ekip arası paylaşım merkezdeki bağlam deposundan
-      gelir; claude-mem'in TeamBrain özelliği kullanılmaz çünkü cmem.ai bulutundan geçer.
+      Ajan hangisi olursa olsun önce bunu okur. Kişisel anılar claude-mem'den, ekip anıları merkezde
+      şirket içinde çalışan mcp-memory-service'ten gelir (repo etiketiyle süzülür, maskelenir).
+      claude-mem'in TeamBrain özelliği kullanılmaz çünkü cmem.ai bulutundan geçer.
     </p>
     <div class="flow">
       <div class="step">
@@ -1025,6 +1026,12 @@
             <td>claude-mem</td>
             <td class="mono">Apache-2.0</td>
             <td><span class="tag k">kurulu</span> yerel API; TeamBrain kullanılmaz</td>
+          </tr>
+          <tr>
+            <td>Ekip hafızası (M5)</td>
+            <td>mcp-memory-service</td>
+            <td class="mono">Apache-2.0</td>
+            <td>şirket içi sunucu, yerel embedding, SQLite; bulut eşitleme kapalı</td>
           </tr>
           <tr>
             <td>Havuz makinesinde yürütücü ajan</td>
@@ -1156,7 +1163,7 @@
         </div>
         <div class="ph">
           <span class="id">M5</span><b>İçerik ve bağlam</b
-          ><small>maskeleme, arama, okuma kaydı, bağlam deposu</small>
+          ><small>maskeleme, arama, okuma kaydı, ekip hafızası</small>
         </div>
         <div class="ph">
           <span class="id">Y6</span><b>Merkezi geçit</b

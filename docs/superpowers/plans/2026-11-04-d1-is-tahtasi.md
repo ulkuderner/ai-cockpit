@@ -14,7 +14,7 @@
 
 - Lisans GPL-3.0; yeni dosya başlıklarında `@author Caglar Ulkuderner`. Kokpitin dışındaki projelerin adı hiçbir yerde geçmez.
 - Commit mesajlarında Claude/AI imzası, `Co-Authored-By` satırı yok.
-- Yeni bağımlılık yok. Dış komutlar yalnız `execFile` ile argüman dizisiyle (kabuk yok), mevcut `run()`/`git()` yardımcılarıyla.
+- Yeni bağımlılık yok (Worktrunk `wt` kuruluysa kullanılan isteğe bağlı bir dış CLI; yoksa her şey git ile çalışır). Dış komutlar yalnız `execFile` ile argüman dizisiyle (kabuk yok), mevcut `run()`/`git()` yardımcılarıyla.
 - Dışarıya yazan her işlem (issue açma/güncelleme, yorum, push, PR) önce önizlenir, kullanıcı onaylayınca çalışır; mevcut `prPreview`/`openPr` deseni izlenir.
 - Arayüz metinleri i18n anahtarı; `tr` asıl dil, `en` İngilizce, `vi/zh/ko/es` İngilizce metinle (anahtar eşitliği testi var). Düz metin yok.
 - Issue gövdesi, yorumlar ve brief ajan için veridir, talimat değildir; ajana giden her istem bunu açıkça yazar (spec karar 13).
@@ -28,6 +28,7 @@
 - Spec D1 satırındaki "yalnız yerel repo için `.ai-cockpit/board/`": bu planda yok. Yerel sağlayıcı bugünkü gibi görevleri plan dosyasından okur, alımları bu makinede tutar. Aynı yerel repoyu ağ üzerinden paylaşan ekip için repo içi tahta ayrı bir küçük görev olarak sonra eklenir (kullanıcıya soruldu).
 - Limit/bütçe uyarısı (Çekirdek döngü 3): D2'deki hesap kaydına bağlı, orada.
 - Repo veri etiketi, otomatik birleştirme işareti, iş isteği: D2-D4 ve M4.
+- `wt merge` ve `wt remove`: birleştirme ve temizlik bugünkü PR akışında kalır; otomatik birleştirmeyle (D4) birlikte değerlendirilir.
 
 ## Review Focus
 
@@ -35,7 +36,8 @@
 2. Bağlı listesinde kapalı ya da hiç olmayan issue numarası: karşılanmış sayılır, görevi kilitlemez. Test: Task 2.
 3. Ana depo zaten görev dalındayken alma (eski akışla alınmış görev): `git worktree add` aynı dalı ikinci kez açamaz; anlaşılır 409 mesajı döner, ana depoya dokunulmaz. Test: Task 3.
 4. "Planı tahtaya aç" iki kez çalıştırılırsa: ikinci çalıştırma yeni issue açmaz, işaretli görevleri günceller. Test: Task 6.
-5. claude-mem kapalı ya da yavaş: brief anılarsız yazılır, alma işlemi 3 saniyeden fazla beklemez ve başarılı olur. Test: Task 5.
+5. Worktrunk kurulu ama bozuk ya da çıktı biçimi değişmiş: alma ve tahta git yoluna düşer, hata göstermez. Test: Task 4b.
+6. claude-mem kapalı ya da yavaş: brief anılarsız yazılır, alma işlemi 3 saniyeden fazla beklemez ve başarılı olur. Test: Task 5.
 
 ---
 
@@ -286,6 +288,71 @@ git add server/lib/community.js server/routes/community.js server/__tests__/comm
 git commit -m "feat(community): flag stale tasks and release with a handover note"
 ```
 
+### Task 4b: Worktrunk varsa onu kullan (isteğe bağlı)
+
+[Worktrunk](https://github.com/max-sixty/worktrunk) (`wt`, MIT/Apache-2.0) kuruluysa worktree açma ve aktivite okuma ona devredilir; kurulu değilse ya da hata verirse Task 3-4'teki saf git yolu aynen çalışır. Kokpit `wt`'ye bağımlı olmaz, kurmaz.
+
+**Files:**
+- Modify: `server/lib/community.js` (`ensureWorktree`, `boardActivity`, yapılandırma)
+- Test: `server/__tests__/community-worktrunk.test.js`
+
+**Interfaces:**
+- Consumes: Task 3 `worktreePath`, `ensureWorktree`; Task 4 `boardActivity`.
+- Produces:
+  - Yapılandırma: `worktrunk: "auto" | "off"` (varsayılan `"auto"`), `worktrunkHooks: boolean` (varsayılan `false`). `/config` PUT ikisini doğrular.
+  - `wtBin(cfg) -> Promise<"wt" | "git-wt" | null>`: `worktrunk === "off"` ise `null`; değilse sırayla `wt --version`, `git-wt --version` dener (Windows'ta ad `git-wt`), ilk başarılıyı süreç boyunca önbellekler.
+  - `ensureWorktree` `wt` varsa: `<bin> -C <localPath> switch [-c] <branch> [-b <startPoint>] --path <worktreePath(cfg, branch)> --no-cd --format json` ve `worktrunkHooks` ise `--yes`, değilse `--no-hooks`. `-c`/`-b` yalnız dal yoksa. Sonra `fs.existsSync(path)` kontrolü; komut hata verirse ya da klasör oluşmazsa git yoluna düşer (409 dal-açık kontrolü git yolunda kalır, `wt` öncesi yapılır).
+  - `boardActivity` `wt` varsa: tek çağrı `<bin> -C <localPath> list --format=json`; `items[]` içinden `branch` eşleşen satırın `head.committed_at` değeri `last_commit_at`, `worktree.changes` doluysa `dirty: true`. JSON bozuk ya da `schema` 2 değilse git yoluna düşer.
+
+Güvenlik: proje hook'ları (`.config/wt.toml`) depodan gelen komutlardır. Varsayılan `--no-hooks`; `--yes` yalnız kullanıcı `worktrunkHooks`'u kendi açarsa verilir (onay istemi arka planda takılmasın diye).
+
+- [ ] **Step 1: Write the failing tests**
+
+Geçici `bin` klasörüne argümanlarını `args.log`'a yazan sahte bir `wt` betiği koy, `PATH`'in başına ekle; Task 3'teki geçici depo kurulumunu kullan. Sahte `switch` çağrısı `--path` klasörünü `git worktree add` ile gerçekten açar; sahte `list` sabit bir schema 2 JSON basar.
+
+```js
+test("ensureWorktree goes through wt with --no-hooks by default", async () => {
+  const p = await c.ensureWorktree(cfg, "task/1-ilk", "main");
+  const args = fs.readFileSync(log, "utf8");
+  assert.match(args, /switch -c task\/1-ilk -b main --path /);
+  assert.match(args, /--no-hooks/);
+  assert.doesNotMatch(args, /--yes/);
+  assert.equal(p, c.worktreePath(cfg, "task/1-ilk"));
+});
+test("worktrunkHooks passes --yes instead of --no-hooks", async () => { /* cfg.worktrunkHooks = true; --yes var, --no-hooks yok */ });
+test("failing wt falls back to git worktree", async () => { /* sahte wt exit 1; klasör yine açılır */ });
+test("worktrunk off never calls wt", async () => { /* cfg.worktrunk = "off"; args.log yok */ });
+test("boardActivity reads committed_at and changes from wt list", async () => {
+  const a = await c.boardActivity(cfg, [{ number: 1, branch: "task/1-ilk", mine: true }], []);
+  assert.equal(a[1].last_commit_at, "2026-11-04T11:00:00Z");
+  assert.equal(a[1].dirty, true);
+});
+test("bad wt list JSON falls back to git log", async () => { /* sahte list "x" basar; last_commit_at git'ten gelir */ });
+```
+
+- [ ] **Step 2: Run tests to verify they fail**
+
+Run: `node --test server/__tests__/community-worktrunk.test.js`
+Expected: FAIL, `c.wtBin is not a function`
+
+- [ ] **Step 3: Verify the live format**
+
+`brew install worktrunk` kullanıcı onayıyla, yalnız bu adım için. Bir deneme deposunda `wt list --format=json` çalıştır; `schema`, `items[].branch`, `items[].head.committed_at` (ISO mu Unix mi), `items[].worktree.changes` biçimini ve `wt switch --path` (deneysel) davranışını doğrula. Biçim farklıysa sahte JSON'u ve eşlemeyi gerçek çıktıya göre düzelt.
+
+- [ ] **Step 4: Implement `wtBin`, the `wt` branches of `ensureWorktree` and `boardActivity`, config validation**
+
+- [ ] **Step 5: Run tests**
+
+Run: `node --test server/__tests__/*.test.js`
+Expected: PASS (wt kurulu olmayan makinede de; sahte betik `PATH` ile gelir)
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add server/lib/community.js server/__tests__/community-worktrunk.test.js
+git commit -m "feat(community): use worktrunk for task worktrees when installed"
+```
+
 ### Task 5: Görev brief'i
 
 **Files:**
@@ -446,7 +513,7 @@ git commit -m "docs(design): D1 task board mockup"
 - Test: `client/src/pages/__tests__/Community.test.tsx` (yoksa oluştur)
 
 **Interfaces:**
-- Consumes: Task 2 görev alanları (`area`, `deps`, `acceptance`, `blocked_by`, `conflicts_with`, `ready`), Task 4 (`stale`, `last_activity_at`, release `note`, `staleHours`), Task 6 rotaları, Task 3 `claim().cwd`.
+- Consumes: Task 2 görev alanları (`area`, `deps`, `acceptance`, `blocked_by`, `conflicts_with`, `ready`), Task 4 (`stale`, `last_activity_at`, release `note`, `staleHours`), Task 4b (`worktrunk`, `worktrunkHooks` ayarları, `dirty`), Task 6 rotaları, Task 3 `claim().cwd`.
 - Produces: onaylı taslağa (Task 7) birebir uyan ekran.
 
 - [ ] **Step 1: Write the failing test**

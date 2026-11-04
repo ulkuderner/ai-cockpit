@@ -1,0 +1,1222 @@
+<title>Dağıtık Vibe Coding Planı</title>
+<meta name="claude:viewport-fit-sides" content="cover" />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+/>
+<style>
+  /* Layout: one reading column, diagrams break out wider, phases as a two-lane grid */
+  :root {
+    --bg: #f5f7f7;
+    --surface: #ffffff;
+    --fg: #17201f;
+    --muted: #5b6a68;
+    --line: #d3dcdb;
+    --accent: #0d6e66;
+    --accent-soft: #dff0ee;
+    --warn: #a15c00;
+    --warn-soft: #fbefdc;
+    --local: #3a5a8c;
+    --local-soft: #e3eaf6;
+    --display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+    --body: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1514;
+      --surface: #172120;
+      --fg: #e4ecea;
+      --muted: #94a5a2;
+      --line: #2b3a38;
+      --accent: #4fc9bc;
+      --accent-soft: #163633;
+      --warn: #f0b35a;
+      --warn-soft: #3a2b14;
+      --local: #8fb0e6;
+      --local-soft: #1b2740;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f1514;
+    --surface: #172120;
+    --fg: #e4ecea;
+    --muted: #94a5a2;
+    --line: #2b3a38;
+    --accent: #4fc9bc;
+    --accent-soft: #163633;
+    --warn: #f0b35a;
+    --warn-soft: #3a2b14;
+    --local: #8fb0e6;
+    --local-soft: #1b2740;
+    color-scheme: dark;
+  }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font: 15px/1.6 var(--body);
+  }
+  .wrap {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding-block: 40px 64px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--display);
+    text-wrap: balance;
+    margin: 0;
+    line-height: 1.15;
+  }
+  h1 {
+    font-size: clamp(28px, 4.5vw, 40px);
+  }
+  h2 {
+    font-size: 24px;
+  }
+  h3 {
+    font-size: 16px;
+    font-family: var(--body);
+    font-weight: 600;
+  }
+  p {
+    margin: 0;
+    max-width: 68ch;
+  }
+  section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .eyebrow {
+    font: 500 12px/1 var(--mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .lede {
+    color: var(--muted);
+    font-size: 17px;
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .sw {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    display: inline-block;
+  }
+  .diagram {
+    overflow-x: auto;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px;
+  }
+  .diagram svg {
+    display: block;
+    width: 100%;
+    min-width: 720px;
+    height: auto;
+  }
+  svg text {
+    font-family: var(--body);
+    fill: var(--fg);
+  }
+  svg .t-sm {
+    font-size: 12px;
+    fill: var(--muted);
+  }
+  svg .t-b {
+    font-weight: 600;
+    font-size: 14px;
+  }
+  svg .t-h {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    fill: var(--muted);
+  }
+  svg .zone {
+    fill: none;
+    stroke: var(--line);
+    stroke-width: 1.5;
+  }
+  svg .box {
+    fill: var(--surface);
+    stroke: var(--line);
+    stroke-width: 1.5;
+  }
+  svg .box-a {
+    fill: var(--accent-soft);
+    stroke: var(--accent);
+    stroke-width: 1.5;
+  }
+  svg .box-l {
+    fill: var(--local-soft);
+    stroke: var(--local);
+    stroke-width: 1.5;
+  }
+  svg .box-w {
+    fill: var(--warn-soft);
+    stroke: var(--warn);
+    stroke-width: 1.5;
+    stroke-dasharray: 5 4;
+  }
+  svg .ln {
+    stroke: var(--muted);
+    stroke-width: 1.5;
+    fill: none;
+  }
+  svg .ln-a {
+    stroke: var(--accent);
+    stroke-width: 2;
+    fill: none;
+  }
+  svg .ln-w {
+    stroke: var(--warn);
+    stroke-width: 1.5;
+    fill: none;
+    stroke-dasharray: 5 4;
+  }
+  svg .ln-d {
+    stroke: var(--muted);
+    stroke-width: 1.2;
+    fill: none;
+    stroke-dasharray: 3 4;
+  }
+  svg .ah {
+    fill: var(--muted);
+  }
+  svg .ah-a {
+    fill: var(--accent);
+  }
+  svg .ah-w {
+    fill: var(--warn);
+  }
+  .flow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .step {
+    flex: 1 1 150px;
+    min-width: 0;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .step b {
+    font-size: 14px;
+  }
+  .step small {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  .step.warn {
+    background: var(--warn-soft);
+    border: 1.5px dashed var(--warn);
+  }
+  .arrow {
+    align-self: center;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+  .note {
+    background: var(--warn-soft);
+    border-left: 3px solid var(--warn);
+    padding: 10px 14px;
+    border-radius: 0 6px 6px 0;
+    font-size: 14px;
+    max-width: none;
+  }
+  .note.ok {
+    background: var(--accent-soft);
+    border-left-color: var(--accent);
+  }
+  .phases {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 720px) {
+    .phases {
+      grid-template-columns: 1fr;
+    }
+  }
+  .lane {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+  }
+  .lane h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ph {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    gap: 2px 10px;
+  }
+  .ph .id {
+    grid-row: span 2;
+    font: 600 13px/1.6 var(--mono);
+    color: var(--accent);
+  }
+  .ph.l .id {
+    color: var(--local);
+  }
+  .ph.w {
+    border: 1.5px dashed var(--warn);
+    background: var(--warn-soft);
+  }
+  .ph.w .id {
+    color: var(--warn);
+  }
+  .ph b {
+    font-size: 14px;
+  }
+  .ph small {
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .tbl {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 640px;
+    font-size: 14px;
+  }
+  th,
+  td {
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  th {
+    font: 500 12px/1.4 var(--mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  tr:last-child td {
+    border-bottom: 0;
+  }
+  td code,
+  .mono {
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+  .tag {
+    font: 500 11px/1 var(--mono);
+    padding: 3px 6px;
+    border-radius: 4px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    white-space: nowrap;
+  }
+  .tag.k {
+    background: var(--local-soft);
+    color: var(--local);
+  }
+  .tag.x {
+    background: var(--warn-soft);
+    color: var(--warn);
+  }
+  ol.q {
+    margin: 0;
+    padding-left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 72ch;
+  }
+  ol.q li b {
+    display: block;
+  }
+  ol.q li span {
+    color: var(--muted);
+    font-size: 14px;
+  }
+  ul.rules {
+    margin: 0;
+    padding-left: 20px;
+    max-width: 72ch;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  footer {
+    color: var(--muted);
+    font-size: 13px;
+    border-top: 1px solid var(--line);
+    padding-top: 16px;
+  }
+</style>
+
+<div class="wrap">
+  <header style="display: flex; flex-direction: column; gap: 12px">
+    <div class="eyebrow">AI Cockpit · tasarım taslağı · 4 Kasım 2026</div>
+    <h1>Dağıtık vibe coding: bir plan, çok kişi, tek kokpit</h1>
+    <p class="lede">
+      Proje bir kez planlanır, görevlere bölünür; herkes kendi yapay zeka ajanıyla görev alır ve
+      yürütür; kokpit kim neyi yapıyor, kaça mal oldu, ne kadar ilerledi diye izler. Çoklu model ve
+      hesap, ccr, yerel Qwen, claude-mem ile bağlam devri, başkasının ajanına iş gönderme ve
+      otomatik öneri bu döngünün parçalarıdır. Henüz kod yok; turuncu kesikli kısımlar senin
+      kararını bekliyor.
+    </p>
+    <div class="legend">
+      <span
+        ><i class="sw" style="background: var(--local-soft); border: 1.5px solid var(--local)"></i
+        >Geliştiricinin bilgisayarı, merkez gerekmez</span
+      >
+      <span
+        ><i class="sw" style="background: var(--accent-soft); border: 1.5px solid var(--accent)"></i
+        >Merkezde çalışır</span
+      >
+      <span
+        ><i class="sw" style="background: var(--warn-soft); border: 1.5px dashed var(--warn)"></i
+        >Karar bekliyor</span
+      >
+    </div>
+  </header>
+
+  <section>
+    <div class="eyebrow">1 · Çekirdek döngü</div>
+    <h2>Plandan birleştirmeye kadar sekiz adım</h2>
+    <p>
+      Kokpitte bu döngünün tohumu zaten var: plan okuyucu, GitHub/GitLab issue tabanlı "Al ve
+      başlat" ile "PR gönder", ajan çalıştırıcı. Tasarım bunları tek döngüye bağlar. Her görev kendi
+      dalında ve kendi worktree'sinde çalışır; sonuç PR olur; insan birleştirir; plan dosyası ve
+      tahta kendiliğinden güncellenir.
+    </p>
+    <div class="diagram">
+      <svg
+        viewBox="0 0 960 250"
+        role="img"
+        aria-label="Çekirdek döngü: plan, görevler, al, çalıştır, raporla, incele, birleştir, ilerleme"
+      >
+        <defs>
+          <marker
+            id="lm"
+            viewBox="0 0 10 10"
+            refX="9"
+            refY="5"
+            markerWidth="7"
+            markerHeight="7"
+            orient="auto"
+          >
+            <path d="M0 0L10 5L0 10z" class="ah" />
+          </marker>
+          <marker
+            id="lma"
+            viewBox="0 0 10 10"
+            refX="9"
+            refY="5"
+            markerWidth="7"
+            markerHeight="7"
+            orient="auto"
+          >
+            <path d="M0 0L10 5L0 10z" class="ah-a" />
+          </marker>
+        </defs>
+        <!-- 8 boxes, w=104, step=118, start x=16 -->
+        <rect class="box" x="16" y="60" width="104" height="64" rx="8" />
+        <text x="68" y="86" text-anchor="middle" class="t-b">1 Plan</text>
+        <text x="68" y="104" text-anchor="middle" class="t-sm">plan.md + spec</text>
+
+        <rect class="box" x="134" y="60" width="104" height="64" rx="8" />
+        <text x="186" y="86" text-anchor="middle" class="t-b">2 Görevler</text>
+        <text x="186" y="104" text-anchor="middle" class="t-sm">issue'lara açılır</text>
+
+        <rect class="box-l" x="252" y="60" width="104" height="64" rx="8" />
+        <text x="304" y="86" text-anchor="middle" class="t-b">3 Al</text>
+        <text x="304" y="104" text-anchor="middle" class="t-sm">dal + worktree</text>
+
+        <rect class="box-l" x="370" y="60" width="104" height="64" rx="8" />
+        <text x="422" y="86" text-anchor="middle" class="t-b">4 Çalıştır</text>
+        <text x="422" y="104" text-anchor="middle" class="t-sm">kendi ajanı</text>
+
+        <rect class="box-l" x="488" y="60" width="104" height="64" rx="8" />
+        <text x="540" y="86" text-anchor="middle" class="t-b">5 Raporla</text>
+        <text x="540" y="104" text-anchor="middle" class="t-sm">PR + maliyet</text>
+
+        <rect class="box-l" x="606" y="60" width="104" height="64" rx="8" />
+        <text x="658" y="86" text-anchor="middle" class="t-b">6 İncele</text>
+        <text x="658" y="104" text-anchor="middle" class="t-sm">ajan + insan</text>
+
+        <rect class="box" x="724" y="60" width="104" height="64" rx="8" />
+        <text x="776" y="86" text-anchor="middle" class="t-b">7 Birleştir</text>
+        <text x="776" y="104" text-anchor="middle" class="t-sm">insan / küçükse oto</text>
+
+        <rect class="box-a" x="842" y="60" width="104" height="64" rx="8" />
+        <text x="894" y="86" text-anchor="middle" class="t-b">8 İlerleme</text>
+        <text x="894" y="104" text-anchor="middle" class="t-sm">plan + kokpit</text>
+
+        <path class="ln" d="M120 92 L132 92" marker-end="url(#lm)" />
+        <path class="ln" d="M238 92 L250 92" marker-end="url(#lm)" />
+        <path class="ln" d="M356 92 L368 92" marker-end="url(#lm)" />
+        <path class="ln" d="M474 92 L486 92" marker-end="url(#lm)" />
+        <path class="ln" d="M592 92 L604 92" marker-end="url(#lm)" />
+        <path class="ln" d="M710 92 L722 92" marker-end="url(#lm)" />
+        <path class="ln" d="M828 92 L840 92" marker-end="url(#lm)" />
+
+        <!-- notes under boxes -->
+        <text x="304" y="150" text-anchor="middle" class="t-sm">alan çakışması ve</text>
+        <text x="304" y="165" text-anchor="middle" class="t-sm">bağımlılık kontrolü</text>
+        <text x="422" y="150" text-anchor="middle" class="t-sm">brief.md ile başlar,</text>
+        <text x="422" y="165" text-anchor="middle" class="t-sm">kalp atışı: commit</text>
+        <text x="658" y="150" text-anchor="middle" class="t-sm">düzeltme gerekirse</text>
+        <text x="658" y="165" text-anchor="middle" class="t-sm">4'e döner</text>
+
+        <!-- feedback: review back to execute -->
+        <path class="ln-d" d="M640 124 L640 136 L440 136 L440 124" marker-end="url(#lm)" />
+
+        <!-- loop back: progress to plan -->
+        <path class="ln-a" d="M894 124 L894 200 L68 200 L68 126" marker-end="url(#lma)" />
+        <text x="481" y="222" text-anchor="middle" class="t-sm">
+          sahipsiz kalan görev serbest bırakılır, sıradaki görev hazır listesine düşer
+        </text>
+      </svg>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">2 · Genel yapı</div>
+    <h2>Kim nereye bağlanıyor</h2>
+    <p>
+      İş tahtası reponun kendi issue sistemidir; merkez kapalıyken de görev alınır ve PR açılır.
+      Merkez tahtayı aynalar, iş isteklerini iletir, maliyet ve denetim kaydını tutar. Abonelik
+      belirteçleri hiçbir geçitten geçmez: Claude Code abonelikle çalışırken doğrudan sağlayıcıya
+      gider; ccr ve isteğe bağlı LiteLLM yalnız API anahtarlı sağlayıcıları ve yerel modelleri
+      taşır.
+    </p>
+    <div class="diagram">
+      <svg
+        viewBox="0 0 960 620"
+        role="img"
+        aria-label="Genel mimari: geliştirici bilgisayarı, iş tahtası, merkez, sağlayıcılar"
+      >
+        <defs>
+          <marker
+            id="m"
+            viewBox="0 0 10 10"
+            refX="9"
+            refY="5"
+            markerWidth="7"
+            markerHeight="7"
+            orient="auto-start-reverse"
+          >
+            <path d="M0 0L10 5L0 10z" class="ah" />
+          </marker>
+          <marker
+            id="ma"
+            viewBox="0 0 10 10"
+            refX="9"
+            refY="5"
+            markerWidth="7"
+            markerHeight="7"
+            orient="auto-start-reverse"
+          >
+            <path d="M0 0L10 5L0 10z" class="ah-a" />
+          </marker>
+          <marker
+            id="mw"
+            viewBox="0 0 10 10"
+            refX="9"
+            refY="5"
+            markerWidth="7"
+            markerHeight="7"
+            orient="auto-start-reverse"
+          >
+            <path d="M0 0L10 5L0 10z" class="ah-w" />
+          </marker>
+        </defs>
+        <!-- subscription path, above the zones -->
+        <text x="432" y="16" text-anchor="middle" class="t-sm">
+          abonelik belirteci: doğrudan sağlayıcıya, hiçbir geçitten geçmez
+        </text>
+        <path class="ln" d="M75 84 L75 26 L859 26 L859 84" marker-end="url(#m)" />
+
+        <rect class="zone" x="16" y="44" width="388" height="560" rx="12" />
+        <text class="t-h" x="32" y="68">GELİŞTİRİCİ BİLGİSAYARI</text>
+        <rect class="zone" x="436" y="44" width="308" height="104" rx="12" />
+        <text class="t-h" x="452" y="68">İŞ TAHTASI</text>
+        <rect class="zone" x="436" y="216" width="308" height="388" rx="12" />
+        <text class="t-h" x="452" y="240">MERKEZ · AI COCKPIT MERKEZ MODU</text>
+        <rect class="zone" x="772" y="44" width="172" height="560" rx="12" />
+        <text class="t-h" x="788" y="68">SAĞLAYICILAR</text>
+
+        <!-- agents -->
+        <rect class="box" x="34" y="84" width="82" height="40" rx="6" />
+        <text x="75" y="109" text-anchor="middle" class="t-b" style="font-size: 12px">
+          Claude Code
+        </text>
+        <rect class="box" x="124" y="84" width="82" height="40" rx="6" />
+        <text x="165" y="109" text-anchor="middle" class="t-b" style="font-size: 12px">Codex</text>
+        <rect class="box" x="214" y="84" width="82" height="40" rx="6" />
+        <text x="255" y="109" text-anchor="middle" class="t-b" style="font-size: 12px">Cursor</text>
+        <rect class="box" x="304" y="84" width="82" height="40" rx="6" />
+        <text x="345" y="109" text-anchor="middle" class="t-b" style="font-size: 12px">Hermes</text>
+        <path class="ln" d="M90 124 L150 178" marker-end="url(#m)" />
+        <path class="ln" d="M165 124 L185 178" marker-end="url(#m)" />
+        <path class="ln" d="M255 124 L235 178" marker-end="url(#m)" />
+        <path class="ln" d="M345 124 L270 178" marker-end="url(#m)" />
+
+        <rect class="box-l" x="60" y="180" width="300" height="52" rx="8" />
+        <text x="210" y="202" text-anchor="middle" class="t-b">ccr yönlendirici</text>
+        <text x="210" y="220" text-anchor="middle" class="t-sm">
+          claude-code-router · 127.0.0.1:3456 · yalnız API anahtarı
+        </text>
+
+        <path class="ln" d="M150 232 L120 276" marker-end="url(#m)" />
+        <rect class="box-l" x="34" y="278" width="168" height="58" rx="8" />
+        <text x="118" y="302" text-anchor="middle" class="t-b">Yerel model</text>
+        <text x="118" y="320" text-anchor="middle" class="t-sm">Ollama · Qwen 3.6 · LM Studio</text>
+
+        <rect class="box-l" x="218" y="278" width="168" height="58" rx="8" />
+        <text x="302" y="302" text-anchor="middle" class="t-b">claude-mem</text>
+        <text x="302" y="320" text-anchor="middle" class="t-sm">yerel hafıza, SQLite</text>
+        <path class="ln" d="M302 336 L302 382" marker-end="url(#m)" />
+        <text x="340" y="364" class="t-sm" style="font-size: 11px">brief'e</text>
+
+        <rect class="box-l" x="34" y="384" width="340" height="56" rx="8" />
+        <text x="204" y="407" text-anchor="middle" class="t-b">Görev worktree</text>
+        <text x="204" y="425" text-anchor="middle" class="t-sm">
+          task/&lt;no&gt; dalı · .ai-cockpit/brief.md
+        </text>
+        <path class="ln-d" d="M204 440 L204 468" />
+
+        <rect class="box-l" x="34" y="470" width="340" height="60" rx="8" />
+        <text x="204" y="493" text-anchor="middle" class="t-b">Yerel kokpit (bugünkü kokpit)</text>
+        <text x="204" y="511" text-anchor="middle" class="t-sm">
+          tahta, ajan çalıştır, maliyet, öneri, iş isteği alıcısı
+        </text>
+        <path class="ln-d" d="M372 232 C398 300 398 400 368 468" />
+
+        <rect class="box-w" x="34" y="552" width="340" height="44" rx="8" />
+        <text x="204" y="571" text-anchor="middle" class="t-b" style="font-size: 13px">
+          Onay kartı
+        </text>
+        <text x="204" y="587" text-anchor="middle" class="t-sm" style="font-size: 11px">
+          sahibi kabul/ret · bütçe ve süre tavanı · durdur
+        </text>
+        <path class="ln-d" d="M204 530 L204 550" />
+
+        <!-- board -->
+        <rect class="box" x="456" y="84" width="268" height="52" rx="8" />
+        <text x="590" y="106" text-anchor="middle" class="t-b">GitHub / GitLab Issues</text>
+        <text x="590" y="124" text-anchor="middle" class="t-sm">
+          cockpit-task · Alan, Bağlı, est, Kabul
+        </text>
+
+        <!-- center -->
+        <rect class="box-a" x="456" y="254" width="268" height="52" rx="8" />
+        <text x="590" y="276" text-anchor="middle" class="t-b">Tahta aynası ve ilerleme</text>
+        <text x="590" y="294" text-anchor="middle" class="t-sm">
+          sahipsiz görevler, biten/toplam
+        </text>
+        <rect class="box-a" x="456" y="316" width="268" height="52" rx="8" />
+        <text x="590" y="338" text-anchor="middle" class="t-b">İş isteği kuyruğu</text>
+        <text x="590" y="356" text-anchor="middle" class="t-sm">
+          cihaza iletir · kill switch · denetim kaydı
+        </text>
+        <rect class="box-a" x="456" y="378" width="268" height="52" rx="8" />
+        <text x="590" y="400" text-anchor="middle" class="t-b">Görev maliyeti</text>
+        <text x="590" y="418" text-anchor="middle" class="t-sm">kişi, model, hesap kırılımı</text>
+        <rect class="box-a" x="456" y="440" width="268" height="52" rx="8" />
+        <text x="590" y="462" text-anchor="middle" class="t-b">Bağlam deposu</text>
+        <text x="590" y="480" text-anchor="middle" class="t-sm">
+          maskelenmiş brief ve kapanış özeti
+        </text>
+        <rect class="box-a" x="456" y="520" width="268" height="56" rx="8" />
+        <text x="590" y="543" text-anchor="middle" class="t-b">Merkezi geçit</text>
+        <text x="590" y="561" text-anchor="middle" class="t-sm">
+          LiteLLM · şirket API anahtarı · kişi başı bütçe
+        </text>
+
+        <!-- providers -->
+        <rect class="box" x="790" y="86" width="138" height="46" rx="6" />
+        <text x="859" y="106" text-anchor="middle" class="t-b" style="font-size: 13px">
+          Anthropic
+        </text>
+        <text x="859" y="122" text-anchor="middle" class="t-sm" style="font-size: 11px">
+          abonelik: kişiye özel
+        </text>
+        <rect class="box" x="790" y="152" width="138" height="46" rx="6" />
+        <text x="859" y="180" text-anchor="middle" class="t-b" style="font-size: 13px">
+          OpenAI API
+        </text>
+        <rect class="box" x="790" y="218" width="138" height="46" rx="6" />
+        <text x="859" y="246" text-anchor="middle" class="t-b" style="font-size: 13px">
+          Gemini API
+        </text>
+        <rect class="box" x="790" y="284" width="138" height="46" rx="6" />
+        <text x="859" y="312" text-anchor="middle" class="t-b" style="font-size: 13px">
+          OpenRouter
+        </text>
+        <rect class="box" x="790" y="350" width="138" height="46" rx="6" />
+        <text x="859" y="372" text-anchor="middle" class="t-b" style="font-size: 13px">
+          Sunucuda Qwen
+        </text>
+        <text x="859" y="388" text-anchor="middle" class="t-sm" style="font-size: 11px">
+          Ollama / LM Studio / MLX
+        </text>
+        <rect class="box-w" x="790" y="440" width="138" height="72" rx="6" />
+        <text x="859" y="463" text-anchor="middle" class="t-b" style="font-size: 13px">
+          Havuz ajanı
+        </text>
+        <text x="859" y="480" text-anchor="middle" class="t-sm" style="font-size: 11px">
+          ekibin ortak makinesi
+        </text>
+        <text x="859" y="495" text-anchor="middle" class="t-sm" style="font-size: 11px">
+          kokpit + ccr + Hermes · v1
+        </text>
+        <text x="859" y="508" text-anchor="middle" class="t-sm" style="font-size: 10px">
+          ilk makine: Nevo'nun Hermes'i
+        </text>
+
+        <!-- api-key bus -->
+        <path class="ln-a" d="M360 206 L760 206" />
+        <text x="560" y="198" text-anchor="middle" class="t-sm" style="font-size: 11px">
+          API anahtarlı istekler ve yerel sunucu
+        </text>
+        <path class="ln-a" d="M760 175 L760 548" />
+        <path class="ln-a" d="M760 175 L788 175" marker-end="url(#ma)" />
+        <path class="ln-a" d="M760 241 L788 241" marker-end="url(#ma)" />
+        <path class="ln-a" d="M760 307 L788 307" marker-end="url(#ma)" />
+        <path class="ln-a" d="M760 373 L788 373" marker-end="url(#ma)" />
+        <path class="ln-w" d="M724 548 L760 548" />
+
+        <!-- cross links -->
+        <path
+          class="ln"
+          d="M374 500 L410 500 L410 110 L454 110"
+          marker-start="url(#m)"
+          marker-end="url(#m)"
+        />
+        <text x="432" y="104" text-anchor="end" class="t-sm" style="font-size: 11px">al, PR</text>
+        <path class="ln-a" d="M374 516 L454 516" marker-start="url(#ma)" marker-end="url(#ma)" />
+        <text x="414" y="534" text-anchor="middle" class="t-sm" style="font-size: 11px">
+          özet veri,
+        </text>
+        <text x="414" y="548" text-anchor="middle" class="t-sm" style="font-size: 11px">
+          iş isteği
+        </text>
+        <path class="ln-d" d="M590 148 L590 252" marker-end="url(#m)" />
+        <text x="604" y="208" class="t-sm" style="font-size: 11px">ayna</text>
+      </svg>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">3 · İş isteği</div>
+    <h2>Başkasının ajanına iş göndermek, güvenli sürüm</h2>
+    <p>
+      Önceki merkezi planın "merkez yalnız izler, ajan çalıştırmaz" kararı burada değişir: merkez
+      yine hiçbir ajanı kendisi çalıştırmaz ve hiçbir anahtar tutmaz; isteği hedef kişinin cihazına
+      iletir. İş, sahibinin makinesinde, sahibinin onayıyla (ekip liderinden geldiyse onaysız),
+      sahibinin hesabıyla ve göreve ayrılmış worktree içinde çalışır. Durdurma düğmesi iki tarafta
+      da vardır; her adım denetim kaydına düşer.
+    </p>
+    <div class="flow">
+      <div class="step">
+        <b>Gönder</b
+        ><small
+          >Ayşe tahtadan görev #42'yi Ali'ye ya da ekibin havuz ajanına gönderir. Bütçe ve süre
+          tavanı yazar, "otomatik birleştir" işaretleyip işaretlemeyeceğine karar verir.</small
+        >
+      </div>
+      <div class="arrow">→</div>
+      <div class="step">
+        <b>Onay</b
+        ><small
+          >Ali kendi kokpitinde "liderimin işleri onaysız başlasın" iznini açtıysa ve Ayşe onun
+          lideriyse iş hemen başlar, Ali'ye bildirim gider. İzin kapalıysa ya da Ayşe lider değilse
+          Ali onay kartından onaylar.</small
+        >
+      </div>
+      <div class="arrow">→</div>
+      <div class="step">
+        <b>Çalışır</b
+        ><small
+          >Ali'nin seçtiği ajan, task/42 worktree'sinde, brief.md ile. Ana dala push yok; tavan
+          aşılırsa durur. Onaysız başlayan iş kişisel anahtarsız konteynerde, izinli sunucu
+          listesiyle çalışır.</small
+        >
+      </div>
+      <div class="arrow">→</div>
+      <div class="step">
+        <b>Sonuç</b
+        ><small
+          >PR açılır; özet, model, hesap, maliyet PR gövdesinde ve kokpitte. Durumlar A2A adlarıyla
+          tutulur (working, completed, failed...).</small
+        >
+      </div>
+    </div>
+    <p class="note">
+      Merkez yoksa istek issue ataması ve yorumu olarak gider; alıcının kokpiti atamayı görür ve
+      bildirir. Bildirim gecikir, kaybolmaz.
+    </p>
+    <p class="note">
+      İnceleme notu sonrası: iş isteği başkasının bilgisayarında komut çalıştırmaktır; worktree
+      yalnız kodu ayırır, aynı kullanıcıyla çalışan ajan SSH anahtarlarına ve müşteri bağlantılarına
+      ulaşır. Bu yüzden onaysız başlayan iş yalnız kişisel anahtar barındırmayan konteynerde çalışır
+      (reponun devcontainer'ı ya da kokpitin imajı), konteynere yalnız worktree bağlanır, ağ repo
+      başına izinli sunucu listesiyle sınırlıdır. Konteyner çalışma zamanı yoksa liderin isteği de
+      onay kartına düşer. Issue, yorum, brief ve PR metni ajan için veridir, talimat değildir;
+      sistem istemi bunu yazar. M1'de istekler imzalanır, merkez iş isteği dışında komut iletemez.
+    </p>
+  </section>
+
+  <section>
+    <div class="eyebrow">4 · Çakışma, bırakma, inceleme</div>
+    <h2>İki kişi aynı dosyayı aynı anda değiştirmesin</h2>
+    <ul class="rules">
+      <li>
+        <b>Alan:</b> her görevin dosya/klasör desenleri vardır (plan görevindeki
+        <code class="mono">Files:</code> satırlarından önerilir). Alanı kesişen iki görev aynı anda
+        alınamaz; tahta ikinciyi bekletir.
+      </li>
+      <li>
+        <b>Bağlı:</b> önce bitmesi gereken görevler. Bağımlılığı bitmemiş görev "Hazır" sütununa
+        girmez.
+      </li>
+      <li>
+        <b>Dal ve worktree:</b> her görev <code class="mono">task/&lt;no&gt;-...</code> dalında,
+        ayrı worktree'de. Oturumlar dal adıyla göreve bağlanır; görev maliyeti oturumların
+        toplamıdır.
+      </li>
+      <li>
+        <b>Bırak:</b> 4 saat (ayar) commit veya canlı oturum gelmeyen görev "sahipsiz kalmış"
+        işaretlenir. Sahibi veya lider serbest bırakır; otomatik bırakma yok. Dal ve yarım iş kalır,
+        atama kaldırılır, son özet issue'ya yazılır.
+      </li>
+      <li>
+        <b>İncele:</b> gözden geçiren ajan PR diff'ini yerelde salt okur gezer (varsayılan kendi
+        aboneliğiyle CLI, limit doluysa yerel Qwen), yorumunu PR'a yazar. Birleştirmeyi görev sahibi
+        dışı bir insan yapar; lider işi verirken "otomatik birleştir" işaretlediyse ve görev küçük
+        ve temizse kokpit otomatik birleştirir. İnceleme notu sonrası ek koşullar: "yalnız yerel
+        model" etiketli repoda otomatik birleştirme açılamaz; inceleme yerel Qwen yedeğiyle
+        yapıldıysa insan kapısına düşer; gözden geçiren ajan diff içindeki metni veri sayar ve
+        "diff'te ajana talimat var" bulgusu birleştirmeyi keser.
+      </li>
+      <li>
+        <b>Veri etiketi:</b> her repo "bulut serbest" ya da "yalnız yerel model" etiketi taşır,
+        varsayılan "yalnız yerel model". ccr ve LiteLLM bulut rotasını reddeder; abonelikli CLI
+        ccr'den geçmediği için kokpit o repoda bulut ajanlarını seçilemez yapar. İstek içeriği tutan
+        kayıtlar makinede kalır, merkeze yalnız model, token, maliyet ve süre gider.
+      </li>
+      <li>
+        <b>Kapat:</b> birleşince issue kapanır, plan dosyasındaki kutu
+        <code class="mono">[x]</code> olur, SDD defterine "Task N: complete" düşer.
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="eyebrow">5 · Modeller, hesaplar, yönlendirme</div>
+    <h2>Hangi işi hangi model yapar</h2>
+    <p>
+      Kokpitte her hesap türüyle kayıtlıdır: abonelik, API anahtarı, yerel. Abonelik hesapları
+      "yalnız bu makinede, yalnız kendi aracında" kilidi taşır ve havuza eklenemez. ccr'yi kokpit
+      kurar (komut önizlenir, sen onaylarsın), yapılandırır ve kayıtlarını okur; her istek model,
+      hesap, token ve maliyetle kokpite düşer.
+    </p>
+    <div class="diagram">
+      <svg viewBox="0 0 960 300" role="img" aria-label="İstek yönlendirme akışı">
+        <defs>
+          <marker
+            id="m2"
+            viewBox="0 0 10 10"
+            refX="9"
+            refY="5"
+            markerWidth="7"
+            markerHeight="7"
+            orient="auto"
+          >
+            <path d="M0 0L10 5L0 10z" class="ah" />
+          </marker>
+        </defs>
+        <rect class="box" x="16" y="120" width="130" height="60" rx="8" />
+        <text x="81" y="146" text-anchor="middle" class="t-b">Ajan isteği</text>
+        <text x="81" y="164" text-anchor="middle" class="t-sm">görev brief'i ile</text>
+        <path class="ln" d="M146 150 L190 150" marker-end="url(#m2)" />
+        <rect class="box-l" x="192" y="112" width="160" height="76" rx="8" />
+        <text x="272" y="140" text-anchor="middle" class="t-b">Kokpit kuralları</text>
+        <text x="272" y="158" text-anchor="middle" class="t-sm">görev est ve alanı,</text>
+        <text x="272" y="174" text-anchor="middle" class="t-sm">bağlam boyu, kalan limit</text>
+        <path class="ln" d="M352 140 C390 80 400 52 440 52" marker-end="url(#m2)" />
+        <path class="ln" d="M352 150 L440 150" marker-end="url(#m2)" />
+        <path class="ln" d="M352 160 C390 220 400 248 440 248" marker-end="url(#m2)" />
+        <rect class="box-a" x="442" y="22" width="250" height="60" rx="8" />
+        <text x="456" y="46" class="t-b">1 · Abonelik limiti rahat</text>
+        <text x="456" y="66" class="t-sm">kendi aboneliğiyle resmi CLI · ilk tercih</text>
+        <rect class="box-l" x="442" y="120" width="250" height="60" rx="8" />
+        <text x="456" y="144" class="t-b">2 · Limit doluyor, küçük görev</text>
+        <text x="456" y="164" class="t-sm">yerel Qwen · ücretsiz, veri dışarı çıkmaz</text>
+        <rect class="box" x="442" y="218" width="250" height="60" rx="8" />
+        <text x="456" y="242" class="t-b">3 · Limit doluyor, zor görev</text>
+        <text x="456" y="262" class="t-sm">şirket API anahtarı (LiteLLM)</text>
+        <path class="ln" d="M692 52 C730 52 740 140 770 146" marker-end="url(#m2)" />
+        <path class="ln" d="M692 150 L770 150" marker-end="url(#m2)" />
+        <path class="ln" d="M692 248 C730 248 740 160 770 154" marker-end="url(#m2)" />
+        <rect class="box-a" x="772" y="112" width="172" height="76" rx="8" />
+        <text x="858" y="140" text-anchor="middle" class="t-b">Kokpite kayıt</text>
+        <text x="858" y="158" text-anchor="middle" class="t-sm">görev, model, hesap,</text>
+        <text x="858" y="174" text-anchor="middle" class="t-sm">token, maliyet, süre</text>
+      </svg>
+    </div>
+    <p class="note">
+      Sağlayıcı kuralı (4 Kasım 2026'da resmi sayfadan doğrulandı): Claude Code "Legal and
+      compliance" sayfasına göre OAuth girişi abonelik planlarının Claude Code ve Anthropic'in kendi
+      uygulamalarındaki olağan kullanımı içindir; ürün geliştirenler API anahtarı kullanır;
+      Claude.ai oturum belirteci toplanamaz, aracılık edilemez. Aynı sayfa şirketin kendi API
+      anahtarını kendi kullanıcıları için bir makineye koymasına izin verir; havuz makinesi buna
+      dayanır. Tüketici Koşulları'nda karşılık Bölüm 3, madde 7'dir. Tasarım bunu kural yapar:
+      havuzlanan tek şey API anahtarıdır; Claude Code abonelikle çalışırken ccr devre dışıdır. Codex
+      ve Gemini abonelikleri için aynı varsayım; builder sağlayıcı metinlerini doğrular.
+    </p>
+    <p class="note">
+      Sunucu yerel modeli, inceleme notu sonrası: iki Mac Studio'da vLLM kullanılmaz; resmi belgede
+      macOS desteği deneysel ve yalnız CPU, Metal ancak topluluk eklentisiyle. Her Mac Studio'da
+      Ollama veya LM Studio sunucusu (OpenAI uyumlu, localhost:1234) ya da mlx_lm.server
+      (localhost:8080) çalışır; iki makine birleştirilmez, her birinde ayrı model (biri kod, biri
+      genel), LiteLLM ikisini ayrı rota olarak sunar. Yereldeki model Ollama etiketi qwen3.6:latest
+      (mimari qwen35moe, 35.5B) olarak doğrulandı.
+    </p>
+  </section>
+
+  <section>
+    <div class="eyebrow">6 · Bağlam devri</div>
+    <h2>Görevi kim alırsa alsın aynı brief ile başlar</h2>
+    <p>
+      Görev alınınca kokpit worktree içine <code class="mono">.ai-cockpit/brief.md</code> yazar.
+      Ajan hangisi olursa olsun önce bunu okur. Ekip arası paylaşım merkezdeki bağlam deposundan
+      gelir; claude-mem'in TeamBrain özelliği kullanılmaz çünkü cmem.ai bulutundan geçer.
+    </p>
+    <div class="flow">
+      <div class="step">
+        <b>Spec ve plan görevi</b><small>İlgili bölüm, kabul ölçütleri, Alan ve Bağlı.</small>
+      </div>
+      <div class="arrow">+</div>
+      <div class="step">
+        <b>Bağlı görevlerin PR özetleri</b><small>Ne değişti, nerede, hangi karar alındı.</small>
+      </div>
+      <div class="arrow">+</div>
+      <div class="step">
+        <b>claude-mem gözlemleri</b
+        ><small>Aynı repo ve alandan son gözlemler, yerel API'den, maskelenmiş.</small>
+      </div>
+      <div class="arrow">→</div>
+      <div class="step">
+        <b>brief.md</b
+        ><small
+          >Worktree'de. Görev bitince kapanış özeti maskelenerek merkez bağlam deposuna gider
+          (M5).</small
+        >
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">7 · Otomatik öneri</div>
+    <h2>Sistem önerir, kişi uygular</h2>
+    <p>
+      Öneri motoru kokpitin zaten tuttuğu veriye bakar: görev türü ve süresi, aynı alandaki geçmiş
+      görevlerin model ve başarısı, kalan limitler, düzeltme turları. İlk sürümde beş açık kural;
+      veri birikince eşikler geçmişe göre ayarlanır.
+    </p>
+    <div class="flow">
+      <div class="step" style="flex-basis: 300px">
+        <b>Örnek kartlar</b
+        ><small
+          >"#42 iki düzeltme turuna girdi, daha güçlü model öner."<br />"Haftalık limitin %72, #51
+          küçük; aboneliği korumak için yerel Qwen'e ver."<br />"API hesabı A %85, B anahtarına
+          geç."<br />"#37 dört saattir kalp atışı almadı, bırak ya da devam et?"</small
+        >
+      </div>
+      <div class="step">
+        <b>Girdi</b><small>est, alan, geçmiş başarı, limit, maliyet, inceleme bulguları.</small>
+      </div>
+      <div class="step">
+        <b>Çıktı</b><small>Uygulanmayan kart; kabul veya yoksay, geçmişi tutulur.</small>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">8 · Açık kaynak seçimleri</div>
+    <h2>Yeniden yazmak yerine bağlanılacaklar</h2>
+    <p>Lisans ve etkinlik 4 Kasım 2026'da GitHub üzerinden doğrulandı.</p>
+    <div class="tbl">
+      <table>
+        <thead>
+          <tr>
+            <th>İhtiyaç</th>
+            <th>Proje</th>
+            <th>Lisans</th>
+            <th>Karar</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Kişi başı yerel yönlendirme</td>
+            <td>claude-code-router</td>
+            <td class="mono">MIT</td>
+            <td>
+              <span class="tag">kullan</span> kokpit kurar; havuz yalnız API anahtarı ve yerel model
+            </td>
+          </tr>
+          <tr>
+            <td>Merkezi geçit, şirket anahtarı, kişi başı bütçe</td>
+            <td>LiteLLM Proxy</td>
+            <td class="mono">MIT (enterprise/ ayrı)</td>
+            <td>
+              <span class="tag">kullan</span> şirket API anahtarı + sunucudaki Qwen tek uç noktada
+            </td>
+          </tr>
+          <tr>
+            <td>Yerel model</td>
+            <td>Ollama, LM Studio, mlx-lm</td>
+            <td class="mono">MIT / kapalı istemci / MIT</td>
+            <td>
+              <span class="tag k">kurulu</span> qwen3.6:latest hazır; sunucuda vLLM yerine bunlar
+              (Mac'te vLLM yalnız CPU)
+            </td>
+          </tr>
+          <tr>
+            <td>Hafıza, brief kaynağı</td>
+            <td>claude-mem</td>
+            <td class="mono">Apache-2.0</td>
+            <td><span class="tag k">kurulu</span> yerel API; TeamBrain kullanılmaz</td>
+          </tr>
+          <tr>
+            <td>Havuz makinesinde yürütücü ajan</td>
+            <td>Hermes Agent</td>
+            <td class="mono">MIT</td>
+            <td><span class="tag k">kurulu</span> CLI ile sürülür; A2A sunucusu yok</td>
+          </tr>
+          <tr>
+            <td>Ajanlar arası protokol</td>
+            <td>A2A</td>
+            <td class="mono">Apache-2.0</td>
+            <td><span class="tag x">sonra</span> durum adları şimdiden uyumlu</td>
+          </tr>
+          <tr>
+            <td>Model seçimi eşikleri</td>
+            <td>RouteLLM</td>
+            <td class="mono">Apache-2.0</td>
+            <td><span class="tag x">kaynak</span> son değişiklik Ağustos 2024, bağımlılık değil</td>
+          </tr>
+          <tr>
+            <td>İstek izleme</td>
+            <td>Langfuse</td>
+            <td class="mono">MIT çekirdek, ee/ ayrı</td>
+            <td><span class="tag x">gerekmez</span> ccr kayıtları ve hook verisi yetiyor</td>
+          </tr>
+          <tr>
+            <td>Hafıza katmanı</td>
+            <td>mem0</td>
+            <td class="mono">Apache-2.0</td>
+            <td><span class="tag x">gerekmez</span> claude-mem kurulu</td>
+          </tr>
+          <tr>
+            <td>Paralel ajan tahtası</td>
+            <td>Vibe Kanban</td>
+            <td class="mono">Apache-2.0</td>
+            <td><span class="tag x">kullanılmaz</span> tek makine; worktree deseni alınır</td>
+          </tr>
+          <tr>
+            <td>Dağıtık görev grafı</td>
+            <td>Beads</td>
+            <td class="mono">MIT</td>
+            <td>
+              <span class="tag x">kullanılmaz</span> Dolt bağımlılığı, issue kaynağıyla çakışır
+            </td>
+          </tr>
+          <tr>
+            <td>Repo içi Markdown görevler</td>
+            <td>Backlog.md</td>
+            <td class="mono">MIT</td>
+            <td><span class="tag x">kullanılmaz</span> plan.js aynı işi görüyor</td>
+          </tr>
+          <tr>
+            <td>PRD'den görev üretimi</td>
+            <td>Claude Task Master</td>
+            <td class="mono">"Other" (MIT metinli)</td>
+            <td><span class="tag x">kullanılmaz</span> hedef dışı, lisans belirsiz</td>
+          </tr>
+          <tr>
+            <td>Merkezde konteyner ajan</td>
+            <td>OpenHands / Claude Squad</td>
+            <td class="mono">MIT / AGPL-3.0</td>
+            <td><span class="tag x">kullanılmaz</span> merkez ajan çalıştırmaz</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">9 · Aşamalar</div>
+    <h2>Önce bilgisayarda, sonra merkezde</h2>
+    <p>
+      Sol sütun bugünkü kokpitte hemen başlar, merkez gerektirmez. Sağ sütun bekleyen merkezi planın
+      aşamalarıdır; dağıtım M4'e, bağlam deposu M5'e eklendi. Eski Y1-Y8 maddeleri bu tabloya eridi.
+    </p>
+    <div class="phases">
+      <div class="lane">
+        <h3>Merkez gerekmez <span class="tag k">şimdi</span></h3>
+        <div class="ph l">
+          <span class="id">D1</span><b>İş tahtası v1</b
+          ><small
+            >Alan/Bağlı/est/Kabul alanları, "Planı tahtaya aç", çakışma kontrolü, worktree,
+            brief.md, bırak</small
+          >
+        </div>
+        <div class="ph l">
+          <span class="id">D2</span><b>Modeller, hesaplar, ccr, yerel model</b
+          ><small
+            >hesap kaydı ve abonelik kilidi, ccr kur/yapılandır/oku, Ollama ve LM Studio</small
+          >
+        </div>
+        <div class="ph l">
+          <span class="id">D3</span><b>Görev maliyeti ve rapor</b
+          ><small>dal adıyla oturum bağlama, PR özeti, plan kutusu ve SDD defteri yazımı</small>
+        </div>
+        <div class="ph l">
+          <span class="id">D4</span><b>Gözden geçiren ajan</b
+          ><small>salt okur inceleme, PR yorumu, insan kapısı</small>
+        </div>
+        <div class="ph l">
+          <span class="id">D5</span><b>Öneri motoru v1</b><small>beş kural, kart arayüzü</small>
+        </div>
+      </div>
+      <div class="lane">
+        <h3>
+          Merkez ile
+          <span class="tag" style="background: var(--warn-soft); color: var(--warn)"
+            >beklemede</span
+          >
+        </h3>
+        <div class="ph">
+          <span class="id">M1</span><b>Merkez çekirdeği</b
+          ><small>kullanıcı, ekip, giriş, cihaz eşleştirme (plan hazır)</small>
+        </div>
+        <div class="ph">
+          <span class="id">M2</span><b>Gönderim</b
+          ><small>özet veri + görev ve istek olayları, Mattermost bildirimleri</small>
+        </div>
+        <div class="ph">
+          <span class="id">M3</span><b>Ekip ekranları</b
+          ><small>şirket, ekip, kişi, tahta aynası</small>
+        </div>
+        <div class="ph w">
+          <span class="id">M4</span><b>İş paketleri ve dağıtım</b
+          ><small
+            >iş isteği kuyruğu, onay ve kill switch kanalı, havuz ajanı (Nevo'nun Hermes pilotu),
+            denetim, görev maliyeti</small
+          >
+        </div>
+        <div class="ph">
+          <span class="id">M5</span><b>İçerik ve bağlam</b
+          ><small>maskeleme, arama, okuma kaydı, bağlam deposu</small>
+        </div>
+        <div class="ph">
+          <span class="id">Y6</span><b>Merkezi geçit</b
+          ><small>LiteLLM, şirket API anahtarı ve sunucudaki Qwen, kişi başı bütçe</small>
+        </div>
+        <div class="ph">
+          <span class="id">M6</span><b>Kurulum paketi</b
+          ><small>Docker, yedekleme, pilot ekip</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">10 · Açık sorular</div>
+    <h2>Tüm sorular cevaplandı</h2>
+    <p class="note ok">
+      Karar verildi: iş tahtasının doğruluk kaynağı reponun issue sistemi (GitHub/GitLab). Merkez
+      aynalar, ayrı tahta tutmaz.
+    </p>
+    <p class="note ok">
+      Karar verildi: liderden gelen işin onaysız başlamasına işi alan kişi karar verir; kendi
+      kokpitindeki izin varsayılan kapalıdır. İzin kapalıysa ya da gönderen lider değilse sahibi
+      onaylar. Bütçe ve süre tavanı zorunlu, sahibi her an durdurabilir.
+    </p>
+    <p class="note ok">
+      Karar verildi: Nevo'nun Hermes pilot makinesi ilk havuz ajanı, Mattermost ekip bildirim
+      kanalı.
+    </p>
+    <p class="note ok">
+      Karar verildi: havuz ajanı ilk sürümde var. Maliyeti repoyu sahiplenen ekibe yazılır, gönderen
+      kişi kırılımda görünür; ekip başına aylık havuz bütçesi dolunca havuz yeni iş almaz.
+    </p>
+    <p class="note ok">
+      Karar verildi: hibrit. Şirket API anahtarı alınır ve yerel modellerle birlikte kullanılır;
+      LiteLLM geçidi ilk sürümde. Kişisel abonelikler sahibinde kalır.
+    </p>
+    <p class="note ok">
+      Karar verildi: ilk tercih kişinin kendi aboneliğiyle resmi CLI (Claude Code, Codex CLI, Gemini
+      CLI), çünkü abonelikler CLI ve masaüstünden API'den daha yüksek kullanım veriyor. Limit dolmak
+      üzereyken küçük görev yerel Qwen'e, zor görev şirket API anahtarına gider. Havuz ajanı kişisel
+      abonelik kullanamaz.
+    </p>
+    <p class="note ok">
+      Karar verildi: küçük görevlerde otomatik birleştirme var. Karar görev başına: ekip lideri işi
+      verirken "otomatik birleştir" işaretler. Koşullar sağlanmazsa yine insana düşer: tek dosya ve
+      küçük değişiklik, testler ve CI yeşil, gözden geçiren ajan temiz, çakışma yok, hassas
+      dosyalara (kimlik, izin, göç, CI, bağımlılık, gizli yapılandırma) dokunmuyor. Her otomatik
+      birleştirme kayda düşer, tek tıkla geri alınır.
+    </p>
+    <p class="note">
+      İnceleme notu (Nevo, 4 Kasım): 1 konteyner ve imzalı istek kabul, 2 veri etiketi kabul, 3
+      otomatik birleştirme koşulları sıkılaştırıldı, 4 Mac'te vLLM yerine Ollama/LM Studio/MLX kabul
+      ve doğrulandı, 5 lisans notu risklere yazıldı, 6 Qwen adı ve Anthropic kaynağı doğrulandı, 7
+      havuz ajanı = Hermes pilotu uyumlu. Kararına ters düşen üç nokta senin cevaplarınla kapandı.
+    </p>
+  </section>
+
+  <footer>
+    Developed by Caglar Ulkuderner · GPL-3.0 · Taslak; kod yazılmadı. Tasarım belgesi:
+    docs/superpowers/specs/2026-11-04-dagitik-vibe-coding-design.md
+  </footer>
+</div>

@@ -237,21 +237,32 @@ function buildPlan(planCfg, state, work, now = Date.now(), firstCommit = planFir
     ),
   ];
 
+  // A session naming more than a few tasks is orchestrating; counting its whole length for each task
+  // inflated every estimate and made the remaining time grow while it stayed open.
+  const regexes = new Map(all.map((t) => [t.id, mentionRegex(t.id)]));
+  const orchestrating = new Set(
+    work.filter((w) => w.text && all.filter((t) => regexes.get(t.id).test(w.text)).length > 3)
+  );
   for (const task of all) {
-    const re = mentionRegex(task.id);
+    const re = regexes.get(task.id);
     const hits = work.filter((w) => w.text && re.test(w.text));
-    task.spent_ms = hits.reduce((sum, w) => {
-      const start = Date.parse(w.started_at);
-      const end = w.ended_at ? Date.parse(w.ended_at) : now;
-      return Number.isFinite(start) && end > start ? sum + (end - start) : sum;
-    }, 0);
+    task.spent_ms = hits
+      .filter((w) => !orchestrating.has(w))
+      .reduce((sum, w) => {
+        const start = Date.parse(w.started_at);
+        const end = w.ended_at ? Date.parse(w.ended_at) : now;
+        return Number.isFinite(start) && end > start ? sum + (end - start) : sum;
+      }, 0);
     // A ledger names the open tasks; mentions in a long orchestrating session would flag many.
     task.running = ledger.found
       ? ledger.open.has(task.id)
         ? liveIn(task.id)
         : []
       : hits.filter((w) => w.live).map((w) => w.label);
-    const starts = hits.map((w) => Date.parse(w.started_at)).filter(Number.isFinite);
+    const starts = hits
+      .filter((w) => !orchestrating.has(w))
+      .map((w) => Date.parse(w.started_at))
+      .filter(Number.isFinite);
     task.started_at = starts.length ? new Date(Math.min(...starts)).toISOString() : null;
     const m = manual[task.id]?.status;
     task.status =
@@ -295,7 +306,10 @@ function buildPlan(planCfg, state, work, now = Date.now(), firstCommit = planFir
       .map((t) => t.started_at)
       .filter(Boolean)
       .sort()[0] || null;
-  const started_at = measuredStart || firstCommit(planCfg.file);
+  // Session history is kept for days, the plan's git history for good: start from whichever is earlier.
+  const gitStart = firstCommit(planCfg.file);
+  const fromGit = gitStart != null && (measuredStart == null || gitStart < measuredStart);
+  const started_at = fromGit ? gitStart : measuredStart;
   const pace = measured == null ? calendarPace(started_at, doneCount, pending.length, now) : null;
   const remaining_ms = measured ?? pace?.remaining_ms ?? null;
   // Calendar pace applies per task too, so the queue can show a running "+N days" for each item.
@@ -325,7 +339,7 @@ function buildPlan(planCfg, state, work, now = Date.now(), firstCommit = planFir
             ? "calendar"
             : null,
       pace_ms: pace?.pace_ms ?? null,
-      started_basis: measuredStart ? "sessions" : started_at ? "git" : null,
+      started_basis: fromGit ? "git" : measuredStart ? "sessions" : null,
       done_spent_ms: all.filter((t) => t.status === "done").reduce((s, t) => s + t.spent_ms, 0),
       started_at,
     },

@@ -163,6 +163,27 @@ test("buildPlan uses calendar pace and git start when nothing was measured", () 
   assert.equal(out.phases[0].tasks[1].remaining_ms, 2 * 86_400_000);
 });
 
+test("buildPlan starts the calendar at the plan's first commit when sessions begin later", () => {
+  const { dir, cfg } = sddRepo("Task 1: complete\n");
+  const s = {
+    text: "Task 2",
+    started_at: "2026-11-01T00:00:00Z",
+    ended_at: "2026-11-01T01:00:00Z",
+    live: false,
+    label: "s",
+    cwd: dir,
+  };
+  const out = plan.buildPlan(
+    cfg,
+    { tasks: {}, order: {} },
+    [s],
+    Date.now(),
+    () => "2026-10-22T00:00:00.000Z"
+  );
+  assert.equal(out.totals.started_at, "2026-10-22T00:00:00.000Z");
+  assert.equal(out.totals.started_basis, "git");
+});
+
 test("(est:Nh) in headings: stripped from title, used when nothing was measured", () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "plan-est-"));
   const file = path.join(dir, "p.md");
@@ -258,6 +279,29 @@ test("buildPlan shows parallel ledger tasks, each with the sessions in its own w
   assert.deepEqual(t["1"].running, ["main"]);
   assert.deepEqual(t["3"].running, ["main"]);
   assert.deepEqual(out.active_sessions.sort(), ["codex", "main"]);
+});
+
+test("buildPlan leaves a session that mentions many tasks out of task time", () => {
+  const { dir, cfg } = sddRepo("Task 1: complete\n");
+  fs.writeFileSync(
+    cfg.file,
+    "## A\n" + [1, 2, 3, 4, 5].map((n) => `### Task ${n}: T${n}\n`).join("")
+  );
+  const s = (text, h) => ({
+    text,
+    started_at: "2026-11-01T00:00:00Z",
+    ended_at: `2026-11-01T0${h}:00:00Z`,
+    live: false,
+    label: "s",
+    cwd: dir,
+  });
+  const out = plan.buildPlan(cfg, { tasks: {}, order: {} }, [
+    s("Task 1 Task 2 Task 3 Task 4", 9),
+    s("Task 1 only", 2),
+  ]);
+  const t = out.phases[0].tasks;
+  assert.equal(t[0].spent_ms, 2 * 3_600_000, "the orchestrating session does not count");
+  assert.equal(t[1].spent_ms, 0);
 });
 
 test("buildPlan with a ledger ignores task mentions in live sessions", () => {

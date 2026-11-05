@@ -220,6 +220,20 @@ test("buildPlan takes done and in-progress tasks from the SDD ledger", () => {
   assert.equal(out.last_step, "Task 1-fidelity: complete.");
 });
 
+test("buildPlan reads ledger entries written as timestamped bullets", () => {
+  const { cfg } = sddRepo(
+    "- 5 Nov 02:31: Task 1: complete (a..b). Opus APPROVED.\n" +
+      "- 5 Nov 10:58: Task 2 bölüm 1: complete (b..c).\n" +
+      "- 5 Nov 11:00: Task 3: dispatched (BASE c)\n"
+  );
+  const t = Object.fromEntries(
+    plan.buildPlan(cfg, { tasks: {}, order: {} }, []).phases[0].tasks.map((x) => [x.id, x])
+  );
+  assert.equal(t["1"].status, "done");
+  assert.equal(t["2"].status, "todo", "a finished part is not the whole task");
+  assert.equal(t["3"].status, "todo");
+});
+
 test("buildPlan with a ledger ignores task mentions in live sessions", () => {
   const { dir, cfg } = sddRepo("Task 1: complete\n");
   const live = [

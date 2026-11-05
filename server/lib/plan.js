@@ -86,7 +86,7 @@ function repoRoot(file) {
 
 /**
  * Superpowers SDD ledger for this plan: `<repo>/.superpowers/sdd/<run>/plan-path` names the plan,
- * `progress.md` beside it logs "Task 3a: dispatched" / "Task 3a: complete". Returns finished ids and
+ * `progress.md` beside it logs "Task 3a: dispatched" / "Task 3a: complete", at line start or after a bullet/timestamp. Returns finished ids and
  * the last dispatched-but-unfinished id, and the ledger's last line; `found` is false when no ledger points at this plan.
  */
 function readLedger(root, planFile) {
@@ -113,7 +113,8 @@ function readLedger(root, planFile) {
     found = true;
     const lines = text.split(/\r?\n/).filter((l) => l.trim());
     if (lines.length) last = lines[lines.length - 1].replace(/^[-*]\s*/, "").slice(0, 200);
-    for (const m of text.matchAll(/^Task ([0-9]+[a-z]?): (complete|dispatched)\b/gim)) {
+    // Entries may sit after a "- 5 Nov 02:31: " bullet; "Task 14a bölüm 1: complete" (a part) does not match.
+    for (const m of text.matchAll(/(?<![\w-])Task ([0-9]+[a-z]?): (complete|dispatched)\b/gi)) {
       const id = m[1].toLowerCase();
       if (m[2].toLowerCase() === "complete") {
         done.add(id);

@@ -86,12 +86,13 @@ function repoRoot(file) {
 
 /**
  * Superpowers SDD ledger for this plan: `<repo>/.superpowers/sdd/<run>/plan-path` names the plan,
- * `progress.md` beside it logs "Task 3a: dispatched" / "Task 3a: complete", at line start or after a bullet/timestamp. Returns finished ids and
- * the last dispatched-but-unfinished id, and the ledger's last line; `found` is false when no ledger points at this plan.
+ * `progress.md` beside it logs "Task 3a: dispatched" / "Task 3a: complete", at line start or after a bullet/timestamp.
+ * Returns finished ids, dispatched-but-unfinished ids (several when agents work in parallel) and the ledger's last
+ * line; `found` is false when no ledger points at this plan.
  */
 function readLedger(root, planFile) {
   const done = new Set();
-  let open = null;
+  const open = new Set();
   let found = false;
   let last = null;
   const base = path.join(root, ".superpowers", "sdd");
@@ -118,11 +119,37 @@ function readLedger(root, planFile) {
       const id = m[1].toLowerCase();
       if (m[2].toLowerCase() === "complete") {
         done.add(id);
-        if (open === id) open = null;
-      } else if (!done.has(id)) open = id;
+        open.delete(id);
+      } else if (!done.has(id)) open.add(id);
     }
   }
   return { done, open, found, last };
+}
+
+/**
+ * Linked worktrees of the repo (`git worktree add`), read from `.git/worktrees/*` without running git.
+ * `task` is the plan task id a branch like `codex/17e` or `task/12-x` ends in, or null.
+ */
+function worktrees(root) {
+  const base = path.join(root, ".git", "worktrees");
+  let names = [];
+  try {
+    names = fs.readdirSync(base);
+  } catch {
+    return [];
+  }
+  const out = [];
+  for (const name of names) {
+    try {
+      const dir = path.dirname(fs.readFileSync(path.join(base, name, "gitdir"), "utf8").trim());
+      const head = fs.readFileSync(path.join(base, name, "HEAD"), "utf8").trim();
+      const m = head.match(/^ref: refs\/heads\/(?:.*\/)?(?:task-?)?([0-9]+[a-z]?)(?:-[^/]*)?$/i);
+      out.push({ dir, task: m ? m[1].toLowerCase() : null });
+    } catch {
+      // half-removed worktree: skip
+    }
+  }
+  return out;
 }
 
 function median(nums) {
@@ -190,14 +217,25 @@ function buildPlan(planCfg, state, work, now = Date.now(), firstCommit = planFir
   const root = repoRoot(planCfg.file);
   // `project` is the Claude transcript dir: the launch cwd, kept even after the session cd's away.
   const rootProject = root.replace(/[^a-zA-Z0-9]/g, "-");
+  const under = (cwd, dir) => cwd === dir || cwd.startsWith(dir + path.sep);
+  const trees = worktrees(root);
+  const treeOf = (w) => (w.cwd ? trees.find((t) => under(w.cwd, t.dir)) : undefined);
   work = work.filter(
-    (w) =>
-      (w.cwd && (w.cwd === root || w.cwd.startsWith(root + path.sep))) || w.project === rootProject
+    (w) => (w.cwd && under(w.cwd, root)) || w.project === rootProject || treeOf(w)
   );
   const phases = parsePlan(markdown);
   const all = phases.flatMap((p) => p.tasks);
   const ledger = readLedger(root, planCfg.file);
   const activeSessions = [...new Set(work.filter((w) => w.live).map((w) => w.label))];
+  // Parallel agents: an open task with its own worktree gets that worktree's sessions; the rest share the main checkout's.
+  const treeTasks = new Set(trees.map((t) => t.task).filter(Boolean));
+  const liveIn = (task) => [
+    ...new Set(
+      work
+        .filter((w) => w.live && (treeTasks.has(task) ? treeOf(w)?.task === task : !treeOf(w)))
+        .map((w) => w.label)
+    ),
+  ];
 
   for (const task of all) {
     const re = mentionRegex(task.id);
@@ -207,10 +245,10 @@ function buildPlan(planCfg, state, work, now = Date.now(), firstCommit = planFir
       const end = w.ended_at ? Date.parse(w.ended_at) : now;
       return Number.isFinite(start) && end > start ? sum + (end - start) : sum;
     }, 0);
-    // A ledger names the one open task; mentions in a long orchestrating session would flag many.
+    // A ledger names the open tasks; mentions in a long orchestrating session would flag many.
     task.running = ledger.found
-      ? ledger.open === task.id
-        ? activeSessions
+      ? ledger.open.has(task.id)
+        ? liveIn(task.id)
         : []
       : hits.filter((w) => w.live).map((w) => w.label);
     const starts = hits.map((w) => Date.parse(w.started_at)).filter(Number.isFinite);

@@ -234,6 +234,32 @@ test("buildPlan reads ledger entries written as timestamped bullets", () => {
   assert.equal(t["3"].status, "todo");
 });
 
+test("buildPlan shows parallel ledger tasks, each with the sessions in its own worktree", () => {
+  const { dir, cfg } = sddRepo("Task 1: dispatched\nTask 2: dispatched\nTask 3: dispatched\n");
+  const wt = fs.mkdtempSync(path.join(os.tmpdir(), "plan-wt-"));
+  const meta = path.join(dir, ".git", "worktrees", "wt1");
+  fs.mkdirSync(meta, { recursive: true });
+  fs.writeFileSync(path.join(meta, "gitdir"), path.join(wt, ".git") + "\n");
+  fs.writeFileSync(path.join(meta, "HEAD"), "ref: refs/heads/codex/2\n");
+  const s = (label, cwd) => ({
+    text: "",
+    started_at: "2026-11-05T00:00:00Z",
+    ended_at: null,
+    live: true,
+    label,
+    cwd,
+  });
+  const out = plan.buildPlan(cfg, { tasks: {}, order: {} }, [
+    s("main", dir),
+    s("codex", path.join(wt, "app")),
+  ]);
+  const t = Object.fromEntries(out.phases[0].tasks.map((x) => [x.id, x]));
+  assert.deepEqual(t["2"].running, ["codex"]);
+  assert.deepEqual(t["1"].running, ["main"]);
+  assert.deepEqual(t["3"].running, ["main"]);
+  assert.deepEqual(out.active_sessions.sort(), ["codex", "main"]);
+});
+
 test("buildPlan with a ledger ignores task mentions in live sessions", () => {
   const { dir, cfg } = sddRepo("Task 1: complete\n");
   const live = [

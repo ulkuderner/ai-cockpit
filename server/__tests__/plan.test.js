@@ -241,6 +241,14 @@ test("buildPlan takes done and in-progress tasks from the SDD ledger", () => {
   assert.equal(out.last_step, "Task 1-fidelity: complete.");
 });
 
+test("buildPlan: a ledger completion beats a manual blocked mark", () => {
+  const { cfg } = sddRepo("Task 2: complete (a..b)\n");
+  const state = { tasks: { p: { 2: { status: "blocked" }, 3: { status: "blocked" } } }, order: {} };
+  const t = plan.buildPlan(cfg, state, []).phases[0].tasks;
+  assert.equal(t[1].status, "done");
+  assert.equal(t[2].status, "blocked");
+});
+
 test("buildPlan reads ledger entries written as timestamped bullets", () => {
   const { cfg } = sddRepo(
     "- 5 Nov 02:31: Task 1: complete (a..b). Opus APPROVED.\n" +

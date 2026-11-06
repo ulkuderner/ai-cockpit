@@ -265,11 +265,12 @@ function buildPlan(planCfg, state, work, now = Date.now(), firstCommit = planFir
       .filter(Number.isFinite);
     task.started_at = starts.length ? new Date(Math.min(...starts)).toISOString() : null;
     const m = manual[task.id]?.status;
+    // A ledger "complete" outranks an older manual "blocked" (a blocker the task got past).
     task.status =
-      m === "done" || m === "blocked"
-        ? m
-        : ledger.done.has(task.id)
-          ? "done"
+      m === "done" || ledger.done.has(task.id)
+        ? "done"
+        : m === "blocked"
+          ? m
           : task.running.length
             ? "running"
             : "todo";

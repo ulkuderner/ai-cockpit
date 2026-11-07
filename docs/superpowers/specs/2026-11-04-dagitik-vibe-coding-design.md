@@ -32,6 +32,7 @@ Bugünkü kokpitte çekirdek zaten var: `server/lib/plan.js` plan dosyasını g�
 - İlk tercih, kişinin kendi aboneliğiyle resmi CLI'dır (Claude Code, Codex CLI, Gemini CLI). Gerekçe: abonelikler CLI ve masaüstü uygulamasından API'ye göre daha yüksek kullanım veriyor. (4 Kasım 2026)
 - Küçük görevlerde otomatik birleştirme ilk sürümde vardır; bir görevin otomatik birleşip birleşmeyeceğine ekip lideri işi verirken (iş isteğinde ya da görevi tahtaya açarken) karar verir. (4 Kasım 2026, ilk karar güncellendi)
 - Nevo'nun Hermes pilot makinesi ilk havuz ajanıdır; Mattermost ekip bildirim kanalıdır. (4 Kasım 2026)
+- LiteLLM Proxy (BerriAI, MIT) merkezi model geçidi olarak entegre edilir: şirket API anahtarları ve sunucudaki yerel Qwen tek uç noktadan, kişi başı sanal anahtar ve bütçeyle sunulur (Y6). `enterprise/` klasörü kullanılmaz. (7 Kasım 2026)
 - Ekip hafızası mcp-memory-service (doobidoo) ile kurulur: merkezde şirket içinde çalışan tek sunucu; kişisel hafıza claude-mem'de kalır. (4 Kasım 2026)
 - Önceki merkezi plan kararları sürer: 50+ kişi, ekip görünürlüğü, maskeleme, cihaz eşleştirme, PostgreSQL, Docker, yalnız HTTPS, GPL-3.0, "Developed by Caglar Ulkuderner".
 
@@ -189,6 +190,7 @@ Merkez gerektirmeyenler bugünkü kokpitte hemen başlar.
 - Uzaktan başlatılan ajanın yerel makinede kaynak tüketmesi; süre ve bütçe tavanı zorunlu, varsayılanlar builder kararı.
 - Gözden geçiren ajanın yerel modelle zayıf kalması; insan kapısı bu yüzden zorunlu.
 - Merkez kapalıyken iş isteği yalnız issue ataması yoluyla gider; bildirim gecikir ama kaybolmaz.
+- LiteLLM bir Python paketi ve tek giriş kapısıdır; bozulursa ya da tedarik zincirinden zararlı bir sürüm gelirse bütün şirket anahtarları etkilenir. Karşılık: sürüm ve Docker imajı özetle (digest) sabitlenir, otomatik güncelleme yok, yükseltme öncesi sürüm notu okunur; şirket anahtarları yalnız geçitte durur, kişilere sanal anahtar verilir; geçit kapalıyken kişiler kendi abonelikli CLI'ıyla çalışmaya devam eder.
 - mcp-memory-service tek bakımcılı ve Python bağımlılığı getirir; merkez ona yalnız REST ile konuşur (tek modül), Docker imajı sürüm sabitlenir. Proje durursa içerik dışa aktarılıp PostgreSQL tablosuna (pgvector) taşınabilir; brief biçimi değişmez.
 - Ekip hafızasında repo sızıntısı: süzgeç etiketle yapılır, etiketsiz okuma merkez kodunda reddedilir.
 - claude-mem iç API'sinin sürümle değişmesi; okuma tek modülde toplanır, kırılırsa brief claude-mem'siz üretilir.

@@ -408,3 +408,96 @@ test("buildPlan without a ledger marks merged task branches done with their merg
   assert.equal(t2.status, "todo");
   assert.equal(out.totals.remaining_ms, 2 * 86_400_000);
 });
+
+test("discoverPlans finds plans of repos agents work in and lists live repos without one", () => {
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), "plan-disc-"));
+  const mk = (name, files) => {
+    const root = path.join(base, name);
+    fs.mkdirSync(path.join(root, ".git"), { recursive: true });
+    for (const [f, body] of Object.entries(files)) {
+      fs.mkdirSync(path.dirname(path.join(root, f)), { recursive: true });
+      fs.writeFileSync(path.join(root, f), body);
+    }
+    return root;
+  };
+  const cards = "### M0\n#### T01 · A — 1 gün\n#### T02 · B — 1 gün\n#### T03 · C — 1 gün\n";
+  const a = mk("alpha", { "docs/GELISTIRME-PLANI.md": cards, "docs/notes.md": cards });
+  const b = mk("beta", {
+    "docs/superpowers/plans/d1.md": "## A\n### Task 1: X\n### Task 2: Y\n### Task 3: Z\n",
+  });
+  const c = mk("gamma", { "README.md": "# hi\n" });
+  const d = mk("delta", { "docs/plan.md": cards });
+  // a linked worktree of alpha resolves to alpha
+  const wt = path.join(base, "alpha-wt");
+  fs.mkdirSync(wt);
+  fs.writeFileSync(path.join(wt, ".git"), `gitdir: ${path.join(a, ".git", "worktrees", "T02")}\n`);
+  const now = Date.parse("2026-11-08T00:00:00Z");
+  const old = "2026-10-01T00:00:00Z";
+  const out = plan.discoverPlans(
+    [
+      { cwd: wt, live: false, started_at: "2026-11-07T00:00:00Z" },
+      { cwd: path.join(b, "src"), live: true, started_at: old },
+      { cwd: c, live: true, started_at: old },
+      { cwd: d, live: false, started_at: old, ended_at: old }, // too old
+    ],
+    [],
+    now
+  );
+  assert.deepEqual(
+    out.plans.map((p) => [p.name, path.relative(base, p.file), p.discovered]),
+    [
+      ["alpha", "alpha/docs/GELISTIRME-PLANI.md", true],
+      ["beta", "beta/docs/superpowers/plans/d1.md", true],
+    ]
+  );
+  assert.deepEqual(out.unplanned, [{ root: c, name: "gamma" }]);
+  // a repo with a configured plan is left alone
+  const again = plan.discoverPlans(
+    [{ cwd: a, live: true }],
+    [{ id: "x", name: "X", file: path.join(a, "docs/notes.md") }],
+    now
+  );
+  assert.deepEqual(again, { plans: [], unplanned: [] });
+});
+
+test("buildPlan: the plan's own day estimate beats a median of a few short mentions", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "plan-est-"));
+  const file = path.join(dir, "p.md");
+  fs.writeFileSync(file, "### M0\n#### T01 · X — 1 gün\n#### T02 · Y — 2 gün\n");
+  const out = plan.buildPlan(
+    { id: "p", name: "P", file },
+    { tasks: { p: { t01: { status: "done" } } }, order: {} },
+    [
+      {
+        text: "T01 test",
+        cwd: dir,
+        started_at: "2026-11-01T10:00:00Z",
+        ended_at: "2026-11-01T10:02:00Z",
+        live: false,
+      },
+    ],
+    // one day after the start, with the 1-day task done: the pace matches the plan, so no scaling
+    Date.parse("2026-11-02T10:00:00Z"),
+    () => null,
+    () => new Map()
+  );
+  assert.equal(out.typical_task_ms, 120_000);
+  assert.equal(out.totals.remaining_ms, 2 * 86_400_000);
+  assert.equal(out.totals.estimate_basis, "plan");
+});
+
+test("buildPlan scales plan day estimates by the pace of the finished ones", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "plan-scale-"));
+  const file = path.join(dir, "p.md");
+  fs.writeFileSync(file, "### M0\n#### T01 · X — 4 gün\n#### T02 · Y — 2 gün\n");
+  const out = plan.buildPlan(
+    { id: "p", name: "P", file },
+    { tasks: { p: { t01: { status: "done" } } }, order: {} },
+    [],
+    Date.parse("2026-11-03T00:00:00Z"),
+    () => "2026-11-01T00:00:00.000Z", // 4 plan days took 2 calendar days
+    () => new Map()
+  );
+  assert.equal(out.totals.remaining_ms, 86_400_000);
+  assert.equal(out.totals.estimate_basis, "plan");
+});

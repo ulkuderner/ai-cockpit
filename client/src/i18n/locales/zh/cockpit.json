@@ -32,6 +32,7 @@
   "moreInQueue_one": "还有 {{count}} 个任务",
   "moreInQueue_other": "还有 {{count}} 个任务",
   "addPlan": "添加计划",
+  "planNotFound": "在 {{name}} 中未找到计划。请输入其计划文件的路径。",
   "addPlanHint": "计划 Markdown 文件的绝对路径。\"## \" 标题为阶段,\"### Task 3a:\" 或 \"### Görev 17c:\" 标题为任务。",
   "add": "添加",
   "h": "小时",

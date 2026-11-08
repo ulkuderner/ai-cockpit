@@ -32,6 +32,7 @@
   "moreInQueue_one": "{{count}} görev daha",
   "moreInQueue_other": "{{count}} görev daha",
   "addPlan": "Plan ekle",
+  "planNotFound": "{{name}} projesinde plan bulunamadı. Plan dosyasının yolunu yazın.",
   "addPlanHint": "Plan Markdown dosyasının tam yolu. \"## \" başlıkları aşama, \"### Task 3a:\" ya da \"### Görev 17c:\" başlıkları görev olur.",
   "add": "Ekle",
   "h": "sa",

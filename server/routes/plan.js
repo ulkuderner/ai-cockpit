@@ -69,7 +69,12 @@ function loadWork() {
 router.get("/", (_req, res) => {
   const state = plan.readState();
   const work = loadWork();
-  res.json({ plans: state.plans.map((p) => plan.buildPlan(p, state, work)) });
+  // Plans of other projects agents work in are found on their own; the page asks for the rest.
+  const found = plan.discoverPlans(work, state.plans);
+  res.json({
+    plans: [...state.plans, ...found.plans].map((p) => plan.buildPlan(p, state, work)),
+    unplanned: found.unplanned,
+  });
 });
 
 // Body: { plans: [{ id?, name, file }] } — file must be an existing absolute .md path.

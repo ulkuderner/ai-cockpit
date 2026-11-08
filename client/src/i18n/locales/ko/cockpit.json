@@ -32,6 +32,7 @@
   "moreInQueue_one": "작업 {{count}}개 더",
   "moreInQueue_other": "작업 {{count}}개 더",
   "addPlan": "계획 추가",
+  "planNotFound": "{{name}} 프로젝트에서 계획을 찾지 못했습니다. 계획 파일 경로를 입력하세요.",
   "addPlanHint": "계획 Markdown 파일의 절대 경로입니다. \"## \" 제목은 단계, \"### Task 3a:\" 또는 \"### Görev 17c:\" 제목은 작업이 됩니다.",
   "add": "추가",
   "h": "시간",

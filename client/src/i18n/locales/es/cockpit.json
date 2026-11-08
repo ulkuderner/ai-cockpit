@@ -32,6 +32,7 @@
   "moreInQueue_one": "{{count}} tarea más",
   "moreInQueue_other": "{{count}} tareas más",
   "addPlan": "Añadir un plan",
+  "planNotFound": "No se encontró un plan en {{name}}. Escribe la ruta de su archivo de plan.",
   "addPlanHint": "Ruta absoluta de un archivo Markdown de plan. Los encabezados \"## \" son fases; los encabezados \"### Task 3a:\" o \"### Görev 17c:\" son tareas.",
   "add": "Añadir",
   "h": "h",

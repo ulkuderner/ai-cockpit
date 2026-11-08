@@ -23,6 +23,8 @@ export interface Plan {
   id: string;
   name: string;
   file: string;
+  /** Found in a repo agents work in, not configured by hand. */
+  discovered?: boolean;
   error?: string;
   /** A live session works in the plan's repo. */
   active?: boolean;
@@ -141,7 +143,9 @@ export interface CommunityConfig {
 const json = (body: unknown) => ({ body: JSON.stringify(body) });
 
 export const cockpit = {
-  plans: () => request<{ plans: Plan[] }>("/plan"),
+  /** `unplanned`: repos with a live session where no plan file was found on its own. */
+  plans: () =>
+    request<{ plans: Plan[]; unplanned?: Array<{ root: string; name: string }> }>("/plan"),
   savePlans: (plans: Array<{ id?: string; name?: string; file: string }>) =>
     request<{ plans: Plan[] }>("/plan/config", { method: "PUT", ...json({ plans }) }),
   setStatus: (planId: string, taskId: string, status: "todo" | "done" | "blocked") =>

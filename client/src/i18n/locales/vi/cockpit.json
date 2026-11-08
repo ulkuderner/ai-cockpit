@@ -32,6 +32,7 @@
   "moreInQueue_one": "còn {{count}} tác vụ nữa",
   "moreInQueue_other": "còn {{count}} tác vụ nữa",
   "addPlan": "Thêm kế hoạch",
+  "planNotFound": "Không tìm thấy kế hoạch trong {{name}}. Nhập đường dẫn tới file kế hoạch.",
   "addPlanHint": "Đường dẫn tuyệt đối tới file Markdown kế hoạch. Tiêu đề \"## \" là giai đoạn, tiêu đề \"### Task 3a:\" hoặc \"### Görev 17c:\" là tác vụ.",
   "add": "Thêm",
   "h": "giờ",

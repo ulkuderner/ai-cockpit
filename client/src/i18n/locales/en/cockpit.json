@@ -32,6 +32,7 @@
   "moreInQueue_one": "{{count}} more task",
   "moreInQueue_other": "{{count}} more tasks",
   "addPlan": "Add a plan",
+  "planNotFound": "No plan found in {{name}}. Enter the path of its plan file.",
   "addPlanHint": "Absolute path to a plan Markdown file. \"## \" headings become phases, \"### Task 3a:\" or \"### Görev 17c:\" headings become tasks.",
   "add": "Add",
   "h": "h",

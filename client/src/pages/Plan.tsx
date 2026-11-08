@@ -339,15 +339,28 @@ function Queue({ plan, onMove }: { plan: PlanData; onMove: (order: string[]) => 
   );
 }
 
-function AddPlan({ existing, onSaved }: { existing: PlanData[]; onSaved: () => void }) {
+function AddPlan({
+  existing,
+  onSaved,
+  initial = "",
+  label,
+}: {
+  existing: PlanData[];
+  onSaved: () => void;
+  /** Prefilled path, e.g. the repo a plan was not found in. */
+  initial?: string;
+  label?: string;
+}) {
   const { t } = useTranslation("cockpit");
-  const [file, setFile] = useState("");
+  const [file, setFile] = useState(initial);
+  const inputId = `plan-file-${initial || "new"}`;
   const [err, setErr] = useState<string | null>(null);
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await cockpit.savePlans([
-        ...existing.map(({ id, name, file }) => ({ id, name, file })),
+        // Found plans are rediscovered on every load; only hand-added ones are saved.
+        ...existing.filter((p) => !p.discovered).map(({ id, name, file }) => ({ id, name, file })),
         { file: file.trim() },
       ]);
       setFile("");
@@ -359,13 +372,13 @@ function AddPlan({ existing, onSaved }: { existing: PlanData[]; onSaved: () => v
   };
   return (
     <form onSubmit={submit} className="card p-5 space-y-3">
-      <label htmlFor="plan-file" className="block text-sm font-medium text-gray-200">
-        {t("addPlan")}
+      <label htmlFor={inputId} className="block text-sm font-medium text-gray-200">
+        {label ?? t("addPlan")}
       </label>
       <p className="text-xs text-gray-500">{t("addPlanHint")}</p>
       <div className="flex gap-2">
         <input
-          id="plan-file"
+          id={inputId}
           value={file}
           onChange={(e) => setFile(e.target.value)}
           placeholder="/Users/…/docs/plans/plan.md"
@@ -393,12 +406,16 @@ export default function Plan() {
   const { t } = useTranslation("cockpit");
   const [plans, setPlans] = useState<PlanData[] | null>(null);
   const [active, setActive] = useState<string | null>(null);
+  const [unplanned, setUnplanned] = useState<Array<{ root: string; name: string }>>([]);
 
   const load = useCallback(
     () =>
       cockpit
         .plans()
-        .then((d) => setPlans(d.plans))
+        .then((d) => {
+          setPlans(d.plans);
+          setUnplanned(d.unplanned ?? []);
+        })
         .catch(() => setPlans([])),
     []
   );
@@ -458,7 +475,7 @@ export default function Plan() {
           </span>
         )}
         {plans && plans.length > 1 && (
-          <div className="ml-auto flex rounded-lg bg-surface-2 p-1" role="tablist">
+          <div className="ml-auto flex flex-wrap rounded-lg bg-surface-2 p-1" role="tablist">
             {plans.map((p) => (
               <button
                 key={p.id}
@@ -486,7 +503,20 @@ export default function Plan() {
         </p>
       )}
 
-      {plans && plans.length === 0 && <AddPlan existing={[]} onSaved={load} />}
+      {plans && plans.length === 0 && unplanned.length === 0 && (
+        <AddPlan existing={[]} onSaved={load} />
+      )}
+
+      {plans &&
+        unplanned.map((u) => (
+          <AddPlan
+            key={u.root}
+            existing={plans}
+            onSaved={load}
+            initial={`${u.root}/`}
+            label={t("planNotFound", { name: u.name })}
+          />
+        ))}
 
       {plan?.error && (
         <div className="card p-5 text-sm text-red-400" role="alert">

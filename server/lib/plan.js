@@ -79,6 +79,116 @@ function parsePlan(markdown) {
   return phases.filter((p) => p.tasks.length > 0);
 }
 
+/** Repo a working directory belongs to; a linked worktree resolves to its main checkout. Null outside git. */
+function workRepo(cwd) {
+  let dir = path.resolve(cwd);
+  for (;;) {
+    const git = path.join(dir, ".git");
+    let st;
+    try {
+      st = fs.statSync(git);
+    } catch {
+      const up = path.dirname(dir);
+      if (up === dir) return null;
+      dir = up;
+      continue;
+    }
+    if (st.isDirectory()) return dir;
+    // worktree: ".git" file says "gitdir: <main>/.git/worktrees/<name>"
+    const m = /^gitdir:\s*(.+)$/m.exec(fs.readFileSync(git, "utf8"));
+    const g = m && path.resolve(dir, m[1].trim());
+    return g && path.basename(path.dirname(g)) === "worktrees"
+      ? path.dirname(path.dirname(path.dirname(g)))
+      : dir;
+  }
+}
+
+const PLAN_DIRS = ["docs/superpowers/plans", "docs/plans", "docs", "plans", "."];
+
+/**
+ * The plan a repo is working from: the plan its newest SDD ledger names, else the newest Markdown file
+ * in a plans folder, or named like a plan elsewhere in PLAN_DIRS, that parses to at least 3 tasks. Null when there is none.
+ */
+function findRepoPlan(root) {
+  const ledgerBase = path.join(root, ".superpowers", "sdd");
+  let best = null;
+  try {
+    for (const run of fs.readdirSync(ledgerBase)) {
+      try {
+        const file = path.resolve(
+          root,
+          fs.readFileSync(path.join(ledgerBase, run, "plan-path"), "utf8").trim()
+        );
+        const at = fs.statSync(path.join(ledgerBase, run, "progress.md")).mtimeMs;
+        if (fs.existsSync(file) && (!best || at > best.at)) best = { file, at };
+      } catch {
+        // run without a plan-path or progress.md
+      }
+    }
+  } catch {
+    // no ledger
+  }
+  if (best) return best.file;
+  for (const sub of PLAN_DIRS) {
+    const dir = path.join(root, sub);
+    let names = [];
+    try {
+      // In a folder of plans any Markdown file counts; elsewhere the name must say "plan".
+      const plansDir = /plans$/.test(sub);
+      names = fs.readdirSync(dir).filter((n) => /\.md$/i.test(n) && (plansDir || /plan/i.test(n)));
+    } catch {
+      continue;
+    }
+    for (const n of names) {
+      const file = path.join(dir, n);
+      try {
+        const at = fs.statSync(file).mtimeMs;
+        if (best && at <= best.at) continue;
+        const tasks = parsePlan(fs.readFileSync(file, "utf8")).reduce(
+          (k, p) => k + p.tasks.length,
+          0
+        );
+        if (tasks >= 3) best = { file, at };
+      } catch {
+        // unreadable file
+      }
+    }
+  }
+  return best ? best.file : null;
+}
+
+/**
+ * Plans of the repos agents worked in during the last `days`, beside the configured ones.
+ * Returns { plans: [{id, name, file, discovered: true}], unplanned: [{root, name}] }:
+ * `unplanned` lists repos with a live session where no plan was found, so the page can ask for one.
+ */
+function discoverPlans(work, configured, now = Date.now(), days = 14) {
+  const since = now - days * 86_400_000;
+  const known = new Set(configured.map((p) => workRepo(p.file) || repoRoot(p.file)));
+  const roots = new Map(); // root -> has a live session
+  for (const w of work) {
+    if (!w.cwd) continue;
+    const at = Date.parse(w.ended_at || w.started_at || "");
+    if (!w.live && !(at >= since)) continue;
+    const root = workRepo(w.cwd);
+    if (!root || root === os.homedir() || known.has(root)) continue;
+    roots.set(root, roots.get(root) || !!w.live);
+  }
+  const plans = [];
+  const unplanned = [];
+  for (const [root, live] of roots) {
+    const file = findRepoPlan(root);
+    const name = path.basename(root);
+    if (file) {
+      const id = `auto-${name}-${path.basename(file, ".md")}`
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-");
+      plans.push({ id, name, file, discovered: true });
+    } else if (live) unplanned.push({ root, name });
+  }
+  return { plans, unplanned };
+}
+
 /** "Görev 17a", "Task 17a", "G17a" mention the task; a bare "17a" does not (too many false hits). */
 function mentionRegex(id) {
   // A card id like "t05" carries its own letter, so it stands alone.
@@ -340,11 +450,12 @@ function buildPlan(
     all.filter((t) => t.status === "done" && t.spent_ms > 0).map((t) => t.spent_ms)
   );
   for (const task of all) {
+    // The plan's own estimate beats a median that a few short mentions can drag to minutes.
     if (task.status === "done") task.remaining_ms = 0;
+    else if (task.estimate_ms != null)
+      task.remaining_ms = Math.max(task.estimate_ms - task.spent_ms, 0);
     else if (typical != null) task.remaining_ms = Math.max(typical - task.spent_ms, 0);
-    else
-      task.remaining_ms =
-        task.estimate_ms == null ? null : Math.max(task.estimate_ms - task.spent_ms, 0);
+    else task.remaining_ms = null;
   }
 
   const order = state.order[planCfg.id] || [];
@@ -358,8 +469,6 @@ function buildPlan(
     .map((t) => t.id);
 
   const pending = all.filter((t) => t.status !== "done" && t.status !== "blocked");
-  const known = pending.every((t) => t.remaining_ms != null);
-  const measured = known && pending.length ? pending.reduce((s, t) => s + t.remaining_ms, 0) : null;
   const doneCount = all.filter((t) => t.status === "done").length;
   const measuredStart =
     all
@@ -370,6 +479,18 @@ function buildPlan(
   const gitStart = firstCommit(planCfg.file);
   const fromGit = gitStart != null && (measuredStart == null || gitStart < measuredStart);
   const started_at = fromGit ? gitStart : measuredStart;
+  // Plan day estimates assume one person; scale them by how fast the finished estimated tasks really went.
+  const doneEst = all
+    .filter((t) => t.status === "done" && t.estimate_ms != null)
+    .reduce((sum, t) => sum + t.estimate_ms, 0);
+  const startMs = Date.parse(started_at || "");
+  if (doneEst > 0 && Number.isFinite(startMs) && now > startMs) {
+    const k = (now - startMs) / doneEst;
+    for (const t of pending)
+      if (t.estimate_ms != null) t.remaining_ms = Math.round(t.remaining_ms * k);
+  }
+  const known = pending.every((t) => t.remaining_ms != null);
+  const measured = known && pending.length ? pending.reduce((s, t) => s + t.remaining_ms, 0) : null;
   const pace = measured == null ? calendarPace(started_at, doneCount, pending.length, now) : null;
   const remaining_ms = measured ?? pace?.remaining_ms ?? null;
   // Calendar pace applies per task too, so the queue can show a running "+N days" for each item.
@@ -392,7 +513,7 @@ function buildPlan(
       // "agent": measured agent time per task; "calendar": wall-clock pace since the plan started.
       estimate_basis:
         measured != null
-          ? typical != null
+          ? pending.some((t) => t.estimate_ms == null)
             ? "agent"
             : "plan"
           : remaining_ms != null
@@ -413,6 +534,9 @@ module.exports = {
   parsePlan,
   mentionRegex,
   branchTask,
+  workRepo,
+  findRepoPlan,
+  discoverPlans,
   buildPlan,
   calendarPace,
   stateFile,

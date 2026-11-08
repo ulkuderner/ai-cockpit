@@ -353,3 +353,58 @@ test("buildPlan counts a session launched in the repo even after it cd'd away", 
   ];
   assert.equal(plan.buildPlan(cfg, { tasks: {}, order: {} }, work).active, true);
 });
+
+test("parsePlan reads card plans: '### M0' phases over '#### T01 · Title — N gün' tasks", () => {
+  const md = `# Plan
+## 5. Görev kartları
+### M0 — Depo (≈1 hafta)
+#### T01 · Monorepo iskeleti — 1 gün
+- **Kabul:** yeşil
+#### T02 · Lisans — 0,5 gün
+### M8 — Kalite
+#### T26 · Uçtan uca — sürekli
+## 6. Sonraki fazlar
+`;
+  const phases = plan.parsePlan(md);
+  assert.deepEqual(
+    phases.map((p) => [p.title, p.tasks.map((t) => [t.id, t.title, t.estimate_ms])]),
+    [
+      [
+        "M0 — Depo (≈1 hafta)",
+        [
+          ["t01", "Monorepo iskeleti", 86_400_000],
+          ["t02", "Lisans", 43_200_000],
+        ],
+      ],
+      ["M8 — Kalite", [["t26", "Uçtan uca", null]]],
+    ]
+  );
+  assert.ok(plan.mentionRegex("t07").test("feat(posta): T07 giriş"));
+  assert.ok(!plan.mentionRegex("t07").test("T07b ayrı iş"));
+});
+
+test("branchTask reads task ids from branch names", () => {
+  assert.equal(plan.branchTask("codex/17e"), "17e");
+  assert.equal(plan.branchTask("task/12-x"), "12");
+  assert.equal(plan.branchTask("feat/T07b"), "t07b");
+  assert.equal(plan.branchTask("fix/kararsiz-testler"), null);
+});
+
+test("buildPlan without a ledger marks merged task branches done with their merge time", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "plan-merged-"));
+  const file = path.join(dir, "p.md");
+  fs.writeFileSync(file, "### M0 — A\n#### T01 · X — 1 gün\n#### T02 · Y — 2 gün\n");
+  const out = plan.buildPlan(
+    { id: "p", name: "P", file },
+    { tasks: {}, order: {} },
+    [],
+    Date.parse("2026-11-08T00:00:00Z"),
+    () => null,
+    () => new Map([["t01", "2026-11-01T10:00:00.000Z"]])
+  );
+  const [t1, t2] = out.phases[0].tasks;
+  assert.equal(t1.status, "done");
+  assert.equal(t1.done_at, "2026-11-01T10:00:00.000Z");
+  assert.equal(t2.status, "todo");
+  assert.equal(out.totals.remaining_ms, 2 * 86_400_000);
+});

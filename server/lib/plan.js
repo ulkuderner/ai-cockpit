@@ -37,32 +37,43 @@ function writeState(state) {
   fs.renameSync(tmp, file);
 }
 
-/** `## Phase` starts a phase; `### Task 3a: Title` / `### Görev 17c - Title` is a task. */
+// "### Task 3a: Title", "### Görev 17c - Title" or a card id "#### T07b · Title — 2 gün".
+const TASK_HEADING =
+  /^(#{3,4})\s+(?:(?:Task|Görev|Gorev)\s+([0-9]+[a-z]?)\s*[:.\-–]?|(T[0-9]+[a-z]?)\s*[·:.\-–])\s*(.*)$/i;
+
+/** Headings above the task level start a phase (`## Phase`, or `### M0 — ...` over `####` cards). */
 function parsePlan(markdown) {
+  const lines = markdown.split(/\r?\n/);
+  const first = lines.map((l) => TASK_HEADING.exec(l)).find(Boolean);
+  const taskLevel = first ? first[1].length : 3;
   const phases = [];
   let phase = null;
-  for (const line of markdown.split(/\r?\n/)) {
-    const h2 = /^#{1,2}\s+(.+?)\s*$/.exec(line);
-    if (h2) {
-      phase = { title: h2[1], tasks: [] };
-      phases.push(phase);
-      continue;
-    }
-    const h3 = /^###\s+(?:Task|Görev|Gorev)\s+([0-9]+[a-z]?)\s*[:.\-–]?\s*(.*)$/i.exec(line);
-    if (h3) {
+  for (const line of lines) {
+    const t = TASK_HEADING.exec(line);
+    if (t && t[1].length === taskLevel) {
       if (!phase) {
         phase = { title: "", tasks: [] };
         phases.push(phase);
       }
-      // "(est:3h)" / "(est:45m)" in the heading is the task's own estimate; keep it out of the title.
-      const est = /\(?\s*est:\s*(\d+(?:\.\d+)?)\s*([hm])\s*\)?/i.exec(h3[2]);
-      phase.tasks.push({
-        id: h3[1].toLowerCase(),
-        title: h3[2].replace(est ? est[0] : "", "").trim(),
-        estimate_ms: est
-          ? Number(est[1]) * (est[2].toLowerCase() === "h" ? 3_600_000 : 60_000)
-          : null,
-      });
+      let title = t[4];
+      // "(est:3h)" / "(est:45m)" or a trailing "— 1,5 gün" is the task's own estimate; keep it out of the title.
+      const est = /\(?\s*est:\s*(\d+(?:\.\d+)?)\s*([hm])\s*\)?/i.exec(title);
+      // A plan "gün" is counted as a calendar day so the remaining time reads in the plan's own numbers.
+      const days = est ? null : /\s*[—–-]\s*(\d+(?:[.,]\d+)?)\s*gün\s*$/i.exec(title);
+      const estimate_ms = est
+        ? Number(est[1]) * (est[2].toLowerCase() === "h" ? 3_600_000 : 60_000)
+        : days
+          ? Math.round(Number(days[1].replace(",", ".")) * 86_400_000)
+          : null;
+      const cut = est || days;
+      title = (cut ? title.replace(cut[0], "") : title).replace(/\s*[—–-]\s*sürekli\s*$/i, "");
+      phase.tasks.push({ id: (t[2] || t[3]).toLowerCase(), title: title.trim(), estimate_ms });
+      continue;
+    }
+    const h = /^(#{1,6})\s+(.+?)\s*$/.exec(line);
+    if (h && h[1].length < taskLevel) {
+      phase = { title: h[2], tasks: [] };
+      phases.push(phase);
     }
   }
   return phases.filter((p) => p.tasks.length > 0);
@@ -70,6 +81,8 @@ function parsePlan(markdown) {
 
 /** "Görev 17a", "Task 17a", "G17a" mention the task; a bare "17a" does not (too many false hits). */
 function mentionRegex(id) {
+  // A card id like "t05" carries its own letter, so it stands alone.
+  if (/^[a-z]/.test(id)) return new RegExp(`\\b${id}(?![0-9a-z])`, "i");
   return new RegExp(`(?:task|g(?:ö|o)rev|\\bg)\\s*${id}(?![0-9a-z])`, "i");
 }
 
@@ -126,6 +139,43 @@ function readLedger(root, planFile) {
   return { done, open, found, last };
 }
 
+/** Plan task id a branch like `codex/17e`, `task/12-x` or `feat/T07b` ends in, or null. */
+function branchTask(branch) {
+  const m = branch.match(/^(?:.*\/)?(?:task-?)?(t?[0-9]+[a-z]?)(?:-[^/]*)?$/i);
+  return m ? m[1].toLowerCase() : null;
+}
+
+/**
+ * Tasks the repo's checked-out branch has finished, read from git: a merged task branch
+ * ("Merge pull request #3 from me/feat/T05", "Merge branch 'feat/T05'") or a commit tagged "(T01)".
+ * Returns Map id -> commit time (ISO); empty outside git. Cached for a minute per repo.
+ */
+const mergedCache = new Map();
+function planMergedTasks(root) {
+  const hit = mergedCache.get(root);
+  if (hit && Date.now() - hit.at < 60_000) return hit.value;
+  const value = new Map();
+  try {
+    const out = require("child_process").execFileSync(
+      "git",
+      ["-C", root, "log", "--format=%cI%x09%s", "HEAD"],
+      { encoding: "utf8", timeout: 5000, stdio: ["ignore", "pipe", "ignore"], maxBuffer: 64 << 20 }
+    );
+    // git log is newest first; keep the earliest finish of each task.
+    for (const line of out.split("\n").reverse()) {
+      const [at, subject = ""] = line.split("\t");
+      const merge = subject.match(/^Merge (?:pull request #\d+ from |branch ')([^'\s]+)/);
+      const tag = subject.match(/\((T[0-9]+[a-z]?)\)\s*$/i);
+      const id = merge ? branchTask(merge[1]) : tag ? tag[1].toLowerCase() : null;
+      if (id && !value.has(id)) value.set(id, new Date(at).toISOString());
+    }
+  } catch {
+    // not a git repo, or git missing
+  }
+  mergedCache.set(root, { at: Date.now(), value });
+  return value;
+}
+
 /**
  * Linked worktrees of the repo (`git worktree add`), read from `.git/worktrees/*` without running git.
  * `task` is the plan task id a branch like `codex/17e` or `task/12-x` ends in, or null.
@@ -143,8 +193,8 @@ function worktrees(root) {
     try {
       const dir = path.dirname(fs.readFileSync(path.join(base, name, "gitdir"), "utf8").trim());
       const head = fs.readFileSync(path.join(base, name, "HEAD"), "utf8").trim();
-      const m = head.match(/^ref: refs\/heads\/(?:.*\/)?(?:task-?)?([0-9]+[a-z]?)(?:-[^/]*)?$/i);
-      out.push({ dir, task: m ? m[1].toLowerCase() : null });
+      const m = head.match(/^ref: refs\/heads\/(.+)$/);
+      out.push({ dir, task: m ? branchTask(m[1]) : null });
     } catch {
       // half-removed worktree: skip
     }
@@ -205,7 +255,14 @@ function calendarPace(startedAt, done, pending, now = Date.now()) {
   return { remaining_ms: Math.round(pace * pending), pace_ms: Math.round(pace) };
 }
 
-function buildPlan(planCfg, state, work, now = Date.now(), firstCommit = planFirstCommit) {
+function buildPlan(
+  planCfg,
+  state,
+  work,
+  now = Date.now(),
+  firstCommit = planFirstCommit,
+  mergedTasks = planMergedTasks
+) {
   let markdown;
   try {
     markdown = fs.readFileSync(planCfg.file, "utf8");
@@ -226,6 +283,8 @@ function buildPlan(planCfg, state, work, now = Date.now(), firstCommit = planFir
   const phases = parsePlan(markdown);
   const all = phases.flatMap((p) => p.tasks);
   const ledger = readLedger(root, planCfg.file);
+  // Without a ledger, merged task branches mark finished work.
+  const merged = ledger.found ? new Map() : mergedTasks(root);
   const activeSessions = [...new Set(work.filter((w) => w.live).map((w) => w.label))];
   // Parallel agents: an open task with its own worktree gets that worktree's sessions; the rest share the main checkout's.
   const treeTasks = new Set(trees.map((t) => t.task).filter(Boolean));
@@ -267,14 +326,14 @@ function buildPlan(planCfg, state, work, now = Date.now(), firstCommit = planFir
     const m = manual[task.id]?.status;
     // A ledger "complete" outranks an older manual "blocked" (a blocker the task got past).
     task.status =
-      m === "done" || ledger.done.has(task.id)
+      m === "done" || ledger.done.has(task.id) || merged.has(task.id)
         ? "done"
         : m === "blocked"
           ? m
           : task.running.length
             ? "running"
             : "todo";
-    task.done_at = m === "done" ? manual[task.id].at || null : null;
+    task.done_at = (m === "done" ? manual[task.id].at : null) || merged.get(task.id) || null;
   }
 
   const typical = median(
@@ -353,6 +412,7 @@ module.exports = {
   writeState,
   parsePlan,
   mentionRegex,
+  branchTask,
   buildPlan,
   calendarPace,
   stateFile,

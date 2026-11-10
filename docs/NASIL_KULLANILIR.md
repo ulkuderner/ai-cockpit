@@ -146,6 +146,8 @@ Claude Code, Codex ya da Cursor'ı kokpitten başlat:
 
 Bir projeyi birden fazla kişiyle, herkes **kendi** AI aboneliğiyle geliştirmek için ortak iş kuyruğu. Hesap ya da limit paylaşılmaz; iş paylaşılır.
 
+Baştan sona adım adım anlatım: **[IS_TAHTASI_KILAVUZU.md](IS_TAHTASI_KILAVUZU.md)**
+
 Sayfanın üstündeki **Nasıl kullanılır** bölümü seçtiğin platforma göre adım adım anlatır:
 
 ![Topluluk rehberi](images/nasil/06-topluluk-rehber.png)

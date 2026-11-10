@@ -53,8 +53,13 @@ router.put(
             ...(provider === "gitlab" && b.host ? { host: String(b.host).trim() } : {}),
           }),
       staleHours,
+      ...(b.worktrunk !== undefined ? { worktrunk: b.worktrunk } : {}),
+      ...(b.worktrunkHooks !== undefined ? { worktrunkHooks: b.worktrunkHooks } : {}),
     };
     community.validateConfig(cfg);
+    // Saving settings must not drop local claims and their handover notes.
+    const prev = community.readConfig();
+    if (prev?.claims && prev.localPath === cfg.localPath) cfg.claims = prev.claims;
     community.writeConfig(cfg);
     return cfg;
   })

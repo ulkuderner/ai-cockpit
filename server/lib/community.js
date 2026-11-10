@@ -70,6 +70,10 @@ function validateConfig(cfg) {
   const staleHours = cfg.staleHours ?? 4;
   if (!Number.isInteger(staleHours) || staleHours < 1 || staleHours > 168)
     throw fail(400, "Sahipsiz görev eşiği (staleHours) 1-168 arasında bir tam saat olmalı");
+  if (cfg.worktrunk !== undefined && !["auto", "off"].includes(cfg.worktrunk))
+    throw fail(400, "worktrunk yalnız 'auto' ya da 'off' olabilir");
+  if (cfg.worktrunkHooks !== undefined && typeof cfg.worktrunkHooks !== "boolean")
+    throw fail(400, "worktrunkHooks true ya da false olmalı");
   if (!path.isAbsolute(cfg.localPath || "") || !fs.existsSync(path.join(cfg.localPath, ".git"))) {
     throw fail(400, "Yerel klasör bir git deposu olmalı (tam yol)");
   }
@@ -748,20 +752,50 @@ async function board(cfg, liveCwds = []) {
  * commit time from the task's own worktree (someone else's machine is
  * invisible; their tasks go by claimed_at alone), and `live` says an active
  * agent session works in that worktree right now (liveCwds = the working
- * directories of active sessions). Exported for tests and the Worktrunk path.
+ * directories of active sessions). With Worktrunk installed one `wt list`
+ * call feeds every task (`head.committed_at`, plus `dirty` from
+ * `worktree.changes`); bad JSON or a foreign schema falls back to per-task git.
+ * Exported for tests and the Worktrunk path.
  */
 async function boardActivity(cfg, tasks, liveCwds = []) {
+  const bin = await wtBin(cfg);
+  let items = null;
+  if (bin) {
+    try {
+      const parsed = JSON.parse(
+        await run(bin, ["-C", cfg.localPath, "list", "--format=json"], { env: gitSafeEnv() })
+      );
+      if (parsed && parsed.schema === 2 && Array.isArray(parsed.items))
+        items = new Map(parsed.items.filter((i) => i && i.branch).map((i) => [i.branch, i]));
+    } catch {
+      items = null; // broken CLI or changed output shape: plain git per task
+    }
+  }
   const out = {};
   for (const t of tasks || []) {
     const mine = t.state === "mine" || t.mine === true;
     const wt = worktreePath(cfg, t.branch);
-    let last_commit_at = null;
-    if (mine && fs.existsSync(wt)) {
-      last_commit_at =
-        (await git(wt, ["log", "-1", "--format=%cI", t.branch]).catch(() => "")).trim() || null;
-    }
     const live = (liveCwds || []).some((p) => p && (p === wt || p.startsWith(wt + path.sep)));
-    out[t.number] = { last_commit_at, live };
+    const item = items && mine ? items.get(t.branch) : undefined;
+    if (item) {
+      const changes = item.worktree?.changes;
+      out[t.number] = {
+        last_commit_at: isoTime(item.head?.committed_at),
+        dirty: Array.isArray(changes)
+          ? changes.length > 0
+          : changes
+            ? Object.keys(changes).length > 0
+            : false,
+        live,
+      };
+    } else {
+      let last_commit_at = null;
+      if (mine && fs.existsSync(wt)) {
+        last_commit_at =
+          (await git(wt, ["log", "-1", "--format=%cI", t.branch]).catch(() => "")).trim() || null;
+      }
+      out[t.number] = { last_commit_at, live };
+    }
   }
   return out;
 }
@@ -808,9 +842,52 @@ const realPath = (p) => {
   }
 };
 
+/** wt may report commit time as ISO text or Unix seconds; the board compares ISO. */
+function isoTime(v) {
+  if (typeof v === "number" && Number.isFinite(v)) return new Date(v * 1000).toISOString();
+  return typeof v === "string" && v ? v : null;
+}
+
+// ── Worktrunk (optional external CLI) ────────────────────────────────────────
+
+// Cached per process so the probe runs at most once per server lifetime;
+// tests reset it between fake-bin scenes with _resetWtBin.
+let wtBinCache;
+
+/**
+ * The Worktrunk CLI name to hand worktree work to when the user has it
+ * (worktrunk: "auto", the default): the first of `wt` / `git-wt` that answers
+ * `--version`, or null for "off" and for a machine without it. The cockpit
+ * never installs or requires it; every caller keeps the plain-git path.
+ */
+async function wtBin(cfg) {
+  if (cfg.worktrunk === "off") return null;
+  if (wtBinCache !== undefined) return wtBinCache;
+  wtBinCache = null;
+  for (const bin of ["wt", "git-wt"]) {
+    if (
+      await run(bin, ["--version"], { env: gitSafeEnv() }).then(
+        () => true,
+        () => false
+      )
+    ) {
+      wtBinCache = bin;
+      break;
+    }
+  }
+  return wtBinCache;
+}
+
+/** Test-only: forget the cached probe so a new scene's PATH is honored. */
+function _resetWtBin() {
+  wtBinCache = undefined;
+}
+
 /**
  * The task's worktree path, opening the worktree when missing: an existing branch is
  * attached as-is, a new one starts at `startPoint`, an already-open worktree is reused.
+ * With Worktrunk installed the opening goes through `wt switch` first; any wt failure
+ * (exit, missing folder) silently falls back to the plain-git path below.
  * Refuses with 409 while the branch is checked out in the main repo: git cannot hold
  * one branch in two worktrees, and the main checkout is never touched to fix it.
  */
@@ -826,7 +903,6 @@ async function ensureWorktree(cfg, branch, startPoint) {
     .filter((l) => l.startsWith("worktree "))
     .map((l) => realPath(l.slice("worktree ".length)));
   if (open.includes(realPath(cwd))) return cwd;
-  fs.mkdirSync(path.dirname(cwd), { recursive: true });
   const exists = await git(cfg.localPath, [
     "rev-parse",
     "--verify",
@@ -836,6 +912,33 @@ async function ensureWorktree(cfg, branch, startPoint) {
     () => true,
     () => false
   );
+  const bin = await wtBin(cfg);
+  if (bin) {
+    // Project hooks (.config/wt.toml) are commands shipped in the repo, so hooks
+    // stay off unless the user opted in with worktrunkHooks (--yes also keeps a
+    // background claim from hanging on wt's confirmation prompt).
+    const args = ["-C", cfg.localPath, "switch"];
+    if (exists) args.push(branch);
+    else {
+      args.push("-c", branch);
+      if (startPoint) args.push("-b", startPoint);
+    }
+    args.push(
+      "--path",
+      cwd,
+      "--no-cd",
+      "--format",
+      "json",
+      cfg.worktrunkHooks ? "--yes" : "--no-hooks"
+    );
+    try {
+      await run(bin, args, { env: gitSafeEnv() });
+      if (fs.existsSync(cwd)) return cwd;
+    } catch {
+      // broken or changed wt: plain git below
+    }
+  }
+  fs.mkdirSync(path.dirname(cwd), { recursive: true });
   await git(
     cfg.localPath,
     exists ? ["worktree", "add", cwd, branch] : ["worktree", "add", "-b", branch, cwd, startPoint]
@@ -989,6 +1092,8 @@ module.exports = {
   buildBoard,
   worktreePath,
   ensureWorktree,
+  wtBin,
+  _resetWtBin,
   estimateFromLabels,
   closedIssues,
   slug,

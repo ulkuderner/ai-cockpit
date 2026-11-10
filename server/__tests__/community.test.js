@@ -590,7 +590,14 @@ test("PUT /config rejects staleHours outside 1-168 and accepts 4", async () => {
     try {
       assert.equal((await put(0)).status, 400);
       assert.equal((await put(169)).status, 400);
+      c.writeConfig({
+        provider: "github",
+        repo: "a/b",
+        localPath: path.resolve(__dirname, "../.."),
+        claims: { 1: { by: "x", notes: ["n"] } },
+      });
       const ok = await put(4);
+      assert.deepEqual(c.readConfig().claims, { 1: { by: "x", notes: ["n"] } }); // saving keeps claims
       assert.equal(ok.status, 200);
       assert.equal(ok.body.staleHours, 4);
       assert.equal(c.readConfig().staleHours, 4);

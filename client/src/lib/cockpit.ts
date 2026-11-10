@@ -97,11 +97,28 @@ export interface CommunityTask {
   url: string | null;
   body: string;
   assignees: string[];
+  /** "Alan:" patterns from the issue body; empty for legacy issues without fields. */
+  area: string[];
+  /** "Bağlı:" dependency issue numbers from the issue body. */
+  deps: number[];
+  /** "Kabul:" acceptance criteria lines from the issue body. */
+  acceptance: string[];
   estimate_ms: number | null;
   branch: string;
   state: "open" | "mine" | "taken" | "review";
   claimed_at: string | null;
   updated_at: string | null;
+  /** Open dependencies that must finish before this task can be claimed. */
+  blocked_by: number[];
+  /** Tasks currently being worked on whose area overlaps this one's. */
+  conflicts_with: number[];
+  /** Open, unblocked and free of area clashes. */
+  ready: boolean;
+  /** Claimed, no live agent session and idle past the configured threshold. */
+  stale: boolean;
+  last_activity_at: string | null;
+  /** Uncommitted changes in the task worktree (Worktrunk path only). */
+  dirty?: boolean;
   pr: {
     number: number;
     url: string | null;
@@ -124,6 +141,7 @@ export interface CommunityBoard {
     mine: number;
     taken: number;
     review: number;
+    ready: number;
     open_estimate_ms: number;
     open_unestimated: number;
   };
@@ -138,6 +156,18 @@ export interface CommunityConfig {
   label?: string;
   host?: string;
   planFile?: string;
+  /** Hours before a claimed task with no activity counts as stale (1-168, default 4). */
+  staleHours?: number;
+  /** "auto": use Worktrunk for task worktrees when installed; "off": plain git. */
+  worktrunk?: "auto" | "off";
+  /** Run repository Worktrunk hooks when opening worktrees (opt-in, untrusted by default). */
+  worktrunkHooks?: boolean;
+}
+
+/** Plan-sync preview: unmarked plan tasks to open, marked ones to refresh. */
+export interface CommunityPlanSyncPreview {
+  create: Array<{ id: string; title: string }>;
+  update: Array<{ id: string; title: string; number: number }>;
 }
 
 const json = (body: unknown) => ({ body: JSON.stringify(body) });
@@ -184,7 +214,21 @@ export const cockpit = {
       `/community/tasks/${n}/claim`,
       { method: "POST" }
     ),
-  communityRelease: (n: number) => request(`/community/tasks/${n}/release`, { method: "POST" }),
+  communityRelease: (n: number, note: string) =>
+    request<{ ok: boolean; comment: string }>(`/community/tasks/${n}/release`, {
+      method: "POST",
+      ...json({ note }),
+    }),
+  communityReleasePreview: (n: number, note: string) =>
+    request<{ comment: string }>(`/community/tasks/${n}/release/preview`, {
+      method: "POST",
+      ...json({ note }),
+    }),
+  communityPlanSyncPreview: () => request<CommunityPlanSyncPreview>("/community/plan-sync"),
+  communityPlanSync: () =>
+    request<{ created: number[]; updated: number[]; skipped: number[] }>("/community/plan-sync", {
+      method: "POST",
+    }),
   communityPrPreview: (n: number) =>
     request<{
       branch: string;

@@ -26,6 +26,7 @@ import {
   formatDuration,
   type CommunityBoard,
   type CommunityConfig,
+  type CommunityPlanSyncPreview,
   type CommunityProvider,
   type CommunityTask,
 } from "../lib/cockpit";
@@ -36,6 +37,35 @@ const STATE_STYLE: Record<CommunityTask["state"], string> = {
   taken: "bg-surface-5 text-gray-300 ring-white/5",
   review: "bg-amber-500/15 text-amber-300 ring-amber-400/30",
 };
+
+/** Readiness / staleness badges on a task row (mockup: rounded-full, 11px, ring). */
+const BADGE = "rounded-full px-2 py-0.5 text-[11px] ring-1";
+const READY_STYLE = "bg-emerald-500/10 text-emerald-300 ring-emerald-400/25";
+const WAITING_STYLE = "bg-amber-500/10 text-amber-300 ring-amber-400/25";
+const CONFLICT_STYLE = "bg-red-500/10 text-red-300 ring-red-400/25";
+const STALE_STYLE = "bg-amber-500/15 text-amber-300 ring-amber-400/30";
+const NO_AREA_STYLE = "bg-surface-4 text-gray-400 ring-white/5";
+
+/** Area / dependency chips under a task title (mockup: rounded-md, mono, 11px). */
+const CHIP =
+  "inline-flex items-center rounded-md bg-surface-4 px-1.5 py-0.5 font-mono text-[11px] text-gray-300";
+const CHIP_DEP =
+  "inline-flex items-center rounded-md bg-surface-2 px-1.5 py-0.5 font-mono text-[11px] text-gray-400 ring-1 ring-border";
+const CHIP_CONFLICT =
+  "inline-flex items-center rounded-md bg-red-500/10 px-1.5 py-0.5 font-mono text-[11px] text-red-200 ring-1 ring-red-400/20";
+
+/** Root of an area pattern (before the first wildcard, trailing slash dropped), mirroring the server's clash rule. */
+function areaRoot(pattern: string): string {
+  const cut = pattern.search(/[*?[]/);
+  return (cut === -1 ? pattern : pattern.slice(0, cut)).replace(/\/+$/, "");
+}
+
+/** True when two area patterns overlap by the board's root rule (an empty root covers the whole repo). */
+function patternsOverlap(x: string, y: string): boolean {
+  const rx = areaRoot(x);
+  const ry = areaRoot(y);
+  return !rx || !ry || rx === ry || y.startsWith(rx + "/") || x.startsWith(ry + "/");
+}
 
 const PLATFORMS: CommunityProvider[] = ["github", "gitlab", "local"];
 
@@ -306,7 +336,13 @@ function Setup({
   const [localPath, setLocalPath] = useState(initial?.localPath ?? "");
   const [label, setLabel] = useState(initial?.label ?? "cockpit-task");
   const [host, setHost] = useState(initial?.host ?? "");
-  const [planFile, setPlanFile] = useState(initial?.planFile ?? "docs/plan.md");
+  // Required for the local board; optional (plan sync only) on GitHub/GitLab, so no default there.
+  const [planFile, setPlanFile] = useState(
+    initial?.planFile ?? (platform === "local" ? "docs/plan.md" : "")
+  );
+  const [staleHours, setStaleHours] = useState(String(initial?.staleHours ?? 4));
+  const [worktrunk, setWorktrunk] = useState(initial?.worktrunk !== "off");
+  const [worktrunkHooks, setWorktrunkHooks] = useState(!!initial?.worktrunkHooks);
   const [err, setErr] = useState<string | null>(null);
   const [picking, setPicking] = useState(false);
   const input =
@@ -335,13 +371,24 @@ function Setup({
         try {
           await cockpit.communitySave(
             platform === "local"
-              ? { provider: platform, localPath, planFile }
+              ? {
+                  provider: platform,
+                  localPath,
+                  planFile,
+                  staleHours: Number(staleHours),
+                  worktrunk: worktrunk ? "auto" : "off",
+                  worktrunkHooks,
+                }
               : {
                   provider: platform,
                   repo,
                   localPath,
                   label,
                   ...(platform === "gitlab" && host ? { host } : {}),
+                  ...(planFile ? { planFile } : {}),
+                  staleHours: Number(staleHours),
+                  worktrunk: worktrunk ? "auto" : "off",
+                  worktrunkHooks,
                 }
           );
           setErr(null);
@@ -390,6 +437,51 @@ function Setup({
           : field(t("community.label"), label, setLabel)}
         {platform === "gitlab" && field(t("community.host"), host, setHost, "gitlab.com")}
       </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        {platform !== "local" &&
+          field(t("community.planFileHosted"), planFile, setPlanFile, "docs/plan.md")}
+        <label className="block space-y-1.5">
+          <span className="text-xs text-gray-400">{t("community.staleHoursLabel")}</span>
+          <span className="flex items-center gap-2">
+            <input
+              type="number"
+              min={1}
+              max={168}
+              inputMode="numeric"
+              value={staleHours}
+              onChange={(e) => setStaleHours(e.target.value)}
+              className="w-20 rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm text-gray-100 tabular-nums"
+            />
+            <span className="text-xs text-gray-400">{t("community.staleHoursUnit")}</span>
+          </span>
+        </label>
+      </div>
+      <fieldset className="space-y-2">
+        <legend className="text-xs text-gray-400">{t("community.worktrunkLegend")}</legend>
+        <label className="flex items-center gap-2 text-sm text-gray-200">
+          <input
+            type="checkbox"
+            checked={worktrunk}
+            onChange={(e) => setWorktrunk(e.target.checked)}
+            className="accent-indigo-500"
+          />
+          {t("community.worktrunkUse")}
+        </label>
+        <label className="flex items-start gap-2 text-sm text-gray-200">
+          <input
+            type="checkbox"
+            checked={worktrunkHooks}
+            onChange={(e) => setWorktrunkHooks(e.target.checked)}
+            className="accent-indigo-500 mt-1"
+          />
+          <span>
+            {t("community.worktrunkHooks")}
+            <span className="block text-xs text-amber-300/80">
+              {t("community.worktrunkHooksWarn")}
+            </span>
+          </span>
+        </label>
+      </fieldset>
       {err && (
         <p className="text-xs text-red-400" role="alert">
           {err}
@@ -501,6 +593,272 @@ function ReviewDialog({
   );
 }
 
+/** Release with a handover note: the exact comment is previewed from the API before anything is written; the branch and worktree are kept. */
+function ReleaseDialog({
+  task,
+  onClose,
+  onDone,
+}: {
+  task: CommunityTask;
+  onClose: () => void;
+  onDone: () => void;
+}) {
+  const { t } = useTranslation("cockpit");
+  const [note, setNote] = useState("");
+  const [preview, setPreview] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    cockpit.communityReleasePreview(task.number, note).then(
+      (r) => {
+        if (!alive) return;
+        setPreview(r.comment);
+        setErr(null);
+      },
+      (x: Error) => {
+        if (alive) setErr(x.message);
+      }
+    );
+    return () => {
+      alive = false;
+    };
+  }, [task.number, note]);
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="release-dialog-title"
+    >
+      <div className="card w-full max-w-xl p-5 space-y-4">
+        <div>
+          <h2 id="release-dialog-title" className="text-sm font-semibold text-gray-100">
+            {t("community.releaseTitle", { n: task.number })}
+          </h2>
+          <p className="mt-1 text-xs text-gray-400">{t("community.releaseBody")}</p>
+        </div>
+        <label className="block">
+          <span className="text-xs text-gray-400">{t("community.releaseNoteLabel")}</span>
+          <textarea
+            rows={3}
+            maxLength={500}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            className="mt-1 w-full rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-accent"
+          />
+          <span className="mt-1 block text-right text-[11px] text-gray-500 tabular-nums">
+            {t("community.noteCounter", { n: note.length })}
+          </span>
+        </label>
+        <div>
+          <div className="text-xs text-gray-400 mb-1">{t("community.releaseCommentTitle")}</div>
+          <pre className="rounded-md border border-border bg-surface-2 px-3 py-2 text-[11px] font-mono text-gray-300 whitespace-pre-wrap">
+            {preview ?? ""}
+          </pre>
+        </div>
+        {err && (
+          <p className="text-xs text-red-400" role="alert">
+            {err}
+          </p>
+        )}
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={onClose}
+            className="rounded-lg px-4 py-2 text-sm text-gray-300 hover:bg-surface-4"
+          >
+            {t("community.cancel")}
+          </button>
+          <button
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true);
+              try {
+                await cockpit.communityRelease(task.number, note);
+                onDone();
+              } catch (x) {
+                setErr((x as Error).message);
+              } finally {
+                setBusy(false);
+              }
+            }}
+            className="rounded-lg bg-accent hover:bg-accent-hover disabled:opacity-40 px-4 py-2 text-sm font-medium text-white"
+          >
+            {busy ? t("community.sending") : t("community.releaseConfirm")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** "Planı tahtaya aç": preview what would be created and updated, run only on confirm; a missing plan file offers the settings field inline. */
+function PlanSyncDialog({
+  cfg,
+  onClose,
+  onDone,
+}: {
+  cfg: CommunityConfig;
+  onClose: () => void;
+  onDone: () => void;
+}) {
+  const { t } = useTranslation("cockpit");
+  const [preview, setPreview] = useState<CommunityPlanSyncPreview | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [planFile, setPlanFile] = useState(cfg.planFile ?? "");
+  const [busy, setBusy] = useState(false);
+
+  const fetchPreview = useCallback(() => {
+    setBusy(true);
+    cockpit.communityPlanSyncPreview().then(
+      (p) => {
+        setPreview(p);
+        setErr(null);
+        setBusy(false);
+      },
+      (x: Error) => {
+        setErr(x.message);
+        setBusy(false);
+      }
+    );
+  }, []);
+
+  useEffect(() => {
+    if (cfg.planFile) fetchPreview();
+  }, [cfg.planFile, fetchPreview]);
+
+  const saveAndPreview = async () => {
+    setBusy(true);
+    setErr(null);
+    try {
+      await cockpit.communitySave({ ...cfg, planFile: planFile.trim() });
+      fetchPreview();
+    } catch (x) {
+      setErr((x as Error).message);
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="plansync-dialog-title"
+    >
+      <div className="card w-full max-w-xl p-5 space-y-4">
+        <h2 id="plansync-dialog-title" className="text-sm font-semibold text-gray-100">
+          {t("community.planSync")}
+        </h2>
+        {preview ? (
+          <>
+            <p className="font-mono text-[11px] text-gray-400">
+              {t("community.planSyncPath", { file: planFile, repo: cfg.repo ?? "" })}
+            </p>
+            <div>
+              <div className="text-xs text-gray-400 mb-1.5">
+                {t("community.planSyncCreate", { count: preview.create.length })}
+              </div>
+              <ul className="space-y-1 text-sm">
+                {preview.create.map((s) => (
+                  <li key={s.id} className="flex gap-2">
+                    <span className="text-emerald-300">+</span>
+                    <span className="text-gray-200">
+                      {s.id}: {s.title}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <div className="text-xs text-gray-400 mb-1.5">
+                {t("community.planSyncUpdate", { count: preview.update.length })}
+              </div>
+              <ul className="space-y-1 text-sm">
+                {preview.update.map((s) => (
+                  <li key={s.id} className="flex gap-2">
+                    <span className="text-indigo-300">~</span>
+                    <span className="text-gray-200">
+                      {s.id}: {s.title}
+                    </span>
+                    <span className="text-gray-500 tabular-nums">#{s.number}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <p className="text-xs text-gray-500">{t("community.planSyncNote")}</p>
+          </>
+        ) : (
+          <>
+            <p className={`text-xs ${err ? "text-red-400" : "text-amber-300/80"}`}>
+              {err ?? t("community.planSyncNoPlanFile")}
+            </p>
+            <label className="block space-y-1.5">
+              <span className="text-xs text-gray-400">{t("community.planSyncFileLabel")}</span>
+              <input
+                value={planFile}
+                onChange={(e) => setPlanFile(e.target.value)}
+                className="w-full rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm font-mono text-gray-100 focus:outline-none focus:ring-2 focus:ring-accent"
+              />
+            </label>
+          </>
+        )}
+        {preview && err && (
+          <p className="text-xs text-red-400" role="alert">
+            {err}
+          </p>
+        )}
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={onClose}
+            className="rounded-lg px-4 py-2 text-sm text-gray-300 hover:bg-surface-4"
+          >
+            {t("community.cancel")}
+          </button>
+          {preview ? (
+            <button
+              disabled={busy}
+              onClick={async () => {
+                setBusy(true);
+                try {
+                  const r = await cockpit.communityPlanSync();
+                  // Markers on issues without the board label were left alone: say which.
+                  if (r.skipped?.length)
+                    setErr(
+                      t("community.planSyncSkipped", {
+                        list: r.skipped.map((n) => `#${n}`).join(", "),
+                      })
+                    );
+                  else onDone();
+                } catch (x) {
+                  setErr((x as Error).message);
+                } finally {
+                  setBusy(false);
+                }
+              }}
+              className="rounded-lg bg-accent hover:bg-accent-hover disabled:opacity-40 px-4 py-2 text-sm font-medium text-white"
+            >
+              {busy
+                ? t("community.sending")
+                : t("community.planSyncConfirm", {
+                    count: preview.create.length + preview.update.length,
+                  })}
+            </button>
+          ) : (
+            <button
+              disabled={busy}
+              onClick={saveAndPreview}
+              className="rounded-lg bg-accent hover:bg-accent-hover disabled:opacity-40 px-4 py-2 text-sm font-medium text-white"
+            >
+              {t("community.planSyncSaveAndPreview")}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Community() {
   const { t, i18n } = useTranslation("cockpit");
   const navigate = useNavigate();
@@ -511,6 +869,15 @@ export default function Community() {
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState<number | null>(null);
   const [reviewFor, setReviewFor] = useState<CommunityTask | null>(null);
+  const [releaseFor, setReleaseFor] = useState<CommunityTask | null>(null);
+  const [planSyncOpen, setPlanSyncOpen] = useState(false);
+  const [claimed, setClaimed] = useState<{
+    number: number;
+    title: string;
+    branch: string;
+    cwd: string;
+    prompt: string;
+  } | null>(null);
   const [editing, setEditing] = useState(false);
   const [agent, setAgent] = useState<Agent>("claude");
 
@@ -545,12 +912,32 @@ export default function Community() {
     }
   };
 
-  const claimAndRun = (task: CommunityTask) =>
+  /** Fresh claim: keep the user here and show the worktree/brief panel; the agent is started from it. */
+  const claimTask = (task: CommunityTask) =>
+    act(task.number, async () => {
+      const r = await cockpit.communityClaim(task.number);
+      setClaimed({
+        number: task.number,
+        title: task.title,
+        branch: r.branch,
+        cwd: r.cwd,
+        prompt: r.prompt,
+      });
+    });
+
+  /** Continue a task already mine: reopen its worktree/brief and jump straight to Run. */
+  const continueTask = (task: CommunityTask) =>
     act(task.number, async () => {
       const r = await cockpit.communityClaim(task.number);
       const qs = new URLSearchParams({ prompt: r.prompt, cwd: r.cwd, provider: agent });
       navigate(`/run?${qs.toString()}`);
     });
+
+  const runClaimed = () => {
+    if (!claimed) return;
+    const qs = new URLSearchParams({ prompt: claimed.prompt, cwd: claimed.cwd, provider: agent });
+    navigate(`/run?${qs.toString()}`);
+  };
 
   const dur = (ms: number | null) => formatDuration(ms, t("h"), t("m"));
   const reviewName =
@@ -632,6 +1019,48 @@ export default function Community() {
 
       {board && (
         <>
+          {claimed && (
+            <section className="card p-5 space-y-3 max-w-2xl" aria-labelledby="claimed-title">
+              <div className="flex items-center gap-2">
+                <span className={`rounded-full px-2.5 py-0.5 text-xs ring-1 ${STATE_STYLE.mine}`}>
+                  {t("community.state.mine")}
+                </span>
+                <span className="text-sm text-gray-100">
+                  #{claimed.number} {claimed.title}
+                </span>
+                <h2 id="claimed-title" className="sr-only">
+                  {t("community.claimedPanelTitle")}
+                </h2>
+              </div>
+              <dl className="grid grid-cols-[110px_1fr] gap-x-3 gap-y-1.5 text-xs">
+                <dt className="text-gray-500">{t("community.claimPanelCwd")}</dt>
+                <dd className="font-mono text-gray-300 break-all">{claimed.cwd}</dd>
+                <dt className="text-gray-500">{t("community.claimPanelBranch")}</dt>
+                <dd className="font-mono text-gray-300">{claimed.branch}</dd>
+                <dt className="text-gray-500">{t("community.claimPanelBrief")}</dt>
+                <dd className="text-emerald-300">
+                  {t("community.claimPanelBriefReady")}{" "}
+                  <span className="text-gray-500">{t("community.claimPanelBriefDetail")}</span>
+                </dd>
+              </dl>
+              <p className="text-xs text-gray-500">{t("community.claimPanelNote")}</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={runClaimed}
+                  className="rounded-lg bg-accent hover:bg-accent-hover px-4 py-2 text-sm font-medium text-white"
+                >
+                  {t("community.startAgent")}
+                </button>
+                <button
+                  onClick={() => void navigator.clipboard?.writeText(claimed.cwd)}
+                  className="rounded-lg border border-border px-4 py-2 text-sm text-gray-200 hover:bg-surface-4"
+                >
+                  {t("community.openFolder")}
+                </button>
+              </div>
+            </section>
+          )}
+
           <div className="card p-5">
             <div className="flex items-baseline justify-between gap-3 mb-2">
               <span className="text-xs uppercase tracking-wider text-gray-500">
@@ -657,7 +1086,7 @@ export default function Community() {
                 style={{ width: `${pct ?? 0}%` }}
               />
             </div>
-            <dl className="grid grid-cols-2 lg:grid-cols-5 gap-5">
+            <dl className="grid grid-cols-2 lg:grid-cols-6 gap-5">
               <div>
                 <dt className="text-xs uppercase tracking-wider text-gray-500">
                   {t("community.done")}
@@ -680,6 +1109,14 @@ export default function Community() {
                   {t("community.openTotal", { d: dur(board.totals.open_estimate_ms) })}
                   {board.totals.open_unestimated > 0 &&
                     ` · ${t("community.unestimated", { count: board.totals.open_unestimated })}`}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs uppercase tracking-wider text-gray-500">
+                  {t("community.ready")}
+                </dt>
+                <dd className="mt-1 text-2xl font-semibold text-gray-100 tabular-nums">
+                  {board.totals.ready}
                 </dd>
               </div>
               <div>
@@ -720,6 +1157,14 @@ export default function Community() {
                   {p === "claude" ? "Claude Code" : p === "codex" ? "Codex" : "Cursor"}
                 </button>
               ))}
+              {board.provider !== "local" && (
+                <button
+                  onClick={() => setPlanSyncOpen(true)}
+                  className="ml-auto rounded-lg border border-border px-3 py-1.5 text-xs text-gray-200 hover:bg-surface-4"
+                >
+                  {t("community.planSync")}
+                </button>
+              )}
             </div>
           </div>
 
@@ -735,109 +1180,226 @@ export default function Community() {
                       <span className="text-xs text-gray-500 tabular-nums">{items.length}</span>
                     </div>
                     <ul className="divide-y divide-border border-t border-border">
-                      {items.map((task) => (
-                        <li key={task.number} className="flex items-center gap-3 px-4 py-3">
-                          {task.url ? (
-                            <a
-                              href={task.url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="w-12 shrink-0 font-mono text-xs text-gray-500 hover:text-gray-200"
-                            >
-                              #{task.number}
-                            </a>
-                          ) : (
-                            <span className="w-12 shrink-0 font-mono text-xs text-gray-500">
-                              #{task.number}
-                            </span>
-                          )}
-                          <div className="min-w-0 flex-1">
-                            <div className="text-sm text-gray-100 truncate">{task.title}</div>
-                            <div className="text-xs text-gray-500 truncate">
-                              {task.assignees.length > 0 &&
-                                t("community.claimedBy", {
-                                  who: `@${task.assignees.join(", @")}`,
-                                  when: task.claimed_at
-                                    ? rel(task.claimed_at)
-                                    : rel(task.updated_at),
-                                })}
-                              {task.pr && (
-                                <>
-                                  {" · "}
-                                  {task.pr.url ? (
-                                    <a
-                                      href={task.pr.url}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                      className="text-amber-300/80 hover:underline"
-                                    >
-                                      {reviewName} #{task.pr.number}
-                                    </a>
-                                  ) : (
-                                    `${reviewName} #${task.pr.number}`
+                      {items.map((task) => {
+                        const conflictingAreas = task.conflicts_with
+                          .map((n) => board.tasks.find((x) => x.number === n))
+                          .flatMap((x) => (x ? x.area : []));
+                        const holder = (n: number) =>
+                          board.tasks.find((x) => x.number === n)?.assignees[0];
+                        const conflictWho = task.conflicts_with
+                          .map((n) => (holder(n) ? `#${n} (${holder(n)})` : `#${n}`))
+                          .join(", ");
+                        return (
+                          <li
+                            key={task.number}
+                            className={`flex items-center gap-3 px-4 py-3 ${task.stale ? "bg-amber-500/[0.03]" : ""}`}
+                          >
+                            {task.url ? (
+                              <a
+                                href={task.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="w-12 shrink-0 font-mono text-xs text-gray-500 hover:text-gray-200"
+                              >
+                                #{task.number}
+                              </a>
+                            ) : (
+                              <span className="w-12 shrink-0 font-mono text-xs text-gray-500">
+                                #{task.number}
+                              </span>
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="text-sm font-medium text-gray-100 truncate">
+                                  {task.title}
+                                </span>
+                                {task.state === "open" && task.ready && (
+                                  <span className={`shrink-0 ${BADGE} ${READY_STYLE}`}>
+                                    {t("community.ready")}
+                                  </span>
+                                )}
+                                {task.state === "open" && task.blocked_by.length > 0 && (
+                                  <span className={`shrink-0 ${BADGE} ${WAITING_STYLE}`}>
+                                    {t("community.waiting", {
+                                      deps: task.blocked_by.map((n) => `#${n}`).join(", "),
+                                    })}
+                                  </span>
+                                )}
+                                {task.state === "open" && task.conflicts_with.length > 0 && (
+                                  <span className={`shrink-0 ${BADGE} ${CONFLICT_STYLE}`}>
+                                    {t("community.conflict", { who: conflictWho })}
+                                  </span>
+                                )}
+                                {task.state === "open" && task.area.length === 0 && (
+                                  <span
+                                    className={`shrink-0 ${BADGE} ${NO_AREA_STYLE}`}
+                                    title={t("community.noAreaTitle")}
+                                  >
+                                    {t("community.noArea")}
+                                  </span>
+                                )}
+                                {(task.state === "mine" || task.state === "taken") &&
+                                  task.stale && (
+                                    <span className={`shrink-0 ${BADGE} ${STALE_STYLE}`}>
+                                      {t("community.staleBadge", {
+                                        when: task.last_activity_at
+                                          ? rel(task.last_activity_at)
+                                          : "",
+                                      })}
+                                    </span>
                                   )}
-                                  {` · ${reviewState(task)}`}
-                                  {task.pr.created_at && ` · ${rel(task.pr.created_at)}`}
+                              </div>
+                              {(task.area.length > 0 || task.deps.length > 0) && (
+                                <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                                  {task.area.map((a) => {
+                                    const clash = conflictingAreas.some((y) =>
+                                      patternsOverlap(a, y)
+                                    );
+                                    return (
+                                      <span
+                                        key={a}
+                                        className={clash ? CHIP_CONFLICT : CHIP}
+                                        title={
+                                          clash && task.conflicts_with.length
+                                            ? t("community.conflictAreaTitle", {
+                                                n: task.conflicts_with[0],
+                                              })
+                                            : undefined
+                                        }
+                                      >
+                                        {a}
+                                      </span>
+                                    );
+                                  })}
+                                  {task.deps.length > 0 && (
+                                    <span className={CHIP_DEP}>
+                                      {t("community.depsChip", {
+                                        deps: task.deps.map((n) => `#${n}`).join(", "),
+                                      })}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                              <div className="text-xs text-gray-500 truncate">
+                                {task.assignees.length > 0 &&
+                                  t("community.claimedBy", {
+                                    who: `@${task.assignees.join(", @")}`,
+                                    when: task.claimed_at
+                                      ? rel(task.claimed_at)
+                                      : rel(task.updated_at),
+                                  })}
+                                {(task.state === "mine" || task.state === "taken") &&
+                                  task.last_activity_at &&
+                                  ` · ${t("community.lastActivity", { when: rel(task.last_activity_at) })}`}
+                                {task.dirty && (
+                                  <span className="text-amber-300/80">
+                                    {" · "}
+                                    {t("community.dirty")}
+                                  </span>
+                                )}
+                                {task.state === "open" &&
+                                  (task.acceptance.length > 0
+                                    ? t("community.acceptanceCount", {
+                                        count: task.acceptance.length,
+                                      })
+                                    : t("community.acceptanceNone"))}
+                                {task.state === "open" &&
+                                  task.updated_at &&
+                                  ` · ${t("community.addedAgo", { when: rel(task.updated_at) })}`}
+                                {task.pr && (
+                                  <>
+                                    {" · "}
+                                    {task.pr.url ? (
+                                      <a
+                                        href={task.pr.url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-amber-300/80 hover:underline"
+                                      >
+                                        {reviewName} #{task.pr.number}
+                                      </a>
+                                    ) : (
+                                      `${reviewName} #${task.pr.number}`
+                                    )}
+                                    {` · ${reviewState(task)}`}
+                                    {task.pr.created_at && ` · ${rel(task.pr.created_at)}`}
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                            <span className="hidden sm:block w-20 text-right text-xs text-gray-500 tabular-nums">
+                              {task.estimate_ms != null ? `~${dur(task.estimate_ms)}` : ""}
+                            </span>
+                            <span
+                              className={`rounded-full px-2.5 py-0.5 text-xs ring-1 ${STATE_STYLE[task.state]}`}
+                            >
+                              {t(`community.state.${task.state}`)}
+                            </span>
+                            <div className="flex gap-1">
+                              {task.state === "open" && (
+                                <div className="flex flex-col items-end gap-1">
+                                  <button
+                                    disabled={busy !== null || !task.ready}
+                                    aria-describedby={
+                                      !task.ready ? `why-${task.number}` : undefined
+                                    }
+                                    onClick={() => claimTask(task)}
+                                    className="inline-flex items-center gap-1.5 rounded-lg bg-accent hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed px-3 py-1.5 text-xs font-medium text-white"
+                                  >
+                                    <Hand className="w-3.5 h-3.5" aria-hidden />
+                                    {busy === task.number
+                                      ? t("community.claiming")
+                                      : t("community.claim")}
+                                  </button>
+                                  {!task.ready && (
+                                    <span
+                                      id={`why-${task.number}`}
+                                      className={`text-[11px] ${task.blocked_by.length ? "text-amber-300/80" : "text-red-300/80"}`}
+                                    >
+                                      {task.blocked_by.length
+                                        ? t("community.claimBlockedReason", {
+                                            deps: task.blocked_by.map((n) => `#${n}`).join(", "),
+                                          })
+                                        : t("community.claimConflictReason", {
+                                            n: `#${task.conflicts_with[0]}`,
+                                          })}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                              {task.state === "mine" && (
+                                <>
+                                  <button
+                                    disabled={busy !== null}
+                                    onClick={() => continueTask(task)}
+                                    title={t("community.continue")}
+                                    aria-label={t("community.continue")}
+                                    className={iconBtn}
+                                  >
+                                    <Play className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => setReviewFor(task)}
+                                    title={t("community.sendReview", { name: reviewName })}
+                                    aria-label={t("community.sendReview", { name: reviewName })}
+                                    className={iconBtn}
+                                  >
+                                    <GitPullRequest className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => setReleaseFor(task)}
+                                    title={t("community.release")}
+                                    aria-label={t("community.release")}
+                                    className={iconBtn}
+                                  >
+                                    <RotateCcw className="w-4 h-4" />
+                                  </button>
                                 </>
                               )}
                             </div>
-                          </div>
-                          <span className="hidden sm:block w-20 text-right text-xs text-gray-500 tabular-nums">
-                            {task.estimate_ms != null ? `~${dur(task.estimate_ms)}` : ""}
-                          </span>
-                          <span
-                            className={`rounded-full px-2.5 py-0.5 text-xs ring-1 ${STATE_STYLE[task.state]}`}
-                          >
-                            {t(`community.state.${task.state}`)}
-                          </span>
-                          <div className="flex gap-1">
-                            {task.state === "open" && (
-                              <button
-                                disabled={busy !== null}
-                                onClick={() => claimAndRun(task)}
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-accent hover:bg-accent-hover disabled:opacity-40 px-3 py-1.5 text-xs font-medium text-white"
-                              >
-                                <Hand className="w-3.5 h-3.5" aria-hidden />
-                                {busy === task.number
-                                  ? t("community.claiming")
-                                  : t("community.claim")}
-                              </button>
-                            )}
-                            {task.state === "mine" && (
-                              <>
-                                <button
-                                  disabled={busy !== null}
-                                  onClick={() => claimAndRun(task)}
-                                  title={t("community.continue")}
-                                  aria-label={t("community.continue")}
-                                  className={iconBtn}
-                                >
-                                  <Play className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={() => setReviewFor(task)}
-                                  title={t("community.sendReview", { name: reviewName })}
-                                  aria-label={t("community.sendReview", { name: reviewName })}
-                                  className={iconBtn}
-                                >
-                                  <GitPullRequest className="w-4 h-4" />
-                                </button>
-                                <button
-                                  disabled={busy !== null}
-                                  onClick={() =>
-                                    act(task.number, () => cockpit.communityRelease(task.number))
-                                  }
-                                  title={t("community.release")}
-                                  aria-label={t("community.release")}
-                                  className={iconBtn}
-                                >
-                                  <RotateCcw className="w-4 h-4" />
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </li>
-                      ))}
+                          </li>
+                        );
+                      })}
                     </ul>
                   </section>
                 );
@@ -898,6 +1460,28 @@ export default function Community() {
           onDone={(url) => {
             setReviewFor(null);
             if (url) window.open(url, "_blank", "noopener,noreferrer");
+            load();
+          }}
+        />
+      )}
+
+      {releaseFor && (
+        <ReleaseDialog
+          task={releaseFor}
+          onClose={() => setReleaseFor(null)}
+          onDone={() => {
+            setReleaseFor(null);
+            load();
+          }}
+        />
+      )}
+
+      {planSyncOpen && cfg && (
+        <PlanSyncDialog
+          cfg={cfg}
+          onClose={() => setPlanSyncOpen(false)}
+          onDone={() => {
+            setPlanSyncOpen(false);
             load();
           }}
         />

@@ -99,7 +99,7 @@ test("memories never throw and give up within the timeout", async () => {
 
 test("plan section comes from the issue marker for hosted providers and from plan order locally", () => {
   const md = "# Plan\n\n### Task 1: A\n<!-- issue:#7 -->\nadım a\n\n### Task 2: B\nadım b\n";
-  assert.equal(b.planSectionFor(md, 7, false), "### Task 1: A\n<!-- issue:#7 -->\nadım a");
+  assert.equal(b.planSectionFor(md, 7, false), "### Task 1: A\nadım a");
   assert.equal(b.planSectionFor(md, 9, false), null);
   assert.equal(b.planSectionFor(md, 2, true), "### Task 2: B\nadım b");
   assert.equal(b.planSectionFor(md, 3, true), null);

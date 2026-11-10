@@ -127,7 +127,12 @@ test("an existing branch without a worktree is attached, not recreated with -b",
 test("worktreePath slugs the branch so it cannot escape the worktrees folder", async () => {
   const { home, cfg } = await freshRepo();
   const p = c.worktreePath(cfg, "task/../../x");
-  assert.equal(p, path.join(home, "worktrees", "repo", "x"));
+  assert.match(
+    p,
+    new RegExp(`^${path.join(home, "worktrees").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`)
+  );
+  assert.equal(path.basename(p), "x");
+  assert.match(path.basename(path.dirname(p)), /^repo-[0-9a-f]{8}$/);
   assert.ok(p.startsWith(path.join(home, "worktrees")));
 });
 
@@ -178,4 +183,67 @@ test("claim reopens a task whose worktree folder was deleted by hand", async () 
   const again = await c.claim(cfg, 1);
   assert.equal(again.cwd, r.cwd);
   assert.ok(fs.existsSync(path.join(again.cwd, ".git")));
+});
+
+test("a title edited after the claim keeps the task on its first branch and worktree", async () => {
+  const { repo, cfg } = await freshRepo();
+  const r = await c.claim(cfg, 1);
+  const plan = path.join(repo, "plan.md");
+  fs.writeFileSync(
+    plan,
+    fs.readFileSync(plan, "utf8").replace("### Task 1: İlk", "### Task 1: İlk ve yeni ad")
+  );
+  const again = await c.claim(cfg, 1);
+  assert.equal(again.branch, r.branch);
+  assert.equal(again.cwd, r.cwd);
+  assert.equal((await c.prPreview(cfg, 1)).branch, r.branch);
+});
+
+test("local release twice keeps both handover notes", async () => {
+  const { cfg } = await freshRepo();
+  await c.claim(cfg, 1);
+  await c.release(cfg, 1, "A");
+  await c.claim(cfg, 1);
+  await c.release(cfg, 1, "B");
+  const notes = c.readConfig().claims[1].notes;
+  assert.equal(notes.length, 2);
+  assert.match(notes[0], /Not: A$/);
+  assert.match(notes[1], /Not: B$/);
+  assert.equal(c.readConfig().claims[1].by, undefined);
+});
+
+test("a claim that fails after the assignment leaves the task unassigned", async () => {
+  const { repo, cfg } = await freshRepo();
+  await git(repo, ["checkout", "-q", "-b", "task/2-2-ikinci"]);
+  await assert.rejects(c.claim(cfg, 2), { status: 409 });
+  assert.equal(c.readConfig().claims?.[2]?.by, undefined);
+});
+
+test("release and its preview refuse a task that is not mine", async () => {
+  const { cfg } = await freshRepo();
+  await assert.rejects(c.releasePreview(cfg, 1, "x"), { status: 409 });
+  await assert.rejects(c.release(cfg, 1, "x"), { status: 409 });
+  assert.equal(c.readConfig().claims?.[1], undefined);
+});
+
+test("the agent prompt opens with the data warning, not the issue title", async () => {
+  const { cfg } = await freshRepo();
+  const r = await c.claim(cfg, 1);
+  assert.match(r.prompt, /^Önce \.ai-cockpit\/brief\.md dosyasını oku\./);
+  assert.ok(!r.prompt.includes("İlk"));
+});
+
+test("two repos with the same folder name get separate task folders", async () => {
+  const a = { provider: "local", localPath: path.join(os.tmpdir(), "x1", "app") };
+  const b = { provider: "local", localPath: path.join(os.tmpdir(), "x2", "app") };
+  assert.notEqual(c.worktreePath(a, "task/1-a"), c.worktreePath(b, "task/1-a"));
+});
+
+test("a plan file that is a symlink out of the repo is refused", async () => {
+  const { root, repo, cfg } = await freshRepo();
+  const outside = path.join(root, "baska.md");
+  fs.writeFileSync(outside, "# x\n");
+  fs.symlinkSync(outside, path.join(repo, "link.md"));
+  assert.throws(() => c.validateConfig({ ...cfg, planFile: "link.md" }), { status: 400 });
+  assert.doesNotThrow(() => c.validateConfig(cfg));
 });

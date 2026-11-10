@@ -61,7 +61,12 @@ async function freshRepo() {
  */
 function fakeWt(
   root,
-  { versionExit = 0, failSwitch = false, listOut = '{"schema":2,"items":[]}' } = {}
+  {
+    versionExit = 0,
+    failSwitch = false,
+    branchOnly = false,
+    listOut = '{"schema":2,"items":[]}',
+  } = {}
 ) {
   const dir = path.join(root, "bin", String(sandbox.indexOf(root)));
   fs.mkdirSync(dir, { recursive: true });
@@ -91,6 +96,8 @@ function fakeWt(
       '    *) if [ -z "$branch" ]; then branch=$1; fi; shift ;;',
       "  esac",
       "done",
+      // branchOnly: wt makes the branch, then dies before the folder exists.
+      ...(branchOnly ? ['git -C "$repo" branch "$branch" "$start"; echo yarım >&2; exit 1'] : []),
       'if [ "$create" = "1" ]; then',
       '  git -C "$repo" worktree add -b "$branch" "$wtpath" "$start"',
       "else",
@@ -237,4 +244,12 @@ test("config validation: worktrunk and worktrunkHooks values", async () => {
   c.validateConfig({ ...cfg, worktrunk: "off", worktrunkHooks: true });
   c.validateConfig({ ...cfg, worktrunk: "auto" }); // defaults stay valid
   c.validateConfig(cfg);
+});
+
+test("a wt switch that made the branch but no folder: git attaches the branch, no -b", async () => {
+  const { cfg, repo } = await scene({ branchOnly: true });
+  const p = await c.ensureWorktree(cfg, "task/1-ilk", "main");
+  assert.ok(fs.existsSync(path.join(p, ".git")));
+  assert.equal((await git(p, ["branch", "--show-current"])).trim(), "task/1-ilk");
+  assert.equal((await git(repo, ["branch", "--show-current"])).trim(), "main");
 });

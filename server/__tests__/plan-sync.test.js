@@ -121,7 +121,7 @@ test("parsePlanSections reads card plans with parsePlan's own estimates", () => 
   );
   assert.equal(s[0].line, 3);
   assert.equal(s[0].body, "- **Kabul:** yeşil"); // ends at the next #### card
-  assert.equal(s[1].body, "<!-- issue:#9 -->\nadım"); // ends at ### M8, not at T26
+  assert.equal(s[1].body, "adım"); // ends at ### M8, not at T26; the marker is not body text
 });
 
 test("second sync creates nothing and updates marked tasks", async () => {
@@ -323,4 +323,11 @@ test("a marker pointing at an issue without the board label is skipped, not over
   const r = await c._planSyncWith(fake, cfg);
   assert.deepEqual(r.skipped, [99]);
   assert.ok(!calls.update.some((u) => u.n === 99));
+});
+
+test("updated and created issue bodies carry no marker line", async () => {
+  const { cfg } = cfgWithPlan(md);
+  const { fake, calls } = fakeAdapter();
+  await c._planSyncWith(fake, cfg);
+  for (const x of [...calls.create, ...calls.update]) assert.doesNotMatch(x.body, /issue:#/);
 });

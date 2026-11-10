@@ -115,7 +115,8 @@ function parsePlanSections(markdown) {
         break;
       }
     }
-    const bodyLines = lines.slice(i + 1, end);
+    // The marker is bookkeeping, not task text: keep it out of the body sent as the issue body.
+    const bodyLines = lines.slice(marker ? i + 2 : i + 1, end);
     const files = [];
     for (const line of bodyLines) {
       const m = FILE_LINE_RE.exec(line.trim());

@@ -1,0 +1,171 @@
+/**
+ * @file Tests for AI Cockpit community task worktrees: claim opens one worktree per task under the cockpit home, leaves the main checkout untouched, attaches an existing branch instead of recreating it, keeps GitHub/GitLab claims working, and the local provider's merge refuses a dirty main repo.
+ * @author Caglar Ulkuderner
+ */
+
+const { test, before, after } = require("node:test");
+const assert = require("node:assert/strict");
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
+const c = require("../lib/community");
+
+// Every git call goes through the module's own runner (`_git`) inside throwaway
+// mkdtemp sandboxes: this file spawns no subprocess itself (see
+// no-mutating-git-in-tests.test.js), and AI_COCKPIT_HOME points at the sandbox,
+// never at the real home.
+const git = (cwd, args) => c._git(cwd, args);
+const sandbox = [];
+let prevHome;
+
+before(() => {
+  prevHome = process.env.AI_COCKPIT_HOME;
+});
+
+after(() => {
+  if (prevHome === undefined) delete process.env.AI_COCKPIT_HOME;
+  else process.env.AI_COCKPIT_HOME = prevHome;
+  for (const dir of sandbox) fs.rmSync(dir, { recursive: true, force: true });
+});
+
+/** Fresh temp home + git repo on `main` with a two-task plan file; a bare origin when `remote`. */
+async function freshRepo({ remote = false } = {}) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "community-worktree-"));
+  sandbox.push(root);
+  process.env.AI_COCKPIT_HOME = path.join(root, "home");
+  const repo = path.join(root, "repo");
+  fs.mkdirSync(repo);
+  await git(repo, ["init", "-q", "-b", "main"]);
+  await git(repo, ["config", "user.name", "Kokpit Test"]);
+  await git(repo, ["config", "user.email", "test@ai-cockpit.example"]);
+  fs.writeFileSync(
+    path.join(repo, "plan.md"),
+    "# Plan\n\n### Task 1: İlk\nGövde 1\n\n### Task 2: İkinci\nGövde 2\n"
+  );
+  fs.writeFileSync(path.join(repo, "f.txt"), "one\n");
+  await git(repo, ["add", "."]);
+  await git(repo, ["commit", "-qm", "c1"]);
+  if (remote) {
+    const bare = path.join(root, "origin.git");
+    await git(repo, ["init", "-q", "--bare", "-b", "main", bare]);
+    await git(repo, ["remote", "add", "origin", bare]);
+    await git(repo, ["push", "-q", "-u", "origin", "main"]);
+  }
+  // Production always has community.json on disk before a claim (PUT /config
+  // wrote it); the local adapter keeps claims there.
+  const cfg = { provider: "local", localPath: repo, planFile: "plan.md" };
+  c.writeConfig(cfg);
+  return { root, home: process.env.AI_COCKPIT_HOME, repo, cfg };
+}
+
+test("claim opens a worktree and leaves the main checkout alone", async () => {
+  const { repo, cfg } = await freshRepo();
+  const r = await c.claim(cfg, 1);
+  assert.equal(r.branch, "task/1-1-ilk"); // local titles carry the plan id: "1: İlk"
+  assert.equal(r.cwd, c.worktreePath(cfg, r.branch));
+  assert.ok(fs.existsSync(path.join(r.cwd, ".git")));
+  assert.equal((await git(repo, ["branch", "--show-current"])).trim(), "main");
+  const again = await c.claim(cfg, 1); // continue: same worktree, no error
+  assert.equal(again.cwd, r.cwd);
+});
+
+test("claim refuses when the task branch is checked out in the main repo", async () => {
+  const { repo, cfg } = await freshRepo();
+  await git(repo, ["checkout", "-q", "-b", "task/2-2-ikinci"]);
+  await assert.rejects(c.claim(cfg, 2), {
+    status: 409,
+    message: "Görev dalı ana depoda açık; ana depoyu başka bir dala geçir, sonra tekrar al",
+  });
+  assert.equal((await git(repo, ["branch", "--show-current"])).trim(), "task/2-2-ikinci");
+});
+
+test("claim ignores a dirty main repo: the worktree is a separate checkout", async () => {
+  const { repo, cfg } = await freshRepo();
+  fs.writeFileSync(path.join(repo, "uncommitted.txt"), "dirt");
+  const r = await c.claim(cfg, 1);
+  assert.ok(fs.existsSync(path.join(r.cwd, ".git")));
+  assert.equal((await git(repo, ["branch", "--show-current"])).trim(), "main");
+});
+
+test("local openReview refuses a dirty main repo with the plan message", async () => {
+  const { repo, cfg } = await freshRepo();
+  const r = await c.claim(cfg, 1);
+  fs.writeFileSync(path.join(r.cwd, "f.txt"), "one\ntwo\n");
+  await git(r.cwd, ["commit", "-qam", "c2"]);
+  fs.writeFileSync(path.join(repo, "uncommitted.txt"), "dirt");
+  await assert.rejects(
+    c._adapters.local.openReview(cfg, { branch: r.branch, base: "main", title: "Görev 1: İlk" }, 1),
+    {
+      status: 409,
+      message: "Yerel depoda kaydedilmemiş değişiklik var; önce commit'le ya da kenara al",
+    }
+  );
+  assert.equal((await git(repo, ["branch", "--show-current"])).trim(), "main");
+});
+
+test("an existing branch without a worktree is attached, not recreated with -b", async () => {
+  const { repo, cfg } = await freshRepo();
+  await git(repo, ["branch", "task/1-ilk"]); // at c1; `worktree add -b` on it would fail outright
+  fs.writeFileSync(path.join(repo, "f.txt"), "one\nmore\n");
+  await git(repo, ["commit", "-qam", "c2-on-main"]);
+  const p = await c.ensureWorktree(cfg, "task/1-ilk", "main");
+  assert.equal(p, c.worktreePath(cfg, "task/1-ilk"));
+  assert.equal((await git(p, ["branch", "--show-current"])).trim(), "task/1-ilk");
+  assert.equal((await git(p, ["log", "-1", "--format=%s"])).trim(), "c1"); // branch tip, not startPoint
+});
+
+test("worktreePath slugs the branch so it cannot escape the worktrees folder", async () => {
+  const { home, cfg } = await freshRepo();
+  const p = c.worktreePath(cfg, "task/../../x");
+  assert.equal(p, path.join(home, "worktrees", "repo", "x"));
+  assert.ok(p.startsWith(path.join(home, "worktrees")));
+});
+
+test("claim opens a worktree for the github and gitlab providers too", async () => {
+  for (const provider of ["github", "gitlab"]) {
+    const { repo } = await freshRepo({ remote: true });
+    const cfg = { provider, repo: "a/b", localPath: repo, label: "t" };
+    let assigned = false;
+    const fake = {
+      reviewName: provider === "gitlab" ? "MR" : "PR",
+      me: async () => "me",
+      snapshot: async () => ({
+        issues: [{ number: 7, title: "Tahta", assignees: [], labels: [], body: "" }],
+        reviews: [],
+        done: { total: 0, recent: [] },
+      }),
+      issue: async (_cfg, n) => ({
+        number: n,
+        title: "Tahta",
+        body: "",
+        url: null,
+        open: true,
+        assignees: assigned ? [{ login: "me" }] : [],
+      }),
+      assign: async () => {
+        assigned = true;
+      },
+      defaultBranch: async () => "main",
+    };
+    const real = c._adapters[provider];
+    c._adapters[provider] = fake;
+    try {
+      const r = await c.claim(cfg, 7);
+      assert.equal(r.branch, "task/7-tahta");
+      assert.equal(r.cwd, c.worktreePath(cfg, r.branch));
+      assert.ok(fs.existsSync(path.join(r.cwd, ".git")));
+      assert.equal((await git(repo, ["branch", "--show-current"])).trim(), "main");
+    } finally {
+      c._adapters[provider] = real;
+    }
+  }
+});
+
+test("claim reopens a task whose worktree folder was deleted by hand", async () => {
+  const { cfg } = await freshRepo();
+  const r = await c.claim(cfg, 1);
+  fs.rmSync(r.cwd, { recursive: true, force: true });
+  const again = await c.claim(cfg, 1);
+  assert.equal(again.cwd, r.cwd);
+  assert.ok(fs.existsSync(path.join(again.cwd, ".git")));
+});

@@ -1,5 +1,5 @@
 /**
- * @file AI Cockpit community work: a shared task queue that contributors claim, code locally with their own AI agent on a `task/<n>-…` branch, and hand back for review. Three backends: GitHub (Issues + PRs via `gh`), GitLab (Issues + MRs via `glab api`) and a plain local git repo (tasks from a plan Markdown file in the repo, claims kept on this machine, review = local merge). Nothing but the platform's own API calls, made with the user's own credentials, leaves the machine.
+ * @file AI Cockpit community work: a shared task queue that contributors claim, code locally with their own AI agent on a `task/<n>-…` branch in its own git worktree under the cockpit home, and hand back for review. Three backends: GitHub (Issues + PRs via `gh`), GitLab (Issues + MRs via `glab api`) and a plain local git repo (tasks from a plan Markdown file in the repo, claims kept on this machine, review = local merge). Nothing but the platform's own API calls, made with the user's own credentials, leaves the machine.
  * @author Caglar Ulkuderner
  */
 
@@ -9,17 +9,17 @@ const path = require("path");
 const { execFile } = require("child_process");
 const { parsePlan } = require("./plan");
 const { parseTaskFields, areasOverlap } = require("./task-fields");
+const { gitSafeEnv } = require("./git-env");
 
 const REPO_RE = /^[A-Za-z0-9_.-]+(\/[A-Za-z0-9_.-]+)+$/;
 const LABEL_RE = /^[\w .:/-]{1,50}$/;
 const HOST_RE = /^[A-Za-z0-9.-]+(:\d+)?$/;
 const PROVIDERS = new Set(["github", "gitlab", "local"]);
 
+const cockpitHome = () => process.env.AI_COCKPIT_HOME || path.join(os.homedir(), ".ai-cockpit");
+
 function stateFile() {
-  return path.join(
-    process.env.AI_COCKPIT_HOME || path.join(os.homedir(), ".ai-cockpit"),
-    "community.json"
-  );
+  return path.join(cockpitHome(), "community.json");
 }
 
 function readConfig() {
@@ -61,7 +61,9 @@ function run(bin, args, opts = {}) {
   });
 }
 
-const git = (cwd, args) => run("git", ["-C", cwd, ...args]);
+// Repo-scoped git: argument array plus a scrubbed environment, so a leaked
+// GIT_DIR (git exports one to every hook) can never outrank the `-C` target.
+const git = (cwd, args) => run("git", ["-C", cwd, ...args], { env: gitSafeEnv() });
 
 function validateConfig(cfg) {
   if (!PROVIDERS.has(cfg.provider)) throw fail(400, "Sağlayıcı github, gitlab ya da local olmalı");
@@ -657,6 +659,10 @@ const local = {
     ];
   },
   async openReview(cfg, { branch, base, title }, number) {
+    // The merge runs in the main repo, so its tree must be clean first; claiming
+    // no longer checks this (the task lives in its own worktree).
+    if ((await git(cfg.localPath, ["status", "--porcelain"])).trim())
+      throw fail(409, "Yerel depoda kaydedilmemiş değişiklik var; önce commit'le ya da kenara al");
     await git(cfg.localPath, ["checkout", base]);
     await git(cfg.localPath, ["merge", "--no-ff", branch, "-m", title]);
     const c = readConfig();
@@ -711,7 +717,65 @@ async function refuseIfNotReady(cfg, number, me) {
     );
 }
 
-/** Claim: refuse when someone else holds it, a dependency is open or another task works the same area (continuing my own task skips those checks), assign to me, then check out the task branch from the default branch. */
+/**
+ * Worktree folder for one task branch under the cockpit home: worktrees/<repo>/<branch>.
+ * Both segments are slugged, so a crafted branch name can never climb out of the folder.
+ */
+function worktreePath(cfg, branch) {
+  return path.join(
+    cockpitHome(),
+    "worktrees",
+    slug(path.basename(cfg.localPath)),
+    slug(String(branch).replace(/^task\//, ""))
+  );
+}
+
+// git resolves symlinks in `worktree list` output (/var -> /private/var on macOS),
+// so paths are compared through their real path.
+const realPath = (p) => {
+  try {
+    return fs.realpathSync(p);
+  } catch {
+    return path.resolve(p);
+  }
+};
+
+/**
+ * The task's worktree path, opening the worktree when missing: an existing branch is
+ * attached as-is, a new one starts at `startPoint`, an already-open worktree is reused.
+ * Refuses with 409 while the branch is checked out in the main repo: git cannot hold
+ * one branch in two worktrees, and the main checkout is never touched to fix it.
+ */
+async function ensureWorktree(cfg, branch, startPoint) {
+  const cwd = worktreePath(cfg, branch);
+  const current = (await git(cfg.localPath, ["branch", "--show-current"])).trim();
+  if (current === branch)
+    throw fail(409, "Görev dalı ana depoda açık; ana depoyu başka bir dala geçir, sonra tekrar al");
+  // A worktree folder deleted by hand stays registered and would block "worktree add".
+  await git(cfg.localPath, ["worktree", "prune"]);
+  const open = (await git(cfg.localPath, ["worktree", "list", "--porcelain"]))
+    .split("\n")
+    .filter((l) => l.startsWith("worktree "))
+    .map((l) => realPath(l.slice("worktree ".length)));
+  if (open.includes(realPath(cwd))) return cwd;
+  fs.mkdirSync(path.dirname(cwd), { recursive: true });
+  const exists = await git(cfg.localPath, [
+    "rev-parse",
+    "--verify",
+    "--quiet",
+    `refs/heads/${branch}`,
+  ]).then(
+    () => true,
+    () => false
+  );
+  await git(
+    cfg.localPath,
+    exists ? ["worktree", "add", cwd, branch] : ["worktree", "add", "-b", branch, cwd, startPoint]
+  );
+  return cwd;
+}
+
+/** Claim: refuse when someone else holds it, a dependency is open or another task works the same area (continuing my own task skips those checks), assign to me, then open the task's worktree. The main checkout stays on its branch. */
 async function claim(cfg, number) {
   const a = adapter(cfg);
   const me = await whoami(cfg);
@@ -731,30 +795,15 @@ async function claim(cfg, number) {
     throw fail(409, `Aynı anda başkası aldı: ${after[0]}`);
   }
   const branch = branchFor(issue);
-  const current = (await git(cfg.localPath, ["branch", "--show-current"])).trim();
-  if (current !== branch && (await git(cfg.localPath, ["status", "--porcelain"])).trim()) {
-    throw fail(409, "Yerel depoda kaydedilmemiş değişiklik var; önce commit'le ya da kenara al");
-  }
   const base = await a.defaultBranch(cfg);
   if (hasRemote(cfg)) await git(cfg.localPath, ["fetch", "origin", base]);
-  const exists = await git(cfg.localPath, [
-    "rev-parse",
-    "--verify",
-    "--quiet",
-    `refs/heads/${branch}`,
-  ]).then(
-    () => true,
-    () => false
-  );
-  if (exists) await git(cfg.localPath, ["checkout", branch]);
-  else
-    await git(cfg.localPath, ["checkout", "-b", branch, hasRemote(cfg) ? `origin/${base}` : base]);
+  const cwd = await ensureWorktree(cfg, branch, hasRemote(cfg) ? `origin/${base}` : base);
   const where = cfg.repo ? `${cfg.repo} #${issue.number}` : `Görev ${issue.number}`;
   const prompt =
     `${where}: ${issue.title}\n\n${issue.body || ""}\n\n` +
     `Bu görevi "${branch}" dalında uygula, testlerini yaz ve çalıştır, anlamlı commit'ler at. ` +
     `Push etme ve ${a.reviewName} açma; bunu kokpitten ben yapacağım.`;
-  return { number: issue.number, branch, cwd: cfg.localPath, prompt };
+  return { number: issue.number, branch, cwd, prompt };
 }
 
 async function members(cfg) {
@@ -838,8 +887,11 @@ module.exports = {
   members,
   listDirs,
   buildBoard,
+  worktreePath,
+  ensureWorktree,
   estimateFromLabels,
   closedIssues,
   slug,
   _adapters: ADAPTERS,
+  _git: git,
 };

@@ -31,7 +31,7 @@ function issueNumber(req) {
 
 router.get("/config", (_req, res) => res.json(community.readConfig() || null));
 
-// Body: { provider: "github"|"gitlab"|"local", localPath, repo?, label?, host? (GitLab), planFile? (local, relative .md), staleHours? (1-168, default 4) }
+// Body: { provider: "github"|"gitlab"|"local", localPath, repo?, label?, host? (GitLab), planFile? (local: required; hosted: optional, for plan sync), staleHours? (1-168, default 4) }
 router.put(
   "/config",
   wrap(async (req) => {
@@ -51,6 +51,7 @@ router.put(
             localPath: String(b.localPath || "").trim(),
             label: String(b.label || "cockpit-task").trim(),
             ...(provider === "gitlab" && b.host ? { host: String(b.host).trim() } : {}),
+            ...(b.planFile ? { planFile: String(b.planFile).trim() } : {}),
           }),
       staleHours,
       ...(b.worktrunk !== undefined ? { worktrunk: b.worktrunk } : {}),
@@ -92,6 +93,16 @@ router.get(
     }
     return community.board(cfg, liveCwds);
   })
+);
+// Plan sync: GET only previews what would be created/updated; POST is the one
+// route besides claim/release/PR that writes outside the machine.
+router.get(
+  "/plan-sync",
+  wrap(() => community.planSyncPreview(config()))
+);
+router.post(
+  "/plan-sync",
+  wrap(() => community.planSync(config()))
 );
 router.post(
   "/tasks/:number/claim",

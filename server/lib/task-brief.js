@@ -6,7 +6,7 @@
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
-const { TASK_HEADING } = require("./plan");
+const { parsePlanSections } = require("./plan");
 
 const BRIEF_MAX_BYTES = 32 * 1024;
 const CLAUDE_MEM_DEFAULT_PORT = 37701;
@@ -74,47 +74,19 @@ function buildBrief({ where, title, body, fields, planSection, deps, memories })
   return capBrief(`${parts.join("\n").trimEnd()}\n`);
 }
 
-const ISSUE_MARKER_RE = /^<!--\s*issue:#([0-9]+)\s*-->$/;
-
 /**
- * One task's section of a plan file: the heading and its text up to the next
- * heading at the task's level or above (plan.js heading rule, so local numbering matches). Hosted issues select their section by the `<!-- issue:#n -->`
- * marker line right under the heading; the local provider numbers tasks by
- * plan order (the localTasks rule).
+ * One task's section of a plan file, read through parsePlanSections (plan.js's
+ * single heading rule, both plan styles): the heading and its text up to the
+ * next heading at the task's level or above. Hosted issues select their
+ * section by the `<!-- issue:#n -->` marker line right under the heading; the
+ * local provider numbers tasks by plan order (the localTasks rule).
  */
 function planSectionFor(md, number, byOrder) {
-  const lines = String(md).split(/\r?\n/);
-  const headings = [];
-  for (let i = 0; i < lines.length; i++) {
-    const m = TASK_HEADING.exec(lines[i]);
-    if (m) headings.push({ i, level: m[1].length });
-  }
-  // The first task heading fixes the task level, as parsePlan does.
-  const level = headings.length ? headings[0].level : 0;
-  const tasks = headings.filter((h) => h.level === level);
-  let start = -1;
-  if (byOrder) {
-    if (tasks[number - 1]) start = tasks[number - 1].i;
-  } else {
-    for (const h of tasks) {
-      const m = ISSUE_MARKER_RE.exec((lines[h.i + 1] || "").trim());
-      if (m && Number(m[1]) === number) {
-        start = h.i;
-        break;
-      }
-    }
-  }
-  if (start === -1) return null;
-  let end = lines.length;
-  for (let i = start + 1; i < lines.length; i++) {
-    const h = /^(#{1,6})\s/.exec(lines[i]);
-    // The section ends at the next heading at the task's level or above ("####" cards included).
-    if (h && h[1].length <= level) {
-      end = i;
-      break;
-    }
-  }
-  return lines.slice(start, end).join("\n").trimEnd();
+  const sections = parsePlanSections(md);
+  const s = byOrder ? sections[number - 1] : sections.find((x) => x.issue === number);
+  if (!s) return null;
+  const heading = String(md).split(/\r?\n/)[s.line];
+  return `${heading}\n${s.body}`.trimEnd();
 }
 
 /** The claude-mem worker port from ~/.claude-mem/settings.json, read fresh on every call; the default when absent or unusable. */

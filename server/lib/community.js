@@ -7,8 +7,8 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { execFile } = require("child_process");
-const { parsePlan } = require("./plan");
-const { parseTaskFields, areasOverlap } = require("./task-fields");
+const { parsePlan, parsePlanSections } = require("./plan");
+const { parseTaskFields, areasOverlap, taskIssueBody } = require("./task-fields");
 const { buildBrief, fetchMemories, writeBrief, planSectionFor } = require("./task-brief");
 const { gitSafeEnv } = require("./git-env");
 
@@ -78,8 +78,17 @@ function validateConfig(cfg) {
   if (!path.isAbsolute(cfg.localPath || "") || !fs.existsSync(path.join(cfg.localPath, ".git"))) {
     throw fail(400, "Yerel klasör bir git deposu olmalı (tam yol)");
   }
-  if (cfg.provider === "local") {
-    const plan = path.resolve(cfg.localPath, cfg.planFile || "");
+  if (cfg.provider === "local" && !cfg.planFile)
+    throw fail(400, "Plan dosyası depo içinde bir .md dosyası olmalı");
+  if (cfg.provider !== "local") {
+    if (!REPO_RE.test(cfg.repo || ""))
+      throw fail(400, "Depo owner/name (GitLab'da group/subgroup/name) biçiminde olmalı");
+    if (!LABEL_RE.test(cfg.label || "")) throw fail(400, "Geçersiz etiket");
+    if (cfg.host && !HOST_RE.test(cfg.host)) throw fail(400, "Geçersiz GitLab sunucusu");
+  }
+  // Hosted providers may point at a plan file for "Planı tahtaya aç"; the local provider requires one.
+  if (cfg.planFile) {
+    const plan = path.resolve(cfg.localPath, cfg.planFile);
     if (
       !plan.startsWith(cfg.localPath + path.sep) ||
       !plan.endsWith(".md") ||
@@ -87,12 +96,7 @@ function validateConfig(cfg) {
     ) {
       throw fail(400, "Plan dosyası depo içinde bir .md dosyası olmalı");
     }
-    return;
   }
-  if (!REPO_RE.test(cfg.repo || ""))
-    throw fail(400, "Depo owner/name (GitLab'da group/subgroup/name) biçiminde olmalı");
-  if (!LABEL_RE.test(cfg.label || "")) throw fail(400, "Geçersiz etiket");
-  if (cfg.host && !HOST_RE.test(cfg.host)) throw fail(400, "Geçersiz GitLab sunucusu");
 }
 
 /** Estimate in ms from an `est:3h` / `est:45m` / `est:1.5h` label or title token; null when absent. */
@@ -362,6 +366,29 @@ const github = {
   unassign: (cfg, n) =>
     gh(["issue", "edit", String(n), "-R", cfg.repo, "--remove-assignee", "@me"]),
   comment: (cfg, n, text) => gh(["issue", "comment", String(n), "-R", cfg.repo, "--body", text]),
+  async createIssue(cfg, { title, body }) {
+    // gh prints the new issue's URL; its last path segment is the number.
+    const out = (
+      await gh([
+        "issue",
+        "create",
+        "-R",
+        cfg.repo,
+        "--title",
+        title,
+        "--body",
+        body,
+        "--label",
+        cfg.label,
+      ])
+    ).trim();
+    const m = /\/issues\/(\d+)$/.exec(out);
+    if (!m) throw fail(502, `Issue numarası alınamadı: ${out.slice(0, 200)}`);
+    return Number(m[1]);
+  },
+  updateIssue(cfg, n, { title, body }) {
+    return gh(["issue", "edit", String(n), "-R", cfg.repo, "--title", title, "--body", body]);
+  },
   async defaultBranch(cfg) {
     return JSON.parse(await gh(["repo", "view", cfg.repo, "--json", "defaultBranchRef"]))
       .defaultBranchRef.name;
@@ -516,6 +543,29 @@ const gitlab = {
   },
   comment(cfg, n, text) {
     return glab(cfg, `projects/:proj/issues/${n}/notes`, ["-X", "POST", "-f", `body=${text}`]);
+  },
+  async createIssue(cfg, { title, body }) {
+    const i = await glab(cfg, "projects/:proj/issues", [
+      "-X",
+      "POST",
+      "-f",
+      `title=${title}`,
+      "-f",
+      `description=${body}`,
+      "-f",
+      `labels=${cfg.label}`,
+    ]);
+    return i.iid;
+  },
+  updateIssue(cfg, n, { title, body }) {
+    return glab(cfg, `projects/:proj/issues/${n}`, [
+      "-X",
+      "PUT",
+      "-f",
+      `title=${title}`,
+      "-f",
+      `description=${body}`,
+    ]);
   },
   async defaultBranch(cfg) {
     return (await glab(cfg, "projects/:proj")).default_branch;
@@ -1115,6 +1165,87 @@ async function openPr(cfg, number) {
   return { url: await a.openReview(cfg, req, number) };
 }
 
+// ── Plan sync ("Planı tahtaya aç") ──────────────────────────────────────────
+
+/** The plan file a hosted plan sync works on; the local provider reads its tasks from it already. */
+function hostedPlanPath(cfg) {
+  if (cfg.provider === "local")
+    throw fail(400, "Yerel depoda görevler zaten plan dosyasından okunuyor");
+  if (!cfg.planFile) throw fail(400, "Planı tahtaya açmak için plan dosyası seç");
+  return path.resolve(cfg.localPath, cfg.planFile);
+}
+
+/** What a plan sync would do: create the unmarked plan tasks, update the `<!-- issue:#n -->` marked ones. Writes nothing, calls no adapter. */
+async function planSyncPreview(cfg) {
+  const sections = parsePlanSections(fs.readFileSync(hostedPlanPath(cfg), "utf8"));
+  return {
+    create: sections.filter((s) => s.issue == null).map((s) => ({ id: s.id, title: s.title })),
+    update: sections
+      .filter((s) => s.issue != null)
+      .map((s) => ({ id: s.id, title: s.title, number: s.issue })),
+  };
+}
+
+/**
+ * Write the `<!-- issue:#n -->` marker right under the task heading in the
+ * plan file. The file is saved after every created issue, so a run stopped
+ * halfway is safe to run again: the marked task is updated, never duplicated.
+ * The plan file is never committed by the cockpit; the user commits it.
+ */
+function markPlanIssue(planPath, id, n) {
+  const md = fs.readFileSync(planPath, "utf8");
+  const s = parsePlanSections(md).find((x) => x.id === id && x.issue == null);
+  if (!s) return;
+  const eol = md.includes("\r\n") ? "\r\n" : "\n";
+  const lines = md.split(/\r?\n/);
+  lines.splice(s.line + 1, 0, `<!-- issue:#${n} -->`);
+  fs.writeFileSync(planPath, lines.join(eol));
+}
+
+/**
+ * Open every plan task as an issue, one at a time (never in parallel): an
+ * unmarked task becomes an issue titled "<id>: <title>" with a
+ * taskIssueBody body, and its number is marked under the heading right away;
+ * marked tasks are updated with the same shape. Exported as _planSyncWith so
+ * tests can drive a fake adapter; planSync hands it the real one.
+ */
+async function _planSyncWith(a, cfg) {
+  const planPath = hostedPlanPath(cfg);
+  const issueFor = (s) => ({
+    title: `${s.id}: ${s.title}`,
+    body: taskIssueBody({ body: s.body.trim(), files: s.files, estimate_ms: s.estimate_ms }),
+  });
+  const created = [];
+  for (;;) {
+    const pending = parsePlanSections(fs.readFileSync(planPath, "utf8")).find(
+      (s) => s.issue == null
+    );
+    if (!pending) break;
+    const n = await a.createIssue(cfg, issueFor(pending));
+    // A bad number would leave the task unmarked and open issue after issue: stop instead.
+    if (!Number.isInteger(n) || n <= 0) throw fail(502, `Issue numarası alınamadı (${pending.id})`);
+    markPlanIssue(planPath, pending.id, n);
+    created.push(n);
+    const still = parsePlanSections(fs.readFileSync(planPath, "utf8")).find((s) => s.issue == null);
+    if (still && still.line === pending.line && still.id === pending.id)
+      throw fail(
+        500,
+        `Plan dosyasına #${n} işareti yazılamadı (${pending.id}); tekrar çalıştırmadan önce dosyayı kontrol et`
+      );
+  }
+  const updated = [];
+  for (const s of parsePlanSections(fs.readFileSync(planPath, "utf8"))) {
+    if (s.issue == null || created.includes(s.issue)) continue; // just created: already current
+    await a.updateIssue(cfg, s.issue, issueFor(s));
+    updated.push(s.issue);
+  }
+  return { created, updated };
+}
+
+async function planSync(cfg) {
+  return _planSyncWith(adapter(cfg), cfg);
+}
+
 module.exports = {
   readConfig,
   writeConfig,
@@ -1127,6 +1258,9 @@ module.exports = {
   releaseComment,
   prPreview,
   openPr,
+  planSyncPreview,
+  planSync,
+  _planSyncWith,
   members,
   listDirs,
   buildBoard,

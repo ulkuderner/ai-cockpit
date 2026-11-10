@@ -41,6 +41,23 @@ function writeState(state) {
 const TASK_HEADING =
   /^(#{3,4})\s+(?:(?:Task|Görev|Gorev)\s+([0-9]+[a-z]?)\s*[:.\-–]?|(T[0-9]+[a-z]?)\s*[·:.\-–])\s*(.*)$/i;
 
+/** The task a heading line names: id, cleaned title and its own estimate. Shared by parsePlan and parsePlanSections so both plan styles stay in sync. */
+function taskFromHeading(t) {
+  let title = t[4];
+  // "(est:3h)" / "(est:45m)" or a trailing "— 1,5 gün" is the task's own estimate; keep it out of the title.
+  const est = /\(?\s*est:\s*(\d+(?:\.\d+)?)\s*([hm])\s*\)?/i.exec(title);
+  // A plan "gün" is counted as a calendar day so the remaining time reads in the plan's own numbers.
+  const days = est ? null : /\s*[—–-]\s*(\d+(?:[.,]\d+)?)\s*gün\s*$/i.exec(title);
+  const estimate_ms = est
+    ? Number(est[1]) * (est[2].toLowerCase() === "h" ? 3_600_000 : 60_000)
+    : days
+      ? Math.round(Number(days[1].replace(",", ".")) * 86_400_000)
+      : null;
+  const cut = est || days;
+  title = (cut ? title.replace(cut[0], "") : title).replace(/\s*[—–-]\s*sürekli\s*$/i, "");
+  return { id: (t[2] || t[3]).toLowerCase(), title: title.trim(), estimate_ms };
+}
+
 /** Headings above the task level start a phase (`## Phase`, or `### M0 — ...` over `####` cards). */
 function parsePlan(markdown) {
   const lines = markdown.split(/\r?\n/);
@@ -55,19 +72,7 @@ function parsePlan(markdown) {
         phase = { title: "", tasks: [] };
         phases.push(phase);
       }
-      let title = t[4];
-      // "(est:3h)" / "(est:45m)" or a trailing "— 1,5 gün" is the task's own estimate; keep it out of the title.
-      const est = /\(?\s*est:\s*(\d+(?:\.\d+)?)\s*([hm])\s*\)?/i.exec(title);
-      // A plan "gün" is counted as a calendar day so the remaining time reads in the plan's own numbers.
-      const days = est ? null : /\s*[—–-]\s*(\d+(?:[.,]\d+)?)\s*gün\s*$/i.exec(title);
-      const estimate_ms = est
-        ? Number(est[1]) * (est[2].toLowerCase() === "h" ? 3_600_000 : 60_000)
-        : days
-          ? Math.round(Number(days[1].replace(",", ".")) * 86_400_000)
-          : null;
-      const cut = est || days;
-      title = (cut ? title.replace(cut[0], "") : title).replace(/\s*[—–-]\s*sürekli\s*$/i, "");
-      phase.tasks.push({ id: (t[2] || t[3]).toLowerCase(), title: title.trim(), estimate_ms });
+      phase.tasks.push(taskFromHeading(t));
       continue;
     }
     const h = /^(#{1,6})\s+(.+?)\s*$/.exec(line);
@@ -77,6 +82,58 @@ function parsePlan(markdown) {
     }
   }
   return phases.filter((p) => p.tasks.length > 0);
+}
+
+const ISSUE_MARKER_RE = /^<!--\s*issue:#([0-9]+)\s*-->$/;
+const FILE_LINE_RE = /^-\s+(?:Create|Modify|Test)\s*:\s*`([^`]+)`/;
+
+/**
+ * One section per plan task, in both plan styles, through parsePlan's own
+ * heading rule (the first task heading fixes the task level): `body` runs from
+ * the heading to the next heading at the task's level or above, `files`
+ * collects the Create/Modify/Test paths (any ":line range" tail dropped, no
+ * duplicates), `issue` reads the `<!-- issue:#n -->` marker line right under
+ * the heading and `line` is the heading's 0-based line number. Plan sync and
+ * the task brief both read sections here, so they can never drift apart.
+ */
+function parsePlanSections(markdown) {
+  const lines = String(markdown).split(/\r?\n/);
+  const first = lines.map((l) => TASK_HEADING.exec(l)).find(Boolean);
+  if (!first) return [];
+  const taskLevel = first[1].length;
+  const out = [];
+  for (let i = 0; i < lines.length; i++) {
+    const t = TASK_HEADING.exec(lines[i]);
+    if (!t || t[1].length !== taskLevel) continue;
+    const { id, title, estimate_ms } = taskFromHeading(t);
+    const marker = ISSUE_MARKER_RE.exec((lines[i + 1] || "").trim());
+    let end = lines.length;
+    for (let j = i + 1; j < lines.length; j++) {
+      const h = /^(#{1,6})\s/.exec(lines[j]);
+      if (h && h[1].length <= taskLevel) {
+        end = j;
+        break;
+      }
+    }
+    const bodyLines = lines.slice(i + 1, end);
+    const files = [];
+    for (const line of bodyLines) {
+      const m = FILE_LINE_RE.exec(line.trim());
+      // ":12-30" after a path is a line range; keep the path only.
+      const file = m && m[1].split(":")[0];
+      if (file && !files.includes(file)) files.push(file);
+    }
+    out.push({
+      id,
+      title,
+      estimate_ms,
+      body: bodyLines.join("\n"),
+      files,
+      issue: marker ? Number(marker[1]) : null,
+      line: i,
+    });
+  }
+  return out;
 }
 
 /** Repo a working directory belongs to; a linked worktree resolves to its main checkout. Null outside git. */
@@ -533,6 +590,7 @@ module.exports = {
   writeState,
   TASK_HEADING,
   parsePlan,
+  parsePlanSections,
   mentionRegex,
   branchTask,
   workRepo,

@@ -221,3 +221,22 @@ test("planSectionFor reads card plans: a #### card ends at the next card", () =>
   assert.equal(b.planSectionFor(md, 1, true), "#### T01 · Bir — 1 gün\nadım 1");
   assert.equal(b.planSectionFor(md, 2, true), "#### T02 · İki — 2 gün\nadım 2");
 });
+
+test("writeBrief refuses a .ai-cockpit or brief.md symlink and writes nothing outside", async () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "brief-link-"));
+  try {
+    const outside = path.join(root, "outside");
+    fs.mkdirSync(outside);
+    const wt1 = path.join(root, "wt1");
+    fs.mkdirSync(wt1);
+    fs.symlinkSync(outside, path.join(wt1, ".ai-cockpit"));
+    await assert.rejects(b.writeBrief(wt1, "x"), { status: 409 });
+    const wt2 = path.join(root, "wt2");
+    fs.mkdirSync(path.join(wt2, ".ai-cockpit"), { recursive: true });
+    fs.symlinkSync(path.join(outside, "pwn.md"), path.join(wt2, ".ai-cockpit", "brief.md"));
+    await assert.rejects(b.writeBrief(wt2, "x"), { status: 409 });
+    assert.deepEqual(fs.readdirSync(outside), []);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});

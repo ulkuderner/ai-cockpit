@@ -144,9 +144,39 @@ async function fetchMemories({ project, query, timeoutMs = 3000 }) {
  */
 async function writeBrief(cwd, text) {
   const dir = path.join(cwd, ".ai-cockpit");
-  fs.mkdirSync(dir, { recursive: true });
   const file = path.join(dir, "brief.md");
-  fs.writeFileSync(file, text);
+  // The repo controls the worktree's contents: a committed ".ai-cockpit" or "brief.md" symlink
+  // must never redirect this write outside the worktree.
+  const refuse = () =>
+    Object.assign(new Error("Görev klasöründeki .ai-cockpit bir bağlantı; brief yazılmadı"), {
+      status: 409,
+    });
+  const kind = (p) => {
+    try {
+      return fs.lstatSync(p);
+    } catch {
+      return null;
+    }
+  };
+  const d = kind(dir);
+  if (d && (d.isSymbolicLink() || !d.isDirectory())) throw refuse();
+  if (!d) fs.mkdirSync(dir);
+  if (path.dirname(fs.realpathSync(dir)) !== fs.realpathSync(cwd)) throw refuse();
+  const f = kind(file);
+  if (f && (f.isSymbolicLink() || !f.isFile())) throw refuse();
+  const fd = fs.openSync(
+    file,
+    fs.constants.O_WRONLY |
+      fs.constants.O_CREAT |
+      fs.constants.O_TRUNC |
+      (fs.constants.O_NOFOLLOW || 0),
+    0o644
+  );
+  try {
+    fs.writeSync(fd, text);
+  } finally {
+    fs.closeSync(fd);
+  }
   try {
     const common = path.resolve(
       cwd,

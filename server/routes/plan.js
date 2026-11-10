@@ -66,6 +66,12 @@ function loadWork() {
   return [...sessions, ...agents, ...sent];
 }
 
+/** Configured plans plus the ones found in repos agents work in: both accept status and order edits. */
+function knownPlan(state, planId) {
+  if (state.plans.some((p) => p.id === planId)) return true;
+  return plan.discoverPlans(loadWork(), state.plans).plans.some((p) => p.id === planId);
+}
+
 router.get("/", (_req, res) => {
   const state = plan.readState();
   const work = loadWork();
@@ -103,7 +109,7 @@ router.patch("/:planId/tasks/:taskId", (req, res) => {
   if (!plan.STATUSES.has(status))
     return res.status(400).json({ error: "status: todo | done | blocked" });
   const state = plan.readState();
-  if (!state.plans.some((p) => p.id === planId)) return res.status(404).json({ error: "plan yok" });
+  if (!knownPlan(state, planId)) return res.status(404).json({ error: "plan yok" });
   state.tasks[planId] = state.tasks[planId] || {};
   if (status === "todo") delete state.tasks[planId][taskId];
   else state.tasks[planId][taskId] = { status, at: new Date().toISOString() };
@@ -118,8 +124,7 @@ router.put("/:planId/order", (req, res) => {
     return res.status(400).json({ error: "order dizisi gerekli" });
   }
   const state = plan.readState();
-  if (!state.plans.some((p) => p.id === req.params.planId))
-    return res.status(404).json({ error: "plan yok" });
+  if (!knownPlan(state, req.params.planId)) return res.status(404).json({ error: "plan yok" });
   state.order[req.params.planId] = order.map((x) => x.toLowerCase());
   plan.writeState(state);
   res.json({ ok: true });

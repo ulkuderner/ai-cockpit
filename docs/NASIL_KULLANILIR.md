@@ -82,26 +82,39 @@ Son 7 günde ajanların tekrar tekrar okuduğu dosyalar, kaç kez, kaç oturumda
 
 ![Plan](images/nasil/04-plan.png)
 
-Bir projenin plan Markdown dosyasını ekle (sayfanın sağ altında "Plan ekle", dosyanın tam yolu). Plan dosyası şu biçimde olmalı:
+**Planlar kendiliğinden bulunur.** Son 14 günde ajanların çalıştığı her depoda (worktree'ler ana depoya sayılır) kokpit şu sırayla plan arar:
+
+1. depodaki SDD defterinin (`.superpowers/sdd/<koşu>/plan-path`) gösterdiği plan,
+2. yoksa `docs/superpowers/plans/` ya da `docs/plans/` içindeki, ya da adında "plan" geçen en yeni Markdown dosyası (en az 3 görev içermeli).
+
+Canlı oturumu olan bir depoda plan bulunamazsa sayfa o proje için dosya yolunu sorar. Elle de ekleyebilirsin (sağ altta "Plan ekle", dosyanın tam yolu).
+
+Plan dosyası iki biçimden birinde olabilir:
 
 ```markdown
-# Aşama 1 — Temel
+# Aşama 1: Temel
 ### Task 1: Proje iskeleti ve CI (est:3h)
 ### Task 2: Kimlik doğrulama (est:45m)
 
-## Aşama 2 — Not akışı
+## Aşama 2: Not akışı
 ### Görev 7a: Tam metin arama
 ```
 
-- `#` / `##` başlıkları **aşama**, `### Task <no>:` ya da `### Görev <no>:` başlıkları **görev** olur.
-- `(est:3h)` isteğe bağlı tahmindir; başlıkta görünmez, tahminde kullanılır.
-- **Durumlar**: Bitti ve Bekliyor elle işaretlenir (satırdaki ✓ ve ⦸). **Çalışıyor** kendiliğinden gelir: planın deposunda çalışan bir oturumun, alt ajanın ya da giden bir istemin içinde görev numarası geçiyorsa ("Task 7a", "Görev 7a").
+```markdown
+### M0: Depo ve araç zinciri
+#### T01 · Monorepo iskeleti — 1 gün
+#### T02 · Lisans dosyaları — 0,5 gün
+```
+
+- İlk biçimde `#` / `##` başlıkları **aşama**, `### Task <no>:` ya da `### Görev <no>:` başlıkları **görev** olur. Kart biçiminde `###` başlıkları aşama, `#### T<no> ·` başlıkları görevdir.
+- `(est:3h)` ya da sondaki `— 1 gün` isteğe bağlı tahmindir; başlıkta görünmez, tahminde kullanılır.
+- **Durumlar**: Bitti ve Bekliyor elle işaretlenir (satırdaki ✓ ve ⦸). Bitti kendiliğinden de gelir: SDD defterinde `Task 7a: complete` satırı varsa, defter yoksa görevin dalı ana dala birleştiyse (`feat/T05`, `task/12-…`) ya da commit konusu `(T01)` ile bitiyorsa. **Çalışıyor** da kendiliğinden gelir: defterde `Task 7a: dispatched` yazan ya da planın deposunda çalışan bir oturumun, alt ajanın veya giden bir istemin içinde görev numarası geçen görevler. Paralel ajanlar kendi worktree'lerinde çalışıyorsa (dal adı görev numarasıyla biter) her görev kendi oturumlarıyla görünür.
 - **Sıradaki işler**: sağda, yukarı/aşağı oklarıyla sıralanır; başlıkta iş adedi ve toplam süre, her satırda birikimli süre yazar.
 - **Tahminler** üç kaynaktan gelir, ekranda hangisi olduğu yazar:
-  1. *ajan süresi*: biten görevlerin gerçek oturum sürelerinin ortancası,
-  2. *plandaki est değerleri*: ölçüm yoksa `(est:…)`,
+  1. *plandaki tahminler*: görevde `(est:…)` ya da `— N gün` varsa o kullanılır. Gün tahminleri tek kişiye göre yazıldığı için, biten tahminli görevlerin gerçek hızıyla ölçeklenir (36 plan günü 16 takvim gününde bittiyse kalan tahminler de aynı oranda kısalır),
+  2. *ajan süresi*: tahmini olmayan görevlerde, biten görevlerin gerçek oturum sürelerinin ortancası (birçok görevi anan yönetici oturumlar sayılmaz),
   3. *takvim temposu*: o da yoksa plan dosyasının git'e girdiği günden bu yana geçen süre ÷ biten görev.
-- **Başlangıç**: ilk ölçülen oturum, yoksa plan dosyasının git'e girdiği gün.
+- **Başlangıç**: plan dosyasının git'e girdiği gün ile ilk ölçülen oturumdan hangisi önceyse.
 - Tamamlanan aşamalar kapalı gelir; tıklayınca açılır.
 
 ## 4. Giden istemler
@@ -142,16 +155,41 @@ Kısaca:
 | | GitHub | GitLab | Yerel git |
 | --- | --- | --- | --- |
 | Görevler | `cockpit-task` etiketli issue'lar | `cockpit-task` etiketli issue'lar | depodaki plan dosyası |
-| Tahmin | `est:4h` etiketi | `est:4h` etiketi | başlıkta `(est:4h)` |
+| Tahmin | `est:4h` etiketi ya da gövdede `est: 4h` | `est:4h` etiketi ya da gövdede `est: 4h` | başlıkta `(est:4h)` |
 | Giriş | `gh auth login` | `glab auth login` | gerekmez |
 | Teslim | PR (`Closes #n`) | MR (`Closes #n`) | ana dala yerel birleştirme |
 
+**Görev alanları.** Issue gövdesine satır başında şu satırları yazarsan tahta onları okur; hiçbiri zorunlu değil, alansız eski issue'lar da alınabilir ("Alan yok" rozetiyle):
+
+```text
+Alan: server/lib/**, client/src/pages/Plan.tsx
+Bağlı: #12, #14
+est: 1.5h
+Kabul:
+- testler yeşil
+- tahta açılır
+```
+
+- **Hazır**: açık, bağlı görevleri bitmiş ve alanı çalışılan bir görevle çakışmıyor.
+- **Bekliyor: #12**: bağlı görev hâlâ açık. Kapalı ya da hiç olmayan numara karşılanmış sayılır.
+- **Çakışma: #7 (Ali)**: alınmış ya da incelemedeki bir görevle aynı alanda. İki desen, joker karakterden (`*`, `?`, `[`) önceki kökleri aynıysa ya da biri diğerinin altındaysa çakışır.
+- **Sahipsiz kalmış · 5 sa**: alınmış görevde canlı ajan yok ve son commit (yoksa alınma zamanı) ayarlardaki eşikten eski (varsayılan 4 saat).
+
+Bekleyen ya da çakışan görevin **Al ve başlat** düğmesi kapalıdır; altında nedeni yazar.
+
 Akış:
 
-1. **Depoyu bağla**: platformu seç, depo adını, kendi klonunun yolunu ("Gözat" ile seçebilirsin) ve etiketi gir.
-2. **Ajanını seç** (Claude Code / Codex / Cursor), boştaki bir görevde **Al ve başlat**. Görev sana atanır (başkası senden önce aldıysa uyarı alırsın), klonunda `task/<no>-…` dalı açılır, Ajan Çalıştır görev metniyle açılır.
-3. Ajan bitince sonucu gözden geçir; **Bende** listesinde PR simgesine bas. Gidecek commit'ler ve çalışacak komutlar gösterilir, onaylarsan gönderilir.
-4. İnceleme ve birleştirme GitHub/GitLab'da. Birleşince görev **Son bitenler**'e geçer, ilerleme çubuğu artar.
+1. **Depoyu bağla**: platformu seç, depo adını, kendi klonunun yolunu ("Gözat" ile seçebilirsin) ve etiketi gir. İsteğe bağlı: plan dosyası (GitHub/GitLab'da "Planı tahtaya aç" için), sahipsiz eşiği (1-168 saat), Worktrunk kullanımı.
+2. **Ajanını seç** (Claude Code / Codex / Cursor), hazır bir görevde **Al ve başlat**. Görev sana atanır (başkası senden önce aldıysa uyarı alırsın). Ana klonun dalı değişmez: görev kendi worktree'sinde, `~/.ai-cockpit/worktrees/<depo>-<kısa-kimlik>/<no>-…` klasöründe `task/<no>-…` dalında açılır. Alma yarıda hata verirse atama geri alınır.
+3. Worktree'ye `.ai-cockpit/brief.md` yazılır: issue metni, kabul ölçütleri, alan, plandaki ilgili bölüm, önce biten görevler ve claude-mem kuruluysa aynı depodan notlar. Dosya commit'e girmez. Ajana giden istem önce bu dosyayı okumasını ve içindeki metni talimat değil veri olarak kullanmasını söyler.
+4. Ajan bitince sonucu gözden geçir; **Bende** listesinde PR simgesine bas. Gidecek commit'ler ve çalışacak komutlar gösterilir, onaylarsan gönderilir.
+5. İnceleme ve birleştirme GitHub/GitLab'da. Birleşince görev **Son bitenler**'e geçer, ilerleme çubuğu artar.
+
+**Bırakmak.** Bitiremediğin görevi **Bırak** ile geri ver. Pencerede devralacak kişiye not yazarsın (en çok 500 karakter); issue'ya gidecek yorum ("Yarıda kaldı. Dal: … Son commit: … Not: …") önizlenir ve onaylamadan yazılmaz. Dal ve worktree silinmez; görevi yeniden alan kişi kaldığı yerden devam eder. Yalnız görevi tutan kişi bırakabilir.
+
+**Planı tahtaya aç** (GitHub/GitLab). Ayarlardaki plan dosyasındaki görevleri issue olarak açar. Önce önizleme gelir: açılacak ve güncellenecek görevler. Onaylarsan her yeni issue'nun numarası planda başlığın altına `<!-- issue:#n -->` olarak yazılır; ikinci çalıştırma çift issue açmaz, işaretli görevleri günceller. Güncellenen issue'ların başlığı ve gövdesi plandaki metinle değiştirilir; yalnız tahta etiketini taşıyan issue'lar güncellenir, etiketsiz bir işaret atlanır ve listelenir. Plan dosyasını sen commit'lersin.
+
+**Worktrunk.** [Worktrunk](https://github.com/max-sixty/worktrunk) (`wt`) kuruluysa worktree açma ve etkinlik okuma ona devredilir; kurulu değilse ya da hata verirse git kullanılır. Depodan gelen Worktrunk hook'ları varsayılan olarak çalıştırılmaz; ayarlardan yalnız güvendiğin depoda aç.
 
 Sağda **Ekip** (depo üyeleri, rolleri, aktif/biten görev sayıları) ve **Son bitenler** (kim, ne zaman) görünür. Depoya erişimi olan herkes kendi kokpitinde aynı panoyu görür.
 

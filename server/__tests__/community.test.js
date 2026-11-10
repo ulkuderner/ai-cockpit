@@ -428,10 +428,19 @@ async function withTempHome(fn) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "community-task4-"));
   sandboxes.push(root);
   const prev = process.env.AI_COCKPIT_HOME;
+  const prevUserHome = process.env.HOME;
   process.env.AI_COCKPIT_HOME = path.join(root, "home");
+  // claim reads claude-mem settings from HOME: a closed port, never the real home.
+  process.env.HOME = path.join(root, "userhome");
+  fs.mkdirSync(path.join(process.env.HOME, ".claude-mem"), { recursive: true });
+  fs.writeFileSync(
+    path.join(process.env.HOME, ".claude-mem", "settings.json"),
+    '{"CLAUDE_MEM_WORKER_PORT":"1"}'
+  );
   try {
     return await fn(root);
   } finally {
+    process.env.HOME = prevUserHome;
     if (prev === undefined) delete process.env.AI_COCKPIT_HOME;
     else process.env.AI_COCKPIT_HOME = prev;
   }

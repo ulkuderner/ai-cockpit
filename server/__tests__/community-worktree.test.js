@@ -17,14 +17,17 @@ const c = require("../lib/community");
 const git = (cwd, args) => c._git(cwd, args);
 const sandbox = [];
 let prevHome;
+let prevUserHome;
 
 before(() => {
   prevHome = process.env.AI_COCKPIT_HOME;
+  prevUserHome = process.env.HOME;
 });
 
 after(() => {
   if (prevHome === undefined) delete process.env.AI_COCKPIT_HOME;
   else process.env.AI_COCKPIT_HOME = prevHome;
+  process.env.HOME = prevUserHome;
   for (const dir of sandbox) fs.rmSync(dir, { recursive: true, force: true });
 });
 
@@ -33,6 +36,13 @@ async function freshRepo({ remote = false } = {}) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "community-worktree-"));
   sandbox.push(root);
   process.env.AI_COCKPIT_HOME = path.join(root, "home");
+  // claim reads claude-mem settings from HOME: point it at a closed port, never the real home.
+  process.env.HOME = path.join(root, "userhome");
+  fs.mkdirSync(path.join(process.env.HOME, ".claude-mem"), { recursive: true });
+  fs.writeFileSync(
+    path.join(process.env.HOME, ".claude-mem", "settings.json"),
+    '{"CLAUDE_MEM_WORKER_PORT":"1"}'
+  );
   const repo = path.join(root, "repo");
   fs.mkdirSync(repo);
   await git(repo, ["init", "-q", "-b", "main"]);

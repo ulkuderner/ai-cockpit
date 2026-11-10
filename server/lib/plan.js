@@ -531,6 +531,7 @@ module.exports = {
   STATUSES,
   readState,
   writeState,
+  TASK_HEADING,
   parsePlan,
   mentionRegex,
   branchTask,

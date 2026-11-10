@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>D1 Tahta Taslağı</title>
+    <!-- D1 iş tahtası arayüz taslağı (Task 7). Statik; Topluluk sayfasının koyu tema sınıflarıyla. Developed by Caglar Ulkuderner -->
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              surface: {
+                1: "rgb(12 12 20)",
+                2: "rgb(19 19 30)",
+                3: "rgb(26 26 40)",
+                4: "rgb(34 34 51)",
+                5: "rgb(42 42 61)",
+              },
+              border: "rgb(42 42 61)",
+              accent: {
+                DEFAULT: "rgb(99 102 241)",
+                hover: "rgb(129 140 248)",
+                muted: "rgb(99 102 241 / 0.15)",
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        background: rgb(12 12 20);
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          sans-serif;
+      }
+      .card {
+        background: rgb(26 26 40);
+        border: 1px solid rgb(42 42 61);
+        border-radius: 0.75rem;
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        border-radius: 0.375rem;
+        padding: 0.125rem 0.375rem;
+        font-size: 11px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+      .tip {
+        position: relative;
+      }
+      .num {
+        font-variant-numeric: tabular-nums;
+      }
+      h2.sec {
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgb(107 114 128);
+        margin: 2.5rem 0 0.75rem;
+      }
+    </style>
+  </head>
+  <body class="text-gray-200">
+    <main class="mx-auto max-w-5xl px-4 py-8">
+      <header class="mb-6">
+        <p class="text-xs text-gray-500">Taslak · Task 7 · kod yok</p>
+        <h1 class="text-xl font-semibold text-gray-100">
+          D1 İş tahtası: Topluluk sayfasına eklenenler
+        </h1>
+        <p class="mt-1 text-sm text-gray-400 max-w-3xl">
+          Mevcut sayfanın düzeni aynı kalıyor; aşağıdakiler görev satırına, alma düğmesine, bırakma
+          penceresine ve ayarlara eklenen parçalar. Örnek depo
+          <span class="font-mono text-gray-300">ekip/kokpit</span>, örnek kişiler uydurma.
+        </p>
+      </header>
+
+      <!-- 1. Görev kartları -->
+      <h2 class="sec">1 · Görev satırları: alan, bağlılık, durum, sahipsizlik</h2>
+      <section class="card divide-y divide-border">
+        <!-- Hazır -->
+        <div class="flex items-start gap-3 px-5 py-4">
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-gray-500 text-sm num">#14</span>
+              <span class="text-sm font-medium text-gray-100"
+                >Görev alanlarını issue gövdesinden oku</span
+              >
+              <span
+                class="rounded-full px-2 py-0.5 text-[11px] ring-1 bg-emerald-500/10 text-emerald-300 ring-emerald-400/25"
+                >Hazır</span
+              >
+            </div>
+            <div class="mt-2 flex flex-wrap items-center gap-1.5">
+              <span class="chip bg-surface-4 text-gray-300">server/lib/task-fields.js</span>
+              <span class="chip bg-surface-4 text-gray-300">server/__tests__/**</span>
+            </div>
+            <p class="mt-1.5 text-xs text-gray-500">Kabul: 2 ölçüt · açık · 2 gün önce eklendi</p>
+          </div>
+          <span class="hidden sm:block w-16 text-right text-xs text-gray-500 num">~2 sa</span>
+          <span
+            class="rounded-full px-2.5 py-0.5 text-xs ring-1 bg-accent-muted text-indigo-200 ring-indigo-400/20"
+            >Açık</span
+          >
+          <button
+            class="inline-flex items-center gap-1.5 rounded-lg bg-accent hover:bg-accent-hover px-3 py-1.5 text-xs font-medium text-white"
+          >
+            Al ve başlat
+          </button>
+        </div>
+
+        <!-- Bekliyor -->
+        <div class="flex items-start gap-3 px-5 py-4">
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-gray-500 text-sm num">#15</span>
+              <span class="text-sm font-medium text-gray-100">Tahtada hazır ve çakışma durumu</span>
+              <span
+                class="rounded-full px-2 py-0.5 text-[11px] ring-1 bg-amber-500/10 text-amber-300 ring-amber-400/25"
+                >Bekliyor: #14</span
+              >
+            </div>
+            <div class="mt-2 flex flex-wrap items-center gap-1.5">
+              <span class="chip bg-surface-4 text-gray-300">server/lib/community.js</span>
+              <span class="chip bg-surface-2 text-gray-400 ring-1 ring-border">Bağlı: #14</span>
+            </div>
+            <p class="mt-1.5 text-xs text-gray-500">Kabul: 3 ölçüt · açık</p>
+          </div>
+          <span class="hidden sm:block w-16 text-right text-xs text-gray-500 num">~1,5 sa</span>
+          <span
+            class="rounded-full px-2.5 py-0.5 text-xs ring-1 bg-accent-muted text-indigo-200 ring-indigo-400/20"
+            >Açık</span
+          >
+          <!-- 2. Devre dışı alma düğmesi + neden -->
+          <div class="flex flex-col items-end gap-1">
+            <button
+              disabled
+              aria-describedby="why15"
+              class="inline-flex items-center gap-1.5 rounded-lg bg-accent opacity-40 cursor-not-allowed px-3 py-1.5 text-xs font-medium text-white"
+            >
+              Al ve başlat
+            </button>
+            <span id="why15" class="text-[11px] text-amber-300/80">Önce #14 bitmeli</span>
+          </div>
+        </div>
+
+        <!-- Çakışma -->
+        <div class="flex items-start gap-3 px-5 py-4">
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-gray-500 text-sm num">#16</span>
+              <span class="text-sm font-medium text-gray-100">Bırakırken not yaz</span>
+              <span
+                class="rounded-full px-2 py-0.5 text-[11px] ring-1 bg-red-500/10 text-red-300 ring-red-400/25"
+                >Çakışma: #12 (Deniz)</span
+              >
+            </div>
+            <div class="mt-2 flex flex-wrap items-center gap-1.5">
+              <span
+                class="chip bg-red-500/10 text-red-200 ring-1 ring-red-400/20"
+                title="#12 de bu alanda çalışıyor"
+                >server/lib/community.js</span
+              >
+              <span class="chip bg-surface-4 text-gray-300">server/routes/community.js</span>
+            </div>
+            <p class="mt-1.5 text-xs text-gray-500">Kabul: belirtilmedi · açık</p>
+          </div>
+          <span class="hidden sm:block w-16 text-right text-xs text-gray-500 num">~1 sa</span>
+          <span
+            class="rounded-full px-2.5 py-0.5 text-xs ring-1 bg-accent-muted text-indigo-200 ring-indigo-400/20"
+            >Açık</span
+          >
+          <div class="flex flex-col items-end gap-1">
+            <button
+              disabled
+              class="inline-flex items-center gap-1.5 rounded-lg bg-accent opacity-40 cursor-not-allowed px-3 py-1.5 text-xs font-medium text-white"
+            >
+              Al ve başlat
+            </button>
+            <span class="text-[11px] text-red-300/80">Aynı alanda #12 çalışıyor</span>
+          </div>
+        </div>
+
+        <!-- Alan yok -->
+        <div class="flex items-start gap-3 px-5 py-4">
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-gray-500 text-sm num">#9</span>
+              <span class="text-sm font-medium text-gray-100">Eski görev: açıklama düzeltmesi</span>
+              <span
+                class="rounded-full px-2 py-0.5 text-[11px] ring-1 bg-emerald-500/10 text-emerald-300 ring-emerald-400/25"
+                >Hazır</span
+              >
+              <span
+                class="rounded-full px-2 py-0.5 text-[11px] ring-1 bg-surface-4 text-gray-400 ring-white/5"
+                title="Issue gövdesinde 'Alan:' satırı yok; çakışma kontrol edilemez"
+                >Alan yok</span
+              >
+            </div>
+            <p class="mt-1.5 text-xs text-gray-500">açık · 3 hafta önce eklendi</p>
+          </div>
+          <span class="hidden sm:block w-16 text-right text-xs text-gray-500 num"></span>
+          <span
+            class="rounded-full px-2.5 py-0.5 text-xs ring-1 bg-accent-muted text-indigo-200 ring-indigo-400/20"
+            >Açık</span
+          >
+          <button
+            class="inline-flex items-center gap-1.5 rounded-lg bg-accent hover:bg-accent-hover px-3 py-1.5 text-xs font-medium text-white"
+          >
+            Al ve başlat
+          </button>
+        </div>
+
+        <!-- Benim, sahipsiz kalmış -->
+        <div class="flex items-start gap-3 px-5 py-4 bg-amber-500/[0.03]">
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-gray-500 text-sm num">#11</span>
+              <span class="text-sm font-medium text-gray-100">Worktrunk varsa onu kullan</span>
+              <span
+                class="rounded-full px-2 py-0.5 text-[11px] ring-1 bg-amber-500/15 text-amber-300 ring-amber-400/30"
+                >Sahipsiz kalmış · 5 sa</span
+              >
+            </div>
+            <div class="mt-2 flex flex-wrap items-center gap-1.5">
+              <span class="chip bg-surface-4 text-gray-300">server/lib/community.js</span>
+            </div>
+            <p class="mt-1.5 text-xs text-gray-500">
+              sende · son commit 5 sa önce · çalışan ajan yok ·
+              <span class="text-amber-300/80">kaydedilmemiş değişiklik var</span>
+            </p>
+          </div>
+          <span class="hidden sm:block w-16 text-right text-xs text-gray-500 num">~3 sa</span>
+          <span
+            class="rounded-full px-2.5 py-0.5 text-xs ring-1 bg-emerald-500/15 text-emerald-300 ring-emerald-400/30"
+            >Sende</span
+          >
+          <div class="flex gap-1">
+            <button
+              class="rounded-lg border border-border px-3 py-1.5 text-xs text-gray-200 hover:bg-surface-4"
+            >
+              Devam et
+            </button>
+            <button class="rounded-lg px-3 py-1.5 text-xs text-gray-400 hover:bg-surface-4">
+              Bırak
+            </button>
+          </div>
+        </div>
+
+        <!-- Başkasının, canlı -->
+        <div class="flex items-start gap-3 px-5 py-4">
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-gray-500 text-sm num">#12</span>
+              <span class="text-sm font-medium text-gray-100">Görev başına worktree</span>
+            </div>
+            <div class="mt-2 flex flex-wrap items-center gap-1.5">
+              <span class="chip bg-surface-4 text-gray-300">server/lib/community.js</span>
+            </div>
+            <p class="mt-1.5 text-xs text-gray-500">Deniz aldı · 40 dk önce</p>
+          </div>
+          <span class="hidden sm:block w-16 text-right text-xs text-gray-500 num">~2 sa</span>
+          <span
+            class="rounded-full px-2.5 py-0.5 text-xs ring-1 bg-surface-5 text-gray-300 ring-white/5"
+            >Alındı</span
+          >
+          <div class="w-[88px]"></div>
+        </div>
+      </section>
+      <p class="mt-2 text-xs text-gray-500">
+        Rozet sırası: durum rozeti (Hazır / Bekliyor / Çakışma / Sahipsiz), sonra "Alan yok".
+        Çakışan alan çipi kırmızı çerçeveli. Özet kutusuna "Hazır: 2" sayısı eklenir.
+      </p>
+
+      <!-- 3. Bırak penceresi -->
+      <h2 class="sec">3 · Bırak penceresi: not ve yorum önizlemesi</h2>
+      <div class="rounded-xl bg-black/65 p-6">
+        <div class="card mx-auto w-full max-w-xl p-5 space-y-4">
+          <div>
+            <h3 class="text-sm font-semibold text-gray-100">#11 görevini bırak</h3>
+            <p class="mt-1 text-xs text-gray-400">
+              Atama kalkar, görev tahtada yeniden açılır. Dal ve worktree silinmez; alan kişi
+              kaldığın yerden devam eder.
+            </p>
+          </div>
+          <label class="block">
+            <span class="text-xs text-gray-400">Devralacak kişiye not (isteğe bağlı)</span>
+            <textarea
+              rows="3"
+              maxlength="500"
+              class="mt-1 w-full rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-accent"
+            >
+wt list çıktısı Unix saati de verebilir; testler sahte betikle yeşil, canlı doğrulama yapılmadı.</textarea
+            >
+            <span class="mt-1 block text-right text-[11px] text-gray-500 num">96 / 500</span>
+          </label>
+          <div>
+            <div class="text-xs text-gray-400 mb-1">Issue'ya yazılacak yorum</div>
+            <pre
+              class="rounded-md border border-border bg-surface-2 px-3 py-2 text-[11px] font-mono text-gray-300 whitespace-pre-wrap"
+            >
+Yarıda kaldı. Dal: task/11-worktrunk-varsa-onu-kullan. Son commit: feat: wt list fallback. Not: wt list çıktısı Unix saati de verebilir; testler sahte betikle yeşil, canlı doğrulama yapılmadı.</pre
+            >
+          </div>
+          <div class="flex justify-end gap-2">
+            <button class="rounded-lg px-4 py-2 text-sm text-gray-300 hover:bg-surface-4">
+              Vazgeç
+            </button>
+            <button
+              class="rounded-lg bg-accent hover:bg-accent-hover px-4 py-2 text-sm font-medium text-white"
+            >
+              Bırak ve yorumu yaz
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Planı tahtaya aç -->
+      <h2 class="sec">4 · "Planı tahtaya aç" önizlemesi</h2>
+      <div class="grid gap-4 lg:grid-cols-2">
+        <div class="rounded-xl bg-black/65 p-6">
+          <div class="card w-full p-5 space-y-4">
+            <div>
+              <h3 class="text-sm font-semibold text-gray-100">Planı tahtaya aç</h3>
+              <p class="mt-1 font-mono text-[11px] text-gray-400">
+                docs/plans/2026-11-04-is-tahtasi.md → ekip/kokpit
+              </p>
+            </div>
+            <div>
+              <div class="text-xs text-gray-400 mb-1.5">Açılacak (3)</div>
+              <ul class="space-y-1 text-sm">
+                <li class="flex gap-2">
+                  <span class="text-emerald-300">+</span
+                  ><span class="text-gray-200">5: Görev brief'i</span>
+                </li>
+                <li class="flex gap-2">
+                  <span class="text-emerald-300">+</span
+                  ><span class="text-gray-200">6: Planı tahtaya aç</span>
+                </li>
+                <li class="flex gap-2">
+                  <span class="text-emerald-300">+</span
+                  ><span class="text-gray-200">8: Arayüz</span>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <div class="text-xs text-gray-400 mb-1.5">Güncellenecek (2)</div>
+              <ul class="space-y-1 text-sm">
+                <li class="flex gap-2">
+                  <span class="text-indigo-300">~</span
+                  ><span class="text-gray-200">1: Görev alanları</span
+                  ><span class="text-gray-500 num">#14</span>
+                </li>
+                <li class="flex gap-2">
+                  <span class="text-indigo-300">~</span
+                  ><span class="text-gray-200">2: Hazır ve çakışma</span
+                  ><span class="text-gray-500 num">#15</span>
+                </li>
+              </ul>
+            </div>
+            <p class="text-xs text-gray-500">
+              Her yeni issue'nun numarası plan dosyasına
+              <span class="font-mono">&lt;!-- issue:#n --&gt;</span> olarak yazılır; ikinci
+              çalıştırmada çift açılmaz. Plan dosyasını sen commit'lersin.
+            </p>
+            <div class="flex justify-end gap-2">
+              <button class="rounded-lg px-4 py-2 text-sm text-gray-300 hover:bg-surface-4">
+                Vazgeç
+              </button>
+              <button
+                class="rounded-lg bg-accent hover:bg-accent-hover px-4 py-2 text-sm font-medium text-white"
+              >
+                Onayla ve aç (5)
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="rounded-xl bg-black/65 p-6">
+          <div class="card w-full p-5 space-y-3">
+            <h3 class="text-sm font-semibold text-gray-100">Planı tahtaya aç</h3>
+            <p class="text-xs text-amber-300/80">Plan dosyası seçilmedi.</p>
+            <label class="block">
+              <span class="text-xs text-gray-400">Plan dosyası (depo içinde, .md)</span>
+              <input
+                value="docs/plans/"
+                class="mt-1 w-full rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm font-mono text-gray-100 focus:outline-none focus:ring-2 focus:ring-accent"
+              />
+            </label>
+            <div class="flex justify-end">
+              <button
+                class="rounded-lg bg-accent hover:bg-accent-hover px-4 py-2 text-sm font-medium text-white"
+              >
+                Kaydet ve önizle
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Ayarlar -->
+      <h2 class="sec">5 · Ayarlar: eklenen alanlar</h2>
+      <div class="card p-5 space-y-4 max-w-2xl">
+        <p class="text-xs text-gray-500">
+          Mevcut alanlar (platform, depo, yerel klasör, etiket) aynı; altına:
+        </p>
+        <label class="block">
+          <span class="text-xs text-gray-400"
+            >Plan dosyası <span class="text-gray-500">(GitHub/GitLab için isteğe bağlı)</span></span
+          >
+          <input
+            value="docs/plans/2026-11-04-is-tahtasi.md"
+            class="mt-1 w-full rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm font-mono text-gray-100"
+          />
+        </label>
+        <label class="block max-w-xs">
+          <span class="text-xs text-gray-400">Sahipsiz sayılma eşiği</span>
+          <div class="mt-1 flex items-center gap-2">
+            <input
+              value="4"
+              inputmode="numeric"
+              class="w-20 rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm text-gray-100 num"
+            />
+            <span class="text-xs text-gray-400">saat (1-168)</span>
+          </div>
+        </label>
+        <fieldset class="space-y-2">
+          <legend class="text-xs text-gray-400">Worktrunk (kuruluysa)</legend>
+          <label class="flex items-center gap-2 text-sm text-gray-200"
+            ><input type="checkbox" checked class="accent-indigo-500" /> Worktree açarken
+            kullan</label
+          >
+          <label class="flex items-start gap-2 text-sm text-gray-200"
+            ><input type="checkbox" class="accent-indigo-500 mt-1" />
+            <span
+              >Proje hook'larını çalıştır
+              <span class="block text-xs text-amber-300/80"
+                >Hook'lar depodan gelen komutlardır; yalnız güvendiğin depoda aç.</span
+              ></span
+            ></label
+          >
+          <p class="text-[11px] text-gray-500">
+            Bu makinede Worktrunk bulunamadı; git kullanılıyor.
+          </p>
+        </fieldset>
+      </div>
+
+      <!-- 6. Alındıktan sonra -->
+      <h2 class="sec">6 · Alındıktan sonra: Ajan Çalıştır</h2>
+      <div class="card p-5 space-y-3 max-w-2xl">
+        <div class="flex items-center gap-2">
+          <span
+            class="rounded-full px-2.5 py-0.5 text-xs ring-1 bg-emerald-500/15 text-emerald-300 ring-emerald-400/30"
+            >Sende</span
+          >
+          <span class="text-sm text-gray-100">#14 Görev alanlarını issue gövdesinden oku</span>
+        </div>
+        <dl class="grid grid-cols-[110px_1fr] gap-x-3 gap-y-1.5 text-xs">
+          <dt class="text-gray-500">Çalışma klasörü</dt>
+          <dd class="font-mono text-gray-300 break-all">
+            ~/.ai-cockpit/worktrees/kokpit/14-gorev-alanlarini-issue-govdesinden-oku
+          </dd>
+          <dt class="text-gray-500">Dal</dt>
+          <dd class="font-mono text-gray-300">task/14-gorev-alanlarini-issue-govdesinden-oku</dd>
+          <dt class="text-gray-500">Brief</dt>
+          <dd class="text-emerald-300">
+            hazır · .ai-cockpit/brief.md
+            <span class="text-gray-500">(issue, kabul, alan, plan bölümü, 2 not)</span>
+          </dd>
+        </dl>
+        <p class="text-xs text-gray-500">
+          Ana depo kendi dalında kalır. Ajan istemi brief'i okumasını ve içindeki metni veri olarak
+          kullanmasını söyler.
+        </p>
+        <div class="flex gap-2">
+          <button
+            class="rounded-lg bg-accent hover:bg-accent-hover px-4 py-2 text-sm font-medium text-white"
+          >
+            Ajanı başlat
+          </button>
+          <button
+            class="rounded-lg border border-border px-4 py-2 text-sm text-gray-200 hover:bg-surface-4"
+          >
+            Klasörü aç
+          </button>
+        </div>
+      </div>
+
+      <footer class="mt-10 text-[11px] text-gray-600">Developed by Caglar Ulkuderner</footer>
+    </main>
+  </body>
+</html>

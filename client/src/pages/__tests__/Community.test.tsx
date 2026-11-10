@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, act, screen, fireEvent, within } from "@testing-library/react";
+import { render, act, screen, fireEvent, within, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import i18n from "i18next";
 
@@ -185,14 +185,18 @@ describe("Community board — D1 task states", () => {
     });
     await settle();
     const dialog = screen.getByRole("dialog");
-    expect(within(dialog).getByText(/Yarıda kaldı/)).toBeInTheDocument();
+    expect(await within(dialog).findByText(/Yarıda kaldı/)).toBeInTheDocument();
+    const confirm = within(dialog).getByRole("button", { name: "Bırak ve yorumu yaz" });
     const note = within(dialog).getByLabelText(/Devralacak kişiye not/) as HTMLTextAreaElement;
     await act(async () => {
       fireEvent.change(note, { target: { value: "test notu" } });
     });
-    await settle();
+    // The shown preview is for the old note: confirm waits for the new one.
+    expect(confirm).toBeDisabled();
+    await waitFor(() => expect(confirm).toBeEnabled());
+    expect(cockpit.communityReleasePreview).toHaveBeenLastCalledWith(11, "test notu");
     await act(async () => {
-      within(dialog).getByRole("button", { name: "Bırak ve yorumu yaz" }).click();
+      confirm.click();
     });
     await settle();
     expect(cockpit.communityRelease).toHaveBeenCalledWith(11, "test notu");
@@ -241,6 +245,15 @@ describe("Community board — D1 task states", () => {
       within(dialog).getByRole("button", { name: "Onayla ve aç (1)" }).click();
     });
     await settle();
-    expect(within(screen.getByRole("dialog")).getByText(/güncellenmedi: #99/)).toBeInTheDocument();
+    const after = screen.getByRole("dialog");
+    expect(within(after).getByText(/güncellenmedi: #99/)).toBeInTheDocument();
+    // The stale preview cannot be confirmed again; the board reloads behind the dialog.
+    expect(within(after).queryByRole("button", { name: /Onayla ve aç/ })).toBeNull();
+    expect(within(after).getByRole("button", { name: "Kapat" })).toBeInTheDocument();
+    expect(vi.mocked(cockpit.communityBoard).mock.calls.length).toBeGreaterThan(1);
+    await act(async () => {
+      fireEvent.keyDown(window, { key: "Escape" });
+    });
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 });

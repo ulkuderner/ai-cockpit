@@ -593,6 +593,17 @@ function ReviewDialog({
   );
 }
 
+/** Escape closes a dialog (WAI-ARIA modal dialog pattern). */
+function useEscape(onClose: () => void) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+}
+
 /** Release with a handover note: the exact comment is previewed from the API before anything is written; the branch and worktree are kept. */
 function ReleaseDialog({
   task,
@@ -606,24 +617,32 @@ function ReleaseDialog({
   const { t } = useTranslation("cockpit");
   const [note, setNote] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
+  // The note the shown preview was made for: confirm only writes what the user has seen.
+  const [previewFor, setPreviewFor] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  useEscape(onClose);
   useEffect(() => {
     let alive = true;
-    cockpit.communityReleasePreview(task.number, note).then(
-      (r) => {
-        if (!alive) return;
-        setPreview(r.comment);
-        setErr(null);
-      },
-      (x: Error) => {
-        if (alive) setErr(x.message);
-      }
-    );
+    const timer = setTimeout(() => {
+      cockpit.communityReleasePreview(task.number, note).then(
+        (r) => {
+          if (!alive) return;
+          setPreview(r.comment);
+          setPreviewFor(note);
+          setErr(null);
+        },
+        (x: Error) => {
+          if (alive) setErr(x.message);
+        }
+      );
+    }, 300);
     return () => {
       alive = false;
+      clearTimeout(timer);
     };
   }, [task.number, note]);
+  const previewReady = preview !== null && previewFor === note && !err;
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4 backdrop-blur-sm"
@@ -641,6 +660,7 @@ function ReleaseDialog({
         <label className="block">
           <span className="text-xs text-gray-400">{t("community.releaseNoteLabel")}</span>
           <textarea
+            autoFocus
             rows={3}
             maxLength={500}
             value={note}
@@ -669,8 +689,14 @@ function ReleaseDialog({
           >
             {t("community.cancel")}
           </button>
+          {!previewReady && !err && (
+            <span id="release-wait" className="mr-auto self-center text-[11px] text-gray-500">
+              {t("community.releaseWaitPreview")}
+            </span>
+          )}
           <button
-            disabled={busy}
+            disabled={busy || !previewReady}
+            aria-describedby={previewReady ? undefined : "release-wait"}
             onClick={async () => {
               setBusy(true);
               try {
@@ -697,12 +723,18 @@ function PlanSyncDialog({
   cfg,
   onClose,
   onDone,
+  onSynced,
 }: {
   cfg: CommunityConfig;
   onClose: () => void;
   onDone: () => void;
+  /** Reload the board while the dialog stays open to show what was skipped. */
+  onSynced: () => void;
 }) {
   const { t } = useTranslation("cockpit");
+  // After a sync that skipped issues the preview is stale: only "close" remains.
+  const [synced, setSynced] = useState(false);
+  useEscape(onClose);
   const [preview, setPreview] = useState<CommunityPlanSyncPreview | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [planFile, setPlanFile] = useState(cfg.planFile ?? "");
@@ -787,6 +819,9 @@ function PlanSyncDialog({
               </ul>
             </div>
             <p className="text-xs text-gray-500">{t("community.planSyncNote")}</p>
+            {preview.update.length > 0 && (
+              <p className="text-xs text-amber-300/80">{t("community.planSyncOverwrite")}</p>
+            )}
           </>
         ) : (
           <>
@@ -810,12 +845,13 @@ function PlanSyncDialog({
         )}
         <div className="flex justify-end gap-2">
           <button
+            autoFocus
             onClick={onClose}
             className="rounded-lg px-4 py-2 text-sm text-gray-300 hover:bg-surface-4"
           >
-            {t("community.cancel")}
+            {synced ? t("community.close") : t("community.cancel")}
           </button>
-          {preview ? (
+          {synced ? null : preview ? (
             <button
               disabled={busy}
               onClick={async () => {
@@ -823,13 +859,15 @@ function PlanSyncDialog({
                 try {
                   const r = await cockpit.communityPlanSync();
                   // Markers on issues without the board label were left alone: say which.
-                  if (r.skipped?.length)
+                  if (r.skipped?.length) {
                     setErr(
                       t("community.planSyncSkipped", {
                         list: r.skipped.map((n) => `#${n}`).join(", "),
                       })
                     );
-                  else onDone();
+                    setSynced(true);
+                    onSynced();
+                  } else onDone();
                 } catch (x) {
                   setErr((x as Error).message);
                 } finally {
@@ -1484,6 +1522,7 @@ export default function Community() {
             setPlanSyncOpen(false);
             load();
           }}
+          onSynced={load}
         />
       )}
     </div>

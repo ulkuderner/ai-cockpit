@@ -8,6 +8,7 @@ const os = require("os");
 const path = require("path");
 const { execFile } = require("child_process");
 const { parsePlan } = require("./plan");
+const { parseTaskFields, areasOverlap } = require("./task-fields");
 
 const REPO_RE = /^[A-Za-z0-9_.-]+(\/[A-Za-z0-9_.-]+)+$/;
 const LABEL_RE = /^[\w .:/-]{1,50}$/;
@@ -121,6 +122,10 @@ const branchFor = (issue) => `task/${issue.number}-${slug(issue.title)}`;
  * Pure: merge normalized issues + review requests into the board the UI shows. Exported for tests.
  * issues: [{ number, title, url, body, assignees: [{login}], labels: [{name}] }]
  * prs:    [{ number, url, body, author: {login}, closingIssuesReferences? }]
+ * The issue body's Alan/Bağlı/est/Kabul lines feed each task's area/deps/acceptance
+ * fields and its readiness: a dep blocks only while it is on the open list (closed
+ * or unknown numbers count as done), an area clashes with any task already being
+ * worked on (mine/taken/review).
  */
 function buildBoard(issues, prs, me, done = { total: 0, recent: [] }) {
   const prByIssue = new Map();
@@ -136,13 +141,17 @@ function buildBoard(issues, prs, me, done = { total: 0, recent: [] }) {
           : assignees.includes(me)
             ? "mine"
             : "taken";
+      const fields = parseTaskFields(i.body || "");
       return {
         number: i.number,
         title: i.title,
         url: i.url || null,
         body: i.body || "",
         assignees,
-        estimate_ms: estimateFromLabels(i.labels),
+        area: fields.area,
+        deps: fields.deps,
+        acceptance: fields.acceptance,
+        estimate_ms: estimateFromLabels(i.labels) ?? fields.estimate_ms,
         branch: branchFor(i),
         state,
         claimed_at: i.claimed_at || null,
@@ -160,6 +169,17 @@ function buildBoard(issues, prs, me, done = { total: 0, recent: [] }) {
       };
     })
     .sort((a, b) => a.number - b.number);
+  const openNumbers = new Set(tasks.map((t) => t.number));
+  const busyNumbers = new Set(tasks.filter((t) => t.state !== "open").map((t) => t.number));
+  for (const t of tasks) {
+    t.blocked_by = t.deps.filter((d) => d !== t.number && openNumbers.has(d));
+    t.conflicts_with = tasks
+      .filter(
+        (o) => o.number !== t.number && busyNumbers.has(o.number) && areasOverlap(t.area, o.area)
+      )
+      .map((o) => o.number);
+    t.ready = t.state === "open" && t.blocked_by.length === 0 && t.conflicts_with.length === 0;
+  }
   const openTasks = tasks.filter((t) => t.state === "open");
   const all = tasks.length + done.total;
   return {
@@ -172,6 +192,7 @@ function buildBoard(issues, prs, me, done = { total: 0, recent: [] }) {
       mine: tasks.filter((t) => t.state === "mine").length,
       taken: tasks.filter((t) => t.state === "taken").length,
       review: tasks.filter((t) => t.state === "review").length,
+      ready: tasks.filter((t) => t.ready).length,
       open_estimate_ms: openTasks.reduce((s, t) => s + (t.estimate_ms || 0), 0),
       open_unestimated: openTasks.filter((t) => t.estimate_ms == null).length,
     },
@@ -671,7 +692,26 @@ async function board(cfg) {
   };
 }
 
-/** Claim: refuse if someone else holds it, assign to me, then check out the task branch from the default branch. */
+/** Fresh claims only: read the same board the UI shows and refuse while an open dependency or an area clash stands. */
+async function refuseIfNotReady(cfg, number, me) {
+  const snap = await adapter(cfg).snapshot(cfg);
+  const task = buildBoard(snap.issues, snap.reviews, me, snap.done).tasks.find(
+    (t) => t.number === number
+  );
+  if (!task) return;
+  if (task.blocked_by.length)
+    throw fail(
+      409,
+      `Önce bitmesi gereken görevler: ${task.blocked_by.map((n) => `#${n}`).join(", ")}`
+    );
+  if (task.conflicts_with.length)
+    throw fail(
+      409,
+      `Aynı alanda çalışan görev var: ${task.conflicts_with.map((n) => `#${n}`).join(", ")}`
+    );
+}
+
+/** Claim: refuse when someone else holds it, a dependency is open or another task works the same area (continuing my own task skips those checks), assign to me, then check out the task branch from the default branch. */
 async function claim(cfg, number) {
   const a = adapter(cfg);
   const me = await whoami(cfg);
@@ -680,7 +720,10 @@ async function claim(cfg, number) {
   if (!issue.open) throw fail(409, "Görev kapalı");
   if (holders.length && !holders.includes(me))
     throw fail(409, `Görev zaten alınmış: ${holders.join(", ")}`);
-  if (!holders.includes(me)) await a.assign(cfg, number);
+  if (!holders.includes(me)) {
+    await refuseIfNotReady(cfg, number, me);
+    await a.assign(cfg, number);
+  }
   // Re-read: two people can click at the same moment; the earliest assignee keeps it.
   const after = (await a.issue(cfg, number)).assignees.map((x) => x.login);
   if (after[0] !== me) {

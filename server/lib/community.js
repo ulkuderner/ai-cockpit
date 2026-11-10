@@ -340,7 +340,7 @@ const github = {
         "-R",
         cfg.repo,
         "--json",
-        "number,title,body,assignees,url,state",
+        "number,title,body,assignees,url,state,labels",
       ])
     );
     return { ...i, open: i.state === "OPEN" };
@@ -499,6 +499,7 @@ const gitlab = {
       url: i.web_url,
       open: i.state === "opened",
       assignees: (i.assignees || []).map((a) => ({ login: a.username, id: a.id })),
+      labels: (i.labels || []).map((name) => ({ name })),
     };
   },
   async members(cfg) {
@@ -1234,12 +1235,20 @@ async function _planSyncWith(a, cfg) {
       );
   }
   const updated = [];
+  const skipped = [];
   for (const s of parsePlanSections(fs.readFileSync(planPath, "utf8"))) {
     if (s.issue == null || created.includes(s.issue)) continue; // just created: already current
+    // A marker anyone can edit into the plan must not overwrite an unrelated issue:
+    // only issues carrying the board label are updated.
+    const cur = await a.issue(cfg, s.issue).catch(() => null);
+    if (!cur || !(cur.labels || []).some((l) => l.name === cfg.label)) {
+      skipped.push(s.issue);
+      continue;
+    }
     await a.updateIssue(cfg, s.issue, issueFor(s));
     updated.push(s.issue);
   }
-  return { created, updated };
+  return { created, updated, skipped };
 }
 
 async function planSync(cfg) {

@@ -64,6 +64,9 @@ function fakeAdapter({ start = 50, failOnCreate = 0 } = {}) {
       async updateIssue(_cfg, n, issue) {
         calls.update.push({ n, ...issue });
       },
+      async issue(_cfg, n) {
+        return { number: n, labels: n === 99 ? [{ name: "başka" }] : [{ name: "t" }] };
+      },
     },
   };
 }
@@ -239,6 +242,7 @@ test("GET /community/plan-sync previews without writes; POST runs the sync", asy
             port: server.address().port,
             path: "/plan-sync",
             method,
+            headers: { "Content-Type": "application/json" },
           },
           (res) => {
             let text = "";
@@ -266,7 +270,24 @@ test("GET /community/plan-sync previews without writes; POST runs the sync", asy
       assert.deepEqual(calls, { create: [], update: [] }); // GET wrote nothing
       const run = await req("POST");
       assert.equal(run.status, 200);
-      assert.deepEqual(run.body, { created: [50], updated: [41] });
+      assert.deepEqual(run.body, { created: [50], updated: [41], skipped: [] });
+      assert.equal(calls.create.length, 1);
+      // A plain cross-site form POST (no JSON type) is refused before it writes anything.
+      const plain = await new Promise((resolve, reject) => {
+        const r = http.request(
+          {
+            hostname: "127.0.0.1",
+            port: server.address().port,
+            path: "/plan-sync",
+            method: "POST",
+            headers: { "Content-Type": "text/plain" },
+          },
+          (res) => resolve(res.statusCode)
+        );
+        r.on("error", reject);
+        r.end("x");
+      });
+      assert.equal(plain, 415);
       assert.equal(calls.create.length, 1);
     } finally {
       server.close();
@@ -294,4 +315,12 @@ test("the marker keeps the plan file's CRLF line ends", async () => {
   const after = fs.readFileSync(planPath, "utf8");
   assert.match(after, /### Task 1: Bir \(est:30m\)\r\n<!-- issue:#50 -->\r\n/);
   assert.doesNotMatch(after.replace(/\r\n/g, ""), /\n/);
+});
+
+test("a marker pointing at an issue without the board label is skipped, not overwritten", async () => {
+  const { cfg } = cfgWithPlan(md.replace("<!-- issue:#41 -->", "<!-- issue:#99 -->"));
+  const { fake, calls } = fakeAdapter();
+  const r = await c._planSyncWith(fake, cfg);
+  assert.deepEqual(r.skipped, [99]);
+  assert.ok(!calls.update.some((u) => u.n === 99));
 });

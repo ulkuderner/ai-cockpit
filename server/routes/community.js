@@ -8,6 +8,13 @@ const community = require("../lib/community");
 
 const router = Router();
 
+// Writes here reach GitHub/GitLab and git. Requiring a JSON body type forces a CORS preflight,
+// so another site cannot fire them through the browser when no dashboard token is set.
+router.use((req, res, next) => {
+  if (req.method === "GET" || req.method === "HEAD" || req.is("application/json")) return next();
+  res.status(415).json({ error: "JSON istek bekleniyor" });
+});
+
 const wrap = (fn) => async (req, res) => {
   try {
     res.json(await fn(req));

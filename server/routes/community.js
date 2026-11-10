@@ -31,14 +31,15 @@ function issueNumber(req) {
 
 router.get("/config", (_req, res) => res.json(community.readConfig() || null));
 
-// Body: { provider: "github"|"gitlab"|"local", localPath, repo?, label?, host? (GitLab), planFile? (local, relative .md) }
+// Body: { provider: "github"|"gitlab"|"local", localPath, repo?, label?, host? (GitLab), planFile? (local, relative .md), staleHours? (1-168, default 4) }
 router.put(
   "/config",
   wrap(async (req) => {
     const b = req.body || {};
     const provider = String(b.provider || "github");
-    const cfg =
-      provider === "local"
+    const staleHours = b.staleHours == null || b.staleHours === "" ? 4 : Number(b.staleHours);
+    const cfg = {
+      ...(provider === "local"
         ? {
             provider,
             localPath: String(b.localPath || "").trim(),
@@ -50,7 +51,9 @@ router.put(
             localPath: String(b.localPath || "").trim(),
             label: String(b.label || "cockpit-task").trim(),
             ...(provider === "gitlab" && b.host ? { host: String(b.host).trim() } : {}),
-          };
+          }),
+      staleHours,
+    };
     community.validateConfig(cfg);
     community.writeConfig(cfg);
     return cfg;
@@ -67,15 +70,37 @@ router.get(
 );
 router.get(
   "/board",
-  wrap(() => community.board(config()))
+  wrap(async () => {
+    const cfg = config();
+    let liveCwds = [];
+    try {
+      // Lazy require keeps this router importable without opening the dashboard
+      // DB, and the board still loads when the center is closed or unreachable.
+      const { db } = require("../db");
+      liveCwds = db
+        .prepare("SELECT cwd FROM sessions WHERE status = 'active'")
+        .all()
+        .map((r) => r.cwd)
+        .filter(Boolean);
+    } catch {
+      liveCwds = [];
+    }
+    return community.board(cfg, liveCwds);
+  })
 );
 router.post(
   "/tasks/:number/claim",
   wrap((req) => community.claim(config(), issueNumber(req)))
 );
 router.post(
+  "/tasks/:number/release/preview",
+  wrap((req) =>
+    community.releasePreview(config(), issueNumber(req), String((req.body || {}).note || ""))
+  )
+);
+router.post(
   "/tasks/:number/release",
-  wrap((req) => community.release(config(), issueNumber(req)))
+  wrap((req) => community.release(config(), issueNumber(req), String((req.body || {}).note || "")))
 );
 router.get(
   "/tasks/:number/pr",

@@ -67,6 +67,9 @@ const git = (cwd, args) => run("git", ["-C", cwd, ...args], { env: gitSafeEnv() 
 
 function validateConfig(cfg) {
   if (!PROVIDERS.has(cfg.provider)) throw fail(400, "Sağlayıcı github, gitlab ya da local olmalı");
+  const staleHours = cfg.staleHours ?? 4;
+  if (!Number.isInteger(staleHours) || staleHours < 1 || staleHours > 168)
+    throw fail(400, "Sahipsiz görev eşiği (staleHours) 1-168 arasında bir tam saat olmalı");
   if (!path.isAbsolute(cfg.localPath || "") || !fs.existsSync(path.join(cfg.localPath, ".git"))) {
     throw fail(400, "Yerel klasör bir git deposu olmalı (tam yol)");
   }
@@ -124,12 +127,23 @@ const branchFor = (issue) => `task/${issue.number}-${slug(issue.title)}`;
  * Pure: merge normalized issues + review requests into the board the UI shows. Exported for tests.
  * issues: [{ number, title, url, body, assignees: [{login}], labels: [{name}] }]
  * prs:    [{ number, url, body, author: {login}, closingIssuesReferences? }]
+ * activity: { [number]: { last_commit_at: string|null, live: boolean } } from boardActivity.
  * The issue body's Alan/Bağlı/est/Kabul lines feed each task's area/deps/acceptance
  * fields and its readiness: a dep blocks only while it is on the open list (closed
  * or unknown numbers count as done), an area clashes with any task already being
- * worked on (mine/taken/review).
+ * worked on (mine/taken/review). A claimed task goes stale (sahipsiz kalmış) when
+ * no agent session is live in its worktree and its last activity (branch tip
+ * commit, else claimed_at) is older than staleMs.
  */
-function buildBoard(issues, prs, me, done = { total: 0, recent: [] }) {
+function buildBoard(
+  issues,
+  prs,
+  me,
+  done = { total: 0, recent: [] },
+  activity = {},
+  now = Date.now(),
+  staleMs = 4 * 3_600_000
+) {
   const prByIssue = new Map();
   for (const pr of prs) for (const n of closedIssues(pr)) prByIssue.set(n, pr);
   const tasks = issues
@@ -181,6 +195,13 @@ function buildBoard(issues, prs, me, done = { total: 0, recent: [] }) {
       )
       .map((o) => o.number);
     t.ready = t.state === "open" && t.blocked_by.length === 0 && t.conflicts_with.length === 0;
+    const act = activity[t.number] || {};
+    t.last_activity_at = act.last_commit_at || t.claimed_at || null;
+    t.stale =
+      (t.state === "mine" || t.state === "taken") &&
+      !act.live &&
+      t.last_activity_at != null &&
+      now - Date.parse(t.last_activity_at) > staleMs;
   }
   const openTasks = tasks.filter((t) => t.state === "open");
   const all = tasks.length + done.total;
@@ -335,6 +356,7 @@ const github = {
   assign: (cfg, n) => gh(["issue", "edit", String(n), "-R", cfg.repo, "--add-assignee", "@me"]),
   unassign: (cfg, n) =>
     gh(["issue", "edit", String(n), "-R", cfg.repo, "--remove-assignee", "@me"]),
+  comment: (cfg, n, text) => gh(["issue", "comment", String(n), "-R", cfg.repo, "--body", text]),
   async defaultBranch(cfg) {
     return JSON.parse(await gh(["repo", "view", cfg.repo, "--json", "defaultBranchRef"]))
       .defaultBranchRef.name;
@@ -487,6 +509,9 @@ const gitlab = {
       `assignee_ids=${JSON.stringify(ids)}`,
     ]);
   },
+  comment(cfg, n, text) {
+    return glab(cfg, `projects/:proj/issues/${n}/notes`, ["-X", "POST", "-f", `body=${text}`]);
+  },
   async defaultBranch(cfg) {
     return (await glab(cfg, "projects/:proj")).default_branch;
   },
@@ -615,13 +640,22 @@ const local = {
     const c = readConfig();
     c.claims = {
       ...(c.claims || {}),
-      [n]: { by: await localMe(cfg), at: new Date().toISOString() },
+      // keep earlier fields (a release note, a done mark) while re-claiming
+      [n]: { ...(c.claims?.[n] || {}), by: await localMe(cfg), at: new Date().toISOString() },
     };
     writeConfig(c);
   },
   async unassign(cfg, n) {
     const c = readConfig();
     if (c.claims) delete c.claims[n];
+    writeConfig(c);
+  },
+  async comment(cfg, n, text) {
+    // The local stand-in for an issue comment: append to the claim's notes so
+    // the next claimer (and the board) can read the handover.
+    const c = readConfig() || {};
+    const prev = c.claims?.[n] || {};
+    c.claims = { ...(c.claims || {}), [n]: { ...prev, notes: [...(prev.notes || []), text] } };
     writeConfig(c);
   },
   async defaultBranch(cfg) {
@@ -688,14 +722,48 @@ async function whoami(cfg) {
   return meCache.get(key);
 }
 
-async function board(cfg) {
+async function board(cfg, liveCwds = []) {
   const a = adapter(cfg);
   const [snap, me] = await Promise.all([a.snapshot(cfg), whoami(cfg)]);
+  const plain = buildBoard(snap.issues, snap.reviews, me, snap.done);
+  const activity = await boardActivity(cfg, plain.tasks, liveCwds);
+  const staleHours = Number.isInteger(cfg.staleHours) ? cfg.staleHours : 4;
   return {
     provider: cfg.provider,
     review_name: a.reviewName,
-    ...buildBoard(snap.issues, snap.reviews, me, snap.done),
+    ...buildBoard(
+      snap.issues,
+      snap.reviews,
+      me,
+      snap.done,
+      activity,
+      Date.now(),
+      staleHours * 3_600_000
+    ),
   };
+}
+
+/**
+ * Per-task activity for the stale flag. My tasks report their branch tip's
+ * commit time from the task's own worktree (someone else's machine is
+ * invisible; their tasks go by claimed_at alone), and `live` says an active
+ * agent session works in that worktree right now (liveCwds = the working
+ * directories of active sessions). Exported for tests and the Worktrunk path.
+ */
+async function boardActivity(cfg, tasks, liveCwds = []) {
+  const out = {};
+  for (const t of tasks || []) {
+    const mine = t.state === "mine" || t.mine === true;
+    const wt = worktreePath(cfg, t.branch);
+    let last_commit_at = null;
+    if (mine && fs.existsSync(wt)) {
+      last_commit_at =
+        (await git(wt, ["log", "-1", "--format=%cI", t.branch]).catch(() => "")).trim() || null;
+    }
+    const live = (liveCwds || []).some((p) => p && (p === wt || p.startsWith(wt + path.sep)));
+    out[t.number] = { last_commit_at, live };
+  }
+  return out;
 }
 
 /** Fresh claims only: read the same board the UI shows and refuse while an open dependency or an area clash stands. */
@@ -837,10 +905,39 @@ function listDirs(dir) {
   };
 }
 
-const release = async (cfg, number) => {
-  await adapter(cfg).unassign(cfg, number);
-  return { ok: true };
-};
+/**
+ * Pure: the handover comment release leaves on the issue, exported so the UI
+ * can preview it before the user confirms (nothing is written unpreviewed).
+ * The note is capped at 500 characters; an empty note becomes "-", a missing
+ * last commit "yok".
+ */
+function releaseComment({ branch, lastSubject, note }) {
+  const text = String(note || "")
+    .trim()
+    .slice(0, 500);
+  return `Yarıda kaldı. Dal: ${branch}. Son commit: ${lastSubject || "yok"}. Not: ${text || "-"}`;
+}
+
+/**
+ * Release a task: drop the assignment, then leave the handover comment on the
+ * issue (previewed first by the caller). The branch and its worktree are kept
+ * so whoever picks the task up starts from the work done so far.
+ */
+/** The exact comment release would write, for the UI to show before the user confirms. */
+async function releasePreview(cfg, number, note = "") {
+  const branch = branchFor(await adapter(cfg).issue(cfg, number));
+  const subject =
+    (await git(cfg.localPath, ["log", "-1", "--format=%s", branch]).catch(() => "")).trim() || null;
+  return { comment: releaseComment({ branch, lastSubject: subject, note }) };
+}
+
+async function release(cfg, number, note = "") {
+  const a = adapter(cfg);
+  const { comment } = await releasePreview(cfg, number, note);
+  await a.unassign(cfg, number);
+  await a.comment(cfg, number, comment);
+  return { ok: true, comment };
+}
 
 async function reviewRequest(cfg, number) {
   const issue = await adapter(cfg).issue(cfg, number);
@@ -880,8 +977,11 @@ module.exports = {
   writeConfig,
   validateConfig,
   board,
+  boardActivity,
   claim,
   release,
+  releasePreview,
+  releaseComment,
   prPreview,
   openPr,
   members,

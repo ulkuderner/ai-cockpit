@@ -1,9 +1,9 @@
 /**
- * @file Tests for AI Cockpit community board logic: task states, PR linking, estimates and branch slugs.
+ * @file Tests for AI Cockpit community board logic: task states, PR linking, estimates, branch slugs, stale-task flags, per-task activity, the release handover comment and its /config route validation.
  * @author Caglar Ulkuderner
  */
 
-const { test } = require("node:test");
+const { test, after } = require("node:test");
 const assert = require("node:assert/strict");
 const c = require("../lib/community");
 
@@ -310,4 +310,296 @@ test("a task listing itself as a dependency is not blocked by it", () => {
   );
   assert.deepEqual(b.tasks[0].blocked_by, []);
   assert.equal(b.tasks[0].ready, true);
+});
+
+test("stale only when claimed, idle and past the threshold", () => {
+  const now = Date.parse("2026-11-04T12:00:00Z");
+  const issues = [
+    {
+      number: 1,
+      title: "A",
+      assignees: [{ login: "me" }],
+      labels: [],
+      body: "",
+      claimed_at: "2026-11-04T06:00:00Z",
+    },
+    {
+      number: 2,
+      title: "B",
+      assignees: [{ login: "me" }],
+      labels: [],
+      body: "",
+      claimed_at: "2026-11-04T06:00:00Z",
+    },
+    {
+      number: 3,
+      title: "C",
+      assignees: [{ login: "me" }],
+      labels: [],
+      body: "",
+      claimed_at: "2026-11-04T06:00:00Z",
+    },
+    { number: 4, title: "D", assignees: [], labels: [], body: "" },
+  ];
+  const activity = {
+    2: { last_commit_at: "2026-11-04T11:00:00Z", live: false },
+    3: { last_commit_at: null, live: true },
+  };
+  const b = c.buildBoard(issues, [], "me", undefined, activity, now);
+  assert.deepEqual(
+    b.tasks.map((t) => t.stale),
+    [true, false, false, false]
+  );
+  assert.equal(b.tasks[1].last_activity_at, "2026-11-04T11:00:00Z");
+});
+
+test("a task under review is never stale", () => {
+  const now = Date.parse("2026-11-04T12:00:00Z");
+  const b = c.buildBoard(
+    [
+      {
+        number: 1,
+        title: "A",
+        assignees: [{ login: "me" }],
+        labels: [],
+        body: "",
+        claimed_at: "2026-11-04T02:00:00Z",
+      },
+    ],
+    [{ number: 9, url: "u", body: "Closes #1", author: { login: "me" } }],
+    "me",
+    undefined,
+    {},
+    now
+  );
+  assert.equal(b.tasks[0].state, "review");
+  assert.equal(b.tasks[0].stale, false);
+});
+
+test("someone else's task goes stale by claim time alone", () => {
+  const now = Date.parse("2026-11-04T12:00:00Z");
+  const b = c.buildBoard(
+    [
+      {
+        number: 1,
+        title: "A",
+        assignees: [{ login: "ali" }],
+        labels: [],
+        body: "",
+        claimed_at: "2026-11-04T06:00:00Z",
+      },
+    ],
+    [],
+    "me",
+    undefined,
+    {},
+    now
+  );
+  assert.equal(b.tasks[0].state, "taken");
+  assert.equal(b.tasks[0].stale, true);
+});
+
+test("releaseComment: full text, empty note and no last commit", () => {
+  assert.equal(
+    c.releaseComment({ branch: "task/7-a", lastSubject: "fix: x", note: " elinde kaldı " }),
+    "Yarıda kaldı. Dal: task/7-a. Son commit: fix: x. Not: elinde kaldı"
+  );
+  assert.equal(
+    c.releaseComment({ branch: "task/7-a", lastSubject: null, note: "" }),
+    "Yarıda kaldı. Dal: task/7-a. Son commit: yok. Not: -"
+  );
+});
+
+test("releaseComment caps the note at 500 characters", () => {
+  const text = c.releaseComment({ branch: "b", lastSubject: "s", note: "n".repeat(600) });
+  assert.equal(text, `Yarıda kaldı. Dal: b. Son commit: s. Not: ${"n".repeat(500)}`);
+});
+
+// boardActivity / release tests below run with AI_COCKPIT_HOME (and, for the
+// local provider, the whole repo) inside throwaway mkdtemp sandboxes; git goes
+// through the module's own runner (`_git`), never a subprocess of this file.
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
+const git = (cwd, args) => c._git(cwd, args);
+const sandboxes = [];
+
+async function withTempHome(fn) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "community-task4-"));
+  sandboxes.push(root);
+  const prev = process.env.AI_COCKPIT_HOME;
+  process.env.AI_COCKPIT_HOME = path.join(root, "home");
+  try {
+    return await fn(root);
+  } finally {
+    if (prev === undefined) delete process.env.AI_COCKPIT_HOME;
+    else process.env.AI_COCKPIT_HOME = prev;
+  }
+}
+
+test("boardActivity: a worktree that does not exist reports no commit time and does not throw", async () => {
+  await withTempHome(async (root) => {
+    const cfg = { provider: "local", localPath: path.join(root, "repo"), planFile: "plan.md" };
+    const a = await c.boardActivity(cfg, [{ number: 1, branch: "task/1-a", state: "mine" }], []);
+    assert.deepEqual(a, { 1: { last_commit_at: null, live: false } });
+  });
+});
+
+test("boardActivity: live when an active session cwd sits inside the worktree", async () => {
+  await withTempHome(async (root) => {
+    const cfg = { provider: "local", localPath: path.join(root, "repo"), planFile: "plan.md" };
+    const wt = c.worktreePath(cfg, "task/1-a");
+    const a = await c.boardActivity(
+      cfg,
+      [
+        { number: 1, branch: "task/1-a", state: "mine" },
+        { number: 2, branch: "task/2-b", state: "taken" },
+      ],
+      [path.join(wt, "alt"), "/başka-yer"]
+    );
+    assert.equal(a[1].live, true);
+    assert.equal(a[2].live, false);
+    assert.equal(a[2].last_commit_at, null); // someone else's machine is invisible
+  });
+});
+
+test("boardActivity: a sibling folder sharing the name prefix is not live", async () => {
+  await withTempHome(async (root) => {
+    const cfg = { provider: "local", localPath: path.join(root, "repo"), planFile: "plan.md" };
+    const wt10 = c.worktreePath(cfg, "task/10-a");
+    const a = await c.boardActivity(cfg, [{ number: 1, branch: "task/1", state: "mine" }], [wt10]);
+    assert.equal(c.worktreePath(cfg, "task/1") + "0-a", wt10);
+    assert.equal(a[1].live, false);
+  });
+});
+
+test("release unassigns first, then writes the handover comment", async () => {
+  const calls = [];
+  await withFakeAdapter(
+    {
+      reviewName: "PR",
+      issue: async (_cfg, n) => ({
+        number: n,
+        title: "A",
+        body: "",
+        url: null,
+        open: true,
+        assignees: [{ login: "me" }],
+      }),
+      unassign: async (_cfg, n) => calls.push(["unassign", n]),
+      comment: async (_cfg, n, text) => calls.push(["comment", n, text]),
+    },
+    async () => {
+      const p = await c.releasePreview(claimCfg, 7, "not");
+      assert.deepEqual(calls, []); // preview writes nothing
+      const r = await c.release(claimCfg, 7, "not");
+      assert.deepEqual(
+        calls.map((x) => x[0]),
+        ["unassign", "comment"]
+      );
+      assert.equal(calls[1][2], "Yarıda kaldı. Dal: task/7-a. Son commit: yok. Not: not");
+      assert.equal(r.ok, true);
+      assert.equal(p.comment, calls[1][2]);
+    }
+  );
+});
+
+test("local release keeps the branch and worktree, stores the note and survives a re-claim", async () => {
+  await withTempHome(async (root) => {
+    const repo = path.join(root, "repo");
+    fs.mkdirSync(repo);
+    await git(repo, ["init", "-q", "-b", "main"]);
+    await git(repo, ["config", "user.name", "Kokpit Test"]);
+    await git(repo, ["config", "user.email", "test@ai-cockpit.example"]);
+    fs.writeFileSync(path.join(repo, "plan.md"), "# Plan\n\n### Task 1: İlk\nGövde 1\n");
+    fs.writeFileSync(path.join(repo, "f.txt"), "one\n");
+    await git(repo, ["add", "."]);
+    await git(repo, ["commit", "-qm", "c1"]);
+    const cfg = { provider: "local", localPath: repo, planFile: "plan.md" };
+    c.writeConfig(cfg);
+    const r = await c.claim(cfg, 1);
+    fs.writeFileSync(path.join(r.cwd, "f.txt"), "one\ntwo\n");
+    await git(r.cwd, ["commit", "-qam", "görev commit'i"]);
+
+    const act = await c.boardActivity(cfg, [{ number: 1, branch: r.branch, state: "mine" }], []);
+    assert.match(act[1].last_commit_at, /^\d{4}-\d{2}-\d{2}T\d{2}:/);
+    assert.equal(act[1].live, false);
+
+    const out = await c.release(cfg, 1, "yarıda kaldı");
+    assert.ok(
+      out.comment.startsWith(
+        `Yarıda kaldı. Dal: ${r.branch}. Son commit: görev commit'i. Not: yarıda kaldı`
+      )
+    );
+    const claims = c.readConfig().claims;
+    assert.equal(claims[1].by, undefined); // assignment gone…
+    assert.deepEqual(claims[1].notes, [out.comment]); // …note kept
+    assert.ok(fs.existsSync(path.join(r.cwd, ".git"))); // worktree kept
+    const branchExists = await git(repo, [
+      "rev-parse",
+      "-q",
+      "--verify",
+      `refs/heads/${r.branch}`,
+    ]).then(
+      () => true,
+      () => false
+    );
+    assert.equal(branchExists, true); // branch kept
+    const snap = await c._adapters.local.snapshot(cfg);
+    assert.deepEqual(snap.issues[0].assignees, []); // back on the open list
+
+    await c.claim(cfg, 1); // re-claim must not wipe the handover note
+    assert.deepEqual(c.readConfig().claims[1].notes, [out.comment]);
+  });
+});
+
+test("PUT /config rejects staleHours outside 1-168 and accepts 4", async () => {
+  await withTempHome(async () => {
+    const http = require("http");
+    const express = require("express");
+    const communityRouter = require("../routes/community");
+    const server = express().use(express.json()).use(communityRouter).listen(0, "127.0.0.1");
+    await new Promise((resolve) => server.once("listening", resolve));
+    const put = (staleHours) =>
+      new Promise((resolve, reject) => {
+        const req = http.request(
+          {
+            hostname: "127.0.0.1",
+            port: server.address().port,
+            path: "/config",
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+          },
+          (res) => {
+            let body = "";
+            res.on("data", (chunk) => (body += chunk));
+            res.on("end", () => resolve({ status: res.statusCode, body: JSON.parse(body) }));
+          }
+        );
+        req.on("error", reject);
+        req.end(
+          JSON.stringify({
+            provider: "github",
+            repo: "a/b",
+            localPath: path.resolve(__dirname, "../.."),
+            label: "t",
+            ...(staleHours === undefined ? {} : { staleHours }),
+          })
+        );
+      });
+    try {
+      assert.equal((await put(0)).status, 400);
+      assert.equal((await put(169)).status, 400);
+      const ok = await put(4);
+      assert.equal(ok.status, 200);
+      assert.equal(ok.body.staleHours, 4);
+      assert.equal(c.readConfig().staleHours, 4);
+    } finally {
+      server.close();
+    }
+  });
+});
+
+after(() => {
+  for (const dir of sandboxes) fs.rmSync(dir, { recursive: true, force: true });
 });

@@ -103,7 +103,8 @@ function planPathIn(cfg) {
   }
   if (!real || !real.startsWith(root + path.sep) || !real.endsWith(".md"))
     throw fail(400, "Plan dosyası depo içinde bir .md dosyası olmalı");
-  return plan;
+  // The checked real path, so a later write cannot follow a link swapped in after the check.
+  return real;
 }
 
 /** Estimate in ms from an `est:3h` / `est:45m` / `est:1.5h` label or title token; null when absent. */

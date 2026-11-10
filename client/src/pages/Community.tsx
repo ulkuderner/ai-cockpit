@@ -594,14 +594,15 @@ function ReviewDialog({
 }
 
 /** Escape closes a dialog (WAI-ARIA modal dialog pattern). */
-function useEscape(onClose: () => void) {
+function useEscape(onClose: () => void, busy: boolean) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      // While a write runs the dialog stays, so its result or error is seen.
+      if (e.key === "Escape" && !busy) onClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [onClose, busy]);
 }
 
 /** Release with a handover note: the exact comment is previewed from the API before anything is written; the branch and worktree are kept. */
@@ -621,7 +622,7 @@ function ReleaseDialog({
   const [previewFor, setPreviewFor] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  useEscape(onClose);
+  useEscape(onClose, busy);
   useEffect(() => {
     let alive = true;
     const timer = setTimeout(() => {
@@ -734,11 +735,11 @@ function PlanSyncDialog({
   const { t } = useTranslation("cockpit");
   // After a sync that skipped issues the preview is stale: only "close" remains.
   const [synced, setSynced] = useState(false);
-  useEscape(onClose);
   const [preview, setPreview] = useState<CommunityPlanSyncPreview | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [planFile, setPlanFile] = useState(cfg.planFile ?? "");
   const [busy, setBusy] = useState(false);
+  useEscape(onClose, busy);
 
   const fetchPreview = useCallback(() => {
     setBusy(true);

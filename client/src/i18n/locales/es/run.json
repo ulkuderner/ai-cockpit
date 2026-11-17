@@ -213,7 +213,8 @@
     "input": "Entrada",
     "output": "Salida",
     "cacheRead": "Acierto de caché",
-    "cost": "Costo"
+    "cost": "Costo",
+    "costNotClaude": "Claude Code calcula todos los modelos con los precios de Claude; esta ejecución usó un modelo que no es Claude, así que no se muestra el coste. Consulta LiteLLM o tu proveedor para el coste real."
   },
   "autocomplete": {
     "slashHint": "Escribe / para comandos de barra",

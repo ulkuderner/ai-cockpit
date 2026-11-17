@@ -213,7 +213,8 @@
     "input": "입력",
     "output": "출력",
     "cacheRead": "캐시 적중",
-    "cost": "비용"
+    "cost": "비용",
+    "costNotClaude": "Claude Code는 모든 모델을 Claude 정가로 계산합니다. 이 실행은 Claude가 아닌 모델을 사용했으므로 비용을 표시하지 않습니다. 실제 비용은 LiteLLM 또는 제공업체에서 확인하세요."
   },
   "autocomplete": {
     "slashHint": "/를 입력해 슬래시 명령 사용",

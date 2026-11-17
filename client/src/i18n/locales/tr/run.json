@@ -213,7 +213,8 @@
     "input": "Girdi",
     "output": "Çıktı",
     "cacheRead": "Önbellek isabeti",
-    "cost": "Maliyet"
+    "cost": "Maliyet",
+    "costNotClaude": "Claude Code her modeli Claude liste fiyatıyla hesaplar; bu çalıştırma Claude dışı bir model kullandığı için maliyet gösterilmiyor. Gerçek maliyet için LiteLLM'e veya sağlayıcınıza bakın."
   },
   "autocomplete": {
     "slashHint": "Eğik çizgi komutları için / yazın",

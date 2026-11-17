@@ -213,7 +213,8 @@
     "input": "输入",
     "output": "输出",
     "cacheRead": "缓存命中",
-    "cost": "成本"
+    "cost": "成本",
+    "costNotClaude": "Claude Code 按 Claude 标价计算所有模型；本次运行使用了非 Claude 模型，因此不显示费用。实际费用请查看 LiteLLM 或您的服务提供商。"
   },
   "autocomplete": {
     "slashHint": "输入 / 选择斜杠命令",

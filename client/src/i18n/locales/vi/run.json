@@ -213,7 +213,8 @@
     "input": "Đầu vào",
     "output": "Đầu ra",
     "cacheRead": "Đọc từ bộ nhớ đệm",
-    "cost": "Chi phí"
+    "cost": "Chi phí",
+    "costNotClaude": "Claude Code tính mọi mô hình theo giá niêm yết của Claude; lần chạy này dùng mô hình không phải Claude nên chi phí không được hiển thị. Xem chi phí thực trong LiteLLM hoặc nhà cung cấp của bạn."
   },
   "autocomplete": {
     "slashHint": "Gõ / để tìm lệnh slash",

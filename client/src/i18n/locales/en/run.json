@@ -213,7 +213,8 @@
     "input": "Input",
     "output": "Output",
     "cacheRead": "Cache hit",
-    "cost": "Cost"
+    "cost": "Cost",
+    "costNotClaude": "Claude Code prices every model at Claude list prices; this run used a non-Claude model, so its cost is not shown. See LiteLLM or your provider for the real cost."
   },
   "autocomplete": {
     "slashHint": "Type / for slash commands",

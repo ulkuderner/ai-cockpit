@@ -135,6 +135,7 @@ import type {
 } from "../lib/api";
 import type { Session, TranscriptMessage, TranscriptContent } from "../lib/types";
 import { eventBus } from "../lib/eventBus";
+import { claudeCostApplies } from "../lib/run-cost";
 import type {
   RunInputAckPayload,
   RunStatusPayload,
@@ -241,6 +242,8 @@ interface ResultEnvelope {
   session_id?: string;
   /** Cost of the run in USD as computed by the CLI. */
   total_cost_usd?: number;
+  /** Per-model token totals keyed by model id (used to tell Claude from non-Claude runs). */
+  modelUsage?: Record<string, unknown>;
   /** Final token totals for the run. */
   usage?: { input_tokens?: number; output_tokens?: number };
 }
@@ -1809,6 +1812,8 @@ interface TokenStats {
   cacheCreationTokens: number;
   /** Run cost in USD from the final `result` envelope, or null while the run is still going. */
   costUsd: number | null;
+  /** True when the run used a non-Claude model, so Claude Code's cost is not a real price. */
+  costNotApplicable: boolean;
   /**
    * Context window the model reported (1M-context variants report it), or null to use {@link
    * DEFAULT_CONTEXT_WINDOW}.
@@ -1846,6 +1851,7 @@ function computeTokens(envelopes: Envelope[]): TokenStats {
   let completedOutputTokens = 0;
   let currentTurnOutput = 0;
   let costUsd: number | null = null;
+  const models: string[] = [];
   let contextWindow: number | null = null;
   let sawMessageStart = false;
   // While we don't have an authoritative output count from message_delta /
@@ -1920,6 +1926,7 @@ function computeTokens(envelopes: Envelope[]): TokenStats {
       }
       if (typeof r.total_cost_usd === "number") costUsd = r.total_cost_usd;
       if (r.modelUsage && typeof r.modelUsage === "object") {
+        models.push(...Object.keys(r.modelUsage));
         for (const m of Object.values(r.modelUsage)) {
           if (!m || typeof m !== "object") continue;
           if (typeof m.contextWindow === "number") contextWindow = m.contextWindow;
@@ -1940,6 +1947,7 @@ function computeTokens(envelopes: Envelope[]): TokenStats {
     } else if (e.type === "system" && (env as SystemInit).model) {
       // Heuristic: 1M Opus has [1m] in the model id
       const model = (env as SystemInit).model || "";
+      models.push(model);
       if (/\[1m\]/i.test(model)) contextWindow = 1_000_000;
     } else if (e.type === "assistant") {
       const msg = (
@@ -2003,7 +2011,8 @@ function computeTokens(envelopes: Envelope[]): TokenStats {
     outputTokens: completedOutputTokens + currentTurnOutput,
     cacheReadTokens,
     cacheCreationTokens,
-    costUsd,
+    costUsd: claudeCostApplies(models) ? costUsd : null,
+    costNotApplicable: !claudeCostApplies(models),
     contextWindow,
   };
 }
@@ -2080,6 +2089,12 @@ function TokenMeter({ stats }: { stats: TokenStats }) {
           <span>
             <span className="text-gray-500">{t("tokens.cost")}:</span>{" "}
             <span className="font-mono text-gray-200">${stats.costUsd.toFixed(4)}</span>
+          </span>
+        )}
+        {stats.costNotApplicable && (
+          <span title={t("tokens.costNotClaude")}>
+            <span className="text-gray-500">{t("tokens.cost")}:</span>{" "}
+            <span className="font-mono text-gray-400">—</span>
           </span>
         )}
       </span>
@@ -5005,13 +5020,18 @@ function ResultFooter({ result }: { result: ResultEnvelope }) {
           value={`${(result.duration_ms / 1000).toFixed(1)}s`}
         />
       )}
-      {typeof result.total_cost_usd === "number" && (
-        <Stat
-          icon={CircleDollarSign}
-          label={t("footer.cost")}
-          value={`$${result.total_cost_usd.toFixed(4)}`}
-        />
-      )}
+      {typeof result.total_cost_usd === "number" &&
+        (claudeCostApplies(Object.keys(result.modelUsage || {})) ? (
+          <Stat
+            icon={CircleDollarSign}
+            label={t("footer.cost")}
+            value={`$${result.total_cost_usd.toFixed(4)}`}
+          />
+        ) : (
+          <span title={t("tokens.costNotClaude")}>
+            <Stat icon={CircleDollarSign} label={t("footer.cost")} value="—" />
+          </span>
+        ))}
       {typeof result.num_turns === "number" && (
         <Stat icon={Hash} label={t("footer.turns")} value={String(result.num_turns)} />
       )}

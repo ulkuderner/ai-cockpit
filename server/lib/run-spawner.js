@@ -41,6 +41,47 @@ const spawn = require("cross-spawn");
 const { randomUUID } = require("node:crypto");
 const { broadcast } = require("../websocket");
 const { createLineParser } = require("./stream-json-parser");
+const fs = require("node:fs");
+const os = require("node:os");
+const path = require("node:path");
+
+/**
+ * Task runs (cwd inside the cockpit's task worktrees, opened by a board claim)
+ * are started from the browser, which cannot answer Claude Code's permission
+ * prompts: the run then waits forever on the first `pytest` or `git commit`.
+ * They get a fixed list for the routine steps of a task (inspect, stage,
+ * commit, run the tests) and an explicit deny for push, which stays the
+ * cockpit's "PR gönder" step. Passed per run with --settings, so nothing is
+ * written into the worktree and nothing can be committed by accident.
+ * AI_COCKPIT_TASK_RUN_ALLOW=0 turns the list off.
+ */
+const TASK_RUN_PERMISSIONS = Object.freeze({
+  allow: [
+    "Bash(git status:*)",
+    "Bash(git diff:*)",
+    "Bash(git log:*)",
+    "Bash(git add:*)",
+    "Bash(git commit:*)",
+    "Bash(pytest:*)",
+    "Bash(python -m pytest:*)",
+    "Bash(python3 -m pytest:*)",
+    "Bash(npm test:*)",
+    "Bash(npm run test:*)",
+    "Bash(node --test:*)",
+  ],
+  deny: ["Bash(git push:*)"],
+});
+
+function isTaskWorktree(cwd) {
+  if (!cwd || process.env.AI_COCKPIT_TASK_RUN_ALLOW === "0") return false;
+  const home = process.env.AI_COCKPIT_HOME || path.join(os.homedir(), ".ai-cockpit");
+  try {
+    const root = fs.realpathSync(path.join(home, "worktrees"));
+    return fs.realpathSync(cwd).startsWith(root + path.sep);
+  } catch {
+    return false;
+  }
+}
 
 // Persistence is best-effort and optional — load lazily so unit tests that
 // don't bring up the full db can still exercise the spawner.
@@ -109,7 +150,7 @@ function tail(s, n) {
  */
 const EFFORT_LEVELS = new Set(["low", "medium", "high", "xhigh", "max"]);
 
-function buildArgv({ prompt, mode, model, permissionMode, resumeSessionId, effort }) {
+function buildArgv({ prompt, mode, model, permissionMode, resumeSessionId, effort, cwd }) {
   const argv = [];
   argv.push("--output-format", "stream-json");
   argv.push("--verbose");
@@ -120,6 +161,9 @@ function buildArgv({ prompt, mode, model, permissionMode, resumeSessionId, effor
   // render text + thinking deltas as they arrive.
   argv.push("--include-partial-messages");
   argv.push("--permission-mode", permissionMode || "acceptEdits");
+  if (isTaskWorktree(cwd)) {
+    argv.push("--settings", JSON.stringify({ permissions: TASK_RUN_PERMISSIONS }));
+  }
   if (mode === "headless") {
     argv.push("-p", prompt);
   } else {
@@ -307,7 +351,7 @@ function spawnRun(args) {
   }
 
   const id = randomUUID();
-  const argv = buildArgv({ prompt, mode, model, permissionMode, resumeSessionId, effort });
+  const argv = buildArgv({ prompt, mode, model, permissionMode, resumeSessionId, effort, cwd });
   // cross-spawn handles the Windows `.cmd` shim safely (see the require above);
   // deliberately no `shell` option, so argv is never parsed by cmd.exe.
   const child = spawn("claude", argv, {
@@ -526,4 +570,6 @@ module.exports = {
   getMaxConcurrent,
   __injectChildForTest,
   __reset,
+  _buildArgv: buildArgv,
+  TASK_RUN_PERMISSIONS,
 };

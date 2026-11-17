@@ -233,6 +233,16 @@ test("the agent prompt opens with the data warning, not the issue title", async 
   assert.ok(!r.prompt.includes("İlk"));
 });
 
+test("the agent prompt asks for relative paths, never the absolute worktree path", async () => {
+  const { cfg } = await freshRepo();
+  const r = await c.claim(cfg, 1);
+  assert.match(
+    r.prompt,
+    /göreli yolla eriş \(ör\. \.\/\.ai-cockpit\/brief\.md\); mutlak yol yazma\./
+  );
+  assert.ok(!r.prompt.includes(r.cwd), "the prompt must not carry the worktree's absolute path");
+});
+
 test("two repos with the same folder name get separate task folders", async () => {
   const a = { provider: "local", localPath: path.join(os.tmpdir(), "x1", "app") };
   const b = { provider: "local", localPath: path.join(os.tmpdir(), "x2", "app") };
